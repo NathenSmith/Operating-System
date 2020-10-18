@@ -31,12 +31,12 @@ static inline void assertion_failure(){
  */
 
 
-//int idt_test(){
-	/*TEST_HEADER;
+int idt_test(){
+	TEST_HEADER;
 
 	int i;
 	int result = PASS;
-	for (i = 0; i < 10; ++i){
+	for (i = 0; i < 9; ++i){
 		if ((idt[i].offset_15_00 == NULL) &&
 			(idt[i].offset_31_16 == NULL)){
 			assertion_failure();
@@ -44,8 +44,8 @@ static inline void assertion_failure(){
 		}
 	}
 
-	return result;*/
-//}
+	return result;
+}
 
 // add more tests here
 
@@ -57,6 +57,6 @@ static inline void assertion_failure(){
 
 /* Test suite entry point */
 void launch_tests(){
-	//TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
 }
