@@ -6,49 +6,46 @@
 #include "lib.h"
 
 /* Interrupt masks to determine which interrupts are enabled and disabled */
-uint8_t master_mask; /* IRQs 0-7  */
-uint8_t slave_mask;  /* IRQs 8-15 */
+uint8_t master_mask = 0xff; /* IRQs 0-7  */
+uint8_t slave_mask = 0xff;  /* IRQs 8-15 */
 
-//lock used for initializing pic
-spinlock_t * i8259A_lock;
+//data ports on master and slave
+uint16_t MASTER_DATA = MASTER_8259_PORT + 1;
+uint16_t SLAVE_DATA = SLAVE_8259_PORT + 1;
 
 /* Initialize the 8259 PIC */
 void i8259_init(void) {   
-    unsigned long flags;
 
-    spin_lock_irqsave(&i8259A_lock, flags);    //save flags and lock
-
-    outb(0xff, MASTER_8259_PORT + 1);       //mask interrupts on master data port
-    outb(0xff, SLAVE_8259_PORT + 1);       //mask interrupts on slave data port
+    outb(0xff, MASTER_DATA);       //mask interrupts on master data port
+    outb(0xff, SLAVE_DATA);       //mask interrupts on slave data port
     
     //send control words to master
-    outb_p(ICW1, MASTER_8259_PORT);      //initialization control word
-    outb_p(ICW2_MASTER, MASTER_8259_PORT + 1);  //second control word to master, mapped on 0x20
-    outb_p(ICW3_MASTER, MASTER_8259_PORT +1);   //has slave on IR2
-    outb_p(EOI, MASTER_8259_PORT + 1);
+    outb(ICW1, MASTER_8259_PORT);      //initialization control word
+    outb(ICW2_MASTER, MASTER_DATA);  //second control word to master, mapped on 0x20
+    outb(ICW3_MASTER, MASTER_DATA);   //has slave on IR2
+    outb(EOI, MASTER_DATA);
 
     //send control words to slave
-    outb_p(ICW1, SLAVE_8259_PORT);      //initialization control word
-    outb_p(ICW2_SLAVE, SLAVE_8259_PORT + 1);  //second control word to SLAVE, mapped on 0x20
-    outb_p(ICW3_SLAVE, SLAVE_8259_PORT +1);   //has slave on IR2
-    outb_p(EOI, SLAVE_8259_PORT + 1);
+    outb(ICW1, SLAVE_8259_PORT);      //initialization control word
+    outb(ICW2_SLAVE, SLAVE_DATA);  //second control word to SLAVE, mapped on 0x20
+    outb(ICW3_SLAVE, SLAVE_DATA);   //has slave on IR2
+    outb(EOI, SLAVE_DATA);  //end of interrupt
 
-    spin_unlock_irqrestore(&i8259A_lock, flags);    //restore flags and unlock
+    outb(master_mask, MASTER_DATA);
+    outb(slave_mask, SLAVE_DATA);
 }
 
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num) {
-    uint16_t port;
- 
+
     if(irq_num < 8) {     //on master
-        port = MASTER_8259_PORT + 1;
-        master_mask = inb(port) & ~(1 << irqnum);
-        outb(master_mask, port);
+        master_mask = inb(MASTER_DATA) & ~(1 << irq_num);
+        outb(master_mask, MASTER_DATA);
     } else {
-        port = SLAVE_8259_PORT + 1;
         irq_num -= 8;     //to get irq on slave chip
-        slave_mask = inb(port) & ~(1 << irqnum);
-        outb(slave_mask, port);
+        slave_mask = inb(SLAVE_DATA) & ~(1 << irq_num);
+        outb(slave_mask, SLAVE_DATA);
+        outb(inb(MASTER_DATA) & ~(ICW3_SLAVE), MASTER_DATA);
     }
 }
 /* Disable (mask) the specified IRQ */
@@ -56,14 +53,15 @@ void disable_irq(uint32_t irq_num) {
     uint16_t port;
  
     if(irq_num < 8) {     //on master
-        port = MASTER_8259_PORT + 1;
-        master_mask = inb(port) | (1 << irqnum);
-        outb(master_mask, port);
+        port = MASTER_DATA;
+        master_mask = inb(MASTER_DATA) | (1 << irq_num);
+        outb(master_mask, MASTER_DATA);
     } else {
-        port = SLAVE_8259_PORT + 1;
+        port = SLAVE_DATA;
         irq_num -= 8;     //to get irq on slave chip
-        slave_mask = inb(port) | (1 << irqnum);
+        slave_mask = inb(SLAVE_DATA) | (1 << irq_num);
         outb(slave_mask, port);
+        outb(inb(MASTER_DATA) | (ICW3_SLAVE), MASTER_DATA);
     }
 }
 
