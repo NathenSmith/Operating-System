@@ -157,9 +157,6 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-
-   // uint32_t x = inb(MASTER_DATA);
-    //printf("%d", x);
     
 
 #ifdef RUN_TESTS

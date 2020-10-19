@@ -5,7 +5,7 @@
 
 void setup_idt_entry(void * handler_address, int irq_num, int privilege);
 void system_call_handler();
-//void divide();    
+void divide();    
 void debug();    
 void nmi();    
 void breakpoint();    
@@ -39,7 +39,6 @@ void security();
 
 void setup_idt_entry(void * handler_address, int irq_num, int privilege)
 {   
-
     idt[irq_num].seg_selector = KERNEL_CS;
     idt[irq_num].dpl = privilege;
     idt[irq_num].size = 1;
@@ -144,6 +143,7 @@ void system_call_handler()
 
 void divide() {
     cli();
+    clear();
     printf("Divide-by-zero Error");
     while(1) {
         //do nothing
@@ -159,7 +159,8 @@ void divide() {
  */
 
 void debug() {
-    cli();
+    cli(); 
+    clear();
     printf("Debug");
     while(1) {
         //do nothing
@@ -175,7 +176,8 @@ void debug() {
  */
 
 void nmi() {
-    cli();
+    cli(); 
+    clear();
     printf("Non-maskable Interrupt");
     while(1) {
         //do nothing
@@ -191,7 +193,8 @@ void nmi() {
  */
 
 void breakpoint() {
-    cli();
+    cli(); 
+    clear();
     printf("Breakpoint");
     while(1) {
         //do nothing
@@ -207,7 +210,8 @@ void breakpoint() {
  */
 
 void overflow() {
-    cli();
+    cli(); 
+    clear();
     printf("Overflow");
     while(1) {
         //do nothing
@@ -224,6 +228,7 @@ void overflow() {
 
 void boundexceed() {
     cli();
+    clear();
     printf("Bound Range Exceeded");
     while(1) {
         //do nothing
@@ -238,7 +243,8 @@ void boundexceed() {
  * Side Effects: None
  */
 void invalidopcode() {
-    cli();
+    cli(); 
+    clear();
     printf("Invalid Opcode");
     while(1) {
         //do nothing
@@ -255,7 +261,8 @@ void invalidopcode() {
  */
 
 void decidenot() {
-    cli();
+    cli(); 
+    clear();
     printf("Decide Not Available");
     while(1) {
         //do nothing
@@ -271,7 +278,8 @@ void decidenot() {
  */
 
 void doublefault() {
-    cli();
+    cli(); 
+    clear();
     printf("Double Fault");
     while(1) {
         //do nothing
@@ -287,7 +295,8 @@ void doublefault() {
  */
 
 void invalidtss() {
-    cli();
+    cli(); 
+    clear();
     printf("Invalid TSS");
     while(1) {
         //do nothing
@@ -303,7 +312,8 @@ void invalidtss() {
  */
 
 void segmentnot() {
-    cli();
+    cli(); 
+    clear();
     printf("Segment Not Present");
     while(1) {
         //do nothing
@@ -319,7 +329,8 @@ void segmentnot() {
  */
 
 void stacksegfault() {
-    cli();
+    cli(); 
+    clear();
     printf("Stack-Segment Fault");
     while(1) {
         //do nothing
@@ -335,7 +346,8 @@ void stacksegfault() {
  */
 
 void genprotfault() {
-    cli();
+    cli(); 
+    clear();
     printf("General Protection Fault");
     while(1) {
         //do nothing
@@ -351,7 +363,8 @@ void genprotfault() {
  */
 
 void pagefault() {
-    cli();
+    cli(); 
+    clear();
     printf("Page Fault");
     while(1) {
         //do nothing
@@ -367,7 +380,8 @@ void pagefault() {
  */
 
 void floatingpoint() {
-    cli();
+    cli(); 
+    clear();
     printf("x87 Floating-Point-Exception");
     while(1) {
         //do nothing
@@ -382,7 +396,8 @@ void floatingpoint() {
  * Side Effects: None
  */
 void alignment_c() {
-    cli();
+    cli(); 
+    clear();
     printf("Alignment Check");
     while(1) {
         //do nothing
@@ -398,7 +413,8 @@ void alignment_c() {
  */
 
 void machine_c() {
-    cli();
+    cli(); 
+    clear();
     printf("Machine Check");
     while(1) {
         //do nothing
@@ -414,7 +430,8 @@ void machine_c() {
  */
 
 void simd() {
-    cli();
+    cli(); 
+    clear();
     printf("SIMD Floating-Point Exception");
     while(1) {
         //do nothing
@@ -430,7 +447,8 @@ void simd() {
  */
 
 void virtual_e() {
-    cli();
+    cli(); 
+    clear();
     printf("Virtualization Exception");
     while(1) {
         //do nothing
@@ -446,7 +464,8 @@ void virtual_e() {
  */
 
 void security() {
-    cli();
+    cli(); 
+    clear();
     printf("Security Exception");
     while(1) {
         //do nothing
