@@ -95,6 +95,8 @@ void setup_idt() { //replace with assembly linkage
     setup_idt_entry(isr_wrapperE, 0x2E, 0);
     setup_idt_entry(isr_wrapperF, 0x2F, 0);
 
+    //then initialize rtc, keyboard, cli sti
+
     /* setup exceptions */
     setup_idt_entry(divide, 0x00, 0);
     setup_idt_entry(debug, 0x01, 0);

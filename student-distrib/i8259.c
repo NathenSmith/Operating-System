@@ -53,7 +53,7 @@ void i8259_init(void) {
  */ 
 
 void enable_irq(uint32_t irq_num) {
-
+    printf("enable irq");
     if(irq_num < SLAVE_START) {     //on master
         master_mask = inb(MASTER_DATA) & ~(1 << irq_num);
         outb(master_mask, MASTER_DATA);
@@ -61,7 +61,6 @@ void enable_irq(uint32_t irq_num) {
         irq_num -= SLAVE_START;     //to get irq on slave chip
         slave_mask = inb(SLAVE_DATA) & ~(1 << irq_num);
         outb(slave_mask, SLAVE_DATA);
-        outb(inb(MASTER_DATA) & ~(ICW3_SLAVE), MASTER_DATA);
     }
 }
 
@@ -74,6 +73,7 @@ void enable_irq(uint32_t irq_num) {
  * Return value: None
  */ 
 void disable_irq(uint32_t irq_num) {
+    printf("disable irq %d", irq_num);
     uint16_t port;
  
     if(irq_num < SLAVE_START) {     //on master

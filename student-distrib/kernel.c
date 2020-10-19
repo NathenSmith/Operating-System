@@ -11,6 +11,7 @@
 #include "keyboard.h"
 #include "rtc.h"
 #include "paging.h"
+//uint16_t MASTER_DATA = MASTER_8259_PORT + 1;
 
 #define RUN_TESTS
 
@@ -140,15 +141,16 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     /* Init the PIC */
+    //enable irq for kbd, rtc
     i8259_init();
 
     setup_idt();
-
+    paging_init();
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
     initialize_rtc();
-    paging_init();
-    // initialize_keyboard();
+    
+    //initialize_keyboard();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
@@ -156,8 +158,9 @@ void entry(unsigned long magic, unsigned long addr) {
     printf("Enabling Interrupts\n");
     sti();
 
-    test_interrupts();
-
+   // uint32_t x = inb(MASTER_DATA);
+    //printf("%d", x);
+    
 
 #ifdef RUN_TESTS
     /* Run tests */
