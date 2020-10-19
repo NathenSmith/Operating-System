@@ -26,33 +26,19 @@ void simd();
 void virtual_e();
 void security();
 
-void test_func(){
-    printf("fuck");
-    while (1)
-    {
-        /* code */
-    }
-    
-}
-
-//ints
-//extern void rtc_handler(void);
-//extern void keyboard_handler(void);
-/*
-void rtc_handler(){
-    //check for hardware ints
-    printf("rtc");
-}
-void key_board_handler(){
-    //check for hardware ints
-    printf("kbd");
-}*/
-
+/* setup_idt_entry
+ * 
+ * Sets up a single idt entry by setting the location of 
+ the handler, size, privilege level, segment selector, 
+ whether or not the handler is present, and the reserved 
+ bits. 
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
 
 void setup_idt_entry(void * handler_address, int irq_num, int privilege)
 {   
-     //FOR EXCEPTIONS
-    SET_IDT_ENTRY(idt[irq_num], handler_address);
 
     idt[irq_num].seg_selector = KERNEL_CS;
     idt[irq_num].dpl = privilege;
@@ -73,16 +59,27 @@ void setup_idt_entry(void * handler_address, int irq_num, int privilege)
     if(irq_num >= 0x20 && irq_num <= 0x2F) {
         idt[irq_num].reserved3 = 0;
     } 
+
+    //FOR EXCEPTIONS
+    SET_IDT_ENTRY(idt[irq_num], handler_address);
 }
 
-/* initializes all idt entries */
+/* setup_idt
+ * 
+ * Sets up the idt entries for system calls,
+ * hardware interrupts, and exceptions.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void setup_idt() { //replace with assembly linkage
     /* setup system call */
     setup_idt_entry(sys_call, 0x80, 3); 
 
     /* setup interrupts */
     setup_idt_entry(isr_wrapper0, 0x20, 0);
-    setup_idt_entry(test_func, 0x21, 0);
+    setup_idt_entry(isr_wrapper1, 0x21, 0);
     setup_idt_entry(isr_wrapper2, 0x22, 0);
     setup_idt_entry(isr_wrapper3, 0x23, 0);
     setup_idt_entry(isr_wrapper4, 0x24, 0);
@@ -121,10 +118,27 @@ void setup_idt() { //replace with assembly linkage
     setup_idt_entry(security, 0x1E, 0);
 }
 
+/* system_call_handler
+ * 
+ * Prints that a system call was executed.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void system_call_handler()
 {
     printf("system call executed");
 }
+
+
+/* divide
+ * 
+ * Prints that a divide by zero exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
 
 void divide() {
     printf("Divide-by-zero Error");
@@ -132,36 +146,89 @@ void divide() {
         //do nothing
     }
 }
+
+/* debug
+ * 
+ * Prints that a debug exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void debug() {
     printf("Debug");
     while(1) {
         //do nothing
     }
 }
+
+/* non-maskable interrupt
+ * 
+ * Prints that a non-maskable interrupt occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void nmi() {
     printf("Non-maskable Interrupt");
     while(1) {
         //do nothing
     }
 }
+
+/* breakpoint
+ * 
+ * Prints that a breakpoint exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void breakpoint() {
     printf("Breakpoint");
     while(1) {
         //do nothing
     }
 }
+
+/* overflow
+ * 
+ * Prints that a overflow exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void overflow() {
     printf("Overflow");
     while(1) {
         //do nothing
     }
 }
+
+/* boundexceed
+ * 
+ * Prints that the bound range was exceed.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void boundexceed() {
     printf("Bound Range Exceeded");
     while(1) {
         //do nothing
     }
 }
+
+/* invalidopcode
+ * 
+ * Prints that an invalid opcode exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
 void invalidopcode() {
     printf("Invalid Opcode");
     while(1) {
@@ -169,49 +236,120 @@ void invalidopcode() {
     }
 }
 
+
+/* decidenot
+ * 
+ * Prints that a decide not available exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void decidenot() {
     printf("Decide Not Available");
     while(1) {
         //do nothing
     }
 }
+
+/* doublefault
+ * 
+ * Prints that a double fault exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void doublefault() {
     printf("Double Fault");
     while(1) {
         //do nothing
     }
 }
+
+/* invalidtss
+ * 
+ * Prints that the invalid tss was invalid.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void invalidtss() {
     printf("Invalid TSS");
     while(1) {
         //do nothing
     }
 }
+
+/* segmentnot
+ * 
+ * Prints that a segment is not present.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void segmentnot() {
     printf("Segment Not Present");
     while(1) {
         //do nothing
     }
 }
+
+/* stacksegfault
+ * 
+ * Prints that a stack segment fault occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void stacksegfault() {
     printf("Stack-Segment Fault");
     while(1) {
         //do nothing
     }
 }
-    
+
+/* genprotfault
+ * 
+ * Prints that a general protection fault occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void genprotfault() {
     printf("General Protection Fault");
     while(1) {
         //do nothing
     }
 }
+
+/* pagefault
+ * 
+ * Prints that a page fault occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void pagefault() {
     printf("Page Fault");
     while(1) {
         //do nothing
     }
 }
+
+/* floatingfault
+ * 
+ * Prints that a floating point exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void floatingpoint() {
     printf("x87 Floating-Point-Exception");
     while(1) {
@@ -219,31 +357,73 @@ void floatingpoint() {
     }
 }
 
-
+/* alignment_c
+ * 
+ * Prints that an aligment check exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
 void alignment_c() {
     printf("Alignment Check");
     while(1) {
         //do nothing
     }
 }
+
+/* machine_c
+ * 
+ * Prints that a machine check exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void machine_c() {
     printf("Machine Check");
     while(1) {
         //do nothing
     }
 }
+
+/* simd
+ * 
+ * Prints that a simd exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void simd() {
     printf("SIMD Floating-Point Exception");
     while(1) {
         //do nothing
     }
 }
+
+/* virtual_e
+ * 
+ * Prints that a virtual exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void virtual_e() {
     printf("Virtualization Exception");
     while(1) {
         //do nothing
     }
 }
+
+/* security
+ * 
+ * Prints that a security exception occured.
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: None
+ */
+
 void security() {
     printf("Security Exception");
     while(1) {
