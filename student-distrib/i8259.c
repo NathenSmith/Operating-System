@@ -31,6 +31,8 @@ void i8259_init(void) {
 
     outb(master_mask, MASTER_DATA);
     outb(slave_mask, SLAVE_DATA);
+
+    enable_irq(ICW3_SLAVE);
 }
 
 /* Enable (unmask) the specified IRQ */

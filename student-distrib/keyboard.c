@@ -2,7 +2,6 @@
 
  
 void initialize_keyboard(){
-    printf("kbd init");
     enable_irq(KEYBOARD_IRQ);   //enable interrupt on pin on pic
 }
 
@@ -13,9 +12,7 @@ static char scan_codes[NUM_KEYS]= 	{'\0', '\0', '1', '2', '3', '4', '5', '6', '7
 
 
  
-void key_board_handler(){
-    printf("kbd handler");
-    
+void key_board_handler(){    
     send_eoi(KEYBOARD_IRQ);     //stop interrupt on pin
     
     if(inb(KEYBOARD_PORT) < NUM_KEYS && inb(KEYBOARD_PORT) >= 0){   //check if scan code is in bounds

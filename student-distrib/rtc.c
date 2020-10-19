@@ -1,5 +1,6 @@
 #include "rtc.h"
 #include "i8259.h"
+#include "lib.h"
 
 void initialize_rtc(){
     outb(0x8B, RTC_PORT);		// select register B, and disable NMI
