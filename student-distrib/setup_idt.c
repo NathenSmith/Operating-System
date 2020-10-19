@@ -31,11 +31,11 @@ extern void keyboard_handler(void);
 
 void rtc_handler(void){
     //check for hardware ints
-    
+    printf("rtc");
 }
 void keyboard_handler(void){
     //check for hardware ints
-    
+    printf("kbd");
 }
 
 

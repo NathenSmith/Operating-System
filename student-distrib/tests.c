@@ -36,7 +36,7 @@ int idt_test(){
 
 	int i;
 	int result = PASS;
-	for (i = 0; i < 9; ++i){
+	for (i = 48; i < 55; ++i){
 		if ((idt[i].offset_15_00 == NULL) &&
 			(idt[i].offset_31_16 == NULL)){
 			assertion_failure();
