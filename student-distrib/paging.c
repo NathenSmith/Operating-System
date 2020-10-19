@@ -1,7 +1,6 @@
 #include "paging.h"
 
 #define DIRECTORY_SIZE 1024
-#define PAGE_SIZE 4096
 #define VIDEO_MEMORY_IDX 0xB8000
 
 /* paging_init
