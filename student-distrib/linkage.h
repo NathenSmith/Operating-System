@@ -2,6 +2,7 @@
 #define _LINKAGE_H
 
 #include "lib.h"
+#include "system_calls.h"
 
 extern void isr_wrapper0();
 extern void isr_wrapper1();

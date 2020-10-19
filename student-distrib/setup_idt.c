@@ -3,7 +3,6 @@
 #include "linkage.h"
 //printk(KERN_INFO "Message: %s\n", arg);
 
-
 void setup_idt_entry(void * handler_address, int irq_num, int privilege);
 void system_call_handler();
 void divide();    
@@ -42,12 +41,9 @@ void keyboard_handler(void){
 
 void setup_idt_entry(void * handler_address, int irq_num, int privilege)
 {   
-    
      //FOR EXCEPTIONS
     SET_IDT_ENTRY(idt[irq_num], handler_address);
 
-    //idt[irq_num].offset_15_00 = (uint32_t)(void *)handler_address & 0x0000ffff;
-    //idt[irq_num].offset_31_16 = (uint32_t)(void *)handler_address & 0xffff0000; //setup idt, fill reserved
     idt[irq_num].seg_selector = KERNEL_CS;
     idt[irq_num].dpl = privilege;
     idt[irq_num].size = 1;
@@ -61,41 +57,38 @@ void setup_idt_entry(void * handler_address, int irq_num, int privilege)
     idt[irq_num].reserved1 = 1;
     idt[irq_num].reserved0 = 0;
 
-    //if(privilege == 3){
-        
-    //}
-   
-        //uint8_t  reserved4
-        //uint32_t reserved3
-        //uint32_t reserved2
-        //uint32_t reserved1
-        //uint32_t reserved0
-        //uint32_t dpl       : 2;
-        
+    /* for system call or exception use trap config,
+     otherwise for interrupt use interrupt config */
+
+    if(irq_num >= 0x20 && irq_num <= 0x2F) {
+        idt[irq_num].reserved3 = 0;
+    } 
 }
 
 /* initializes all idt entries */
 void setup_idt() { //replace with assembly linkage
-    idt[0x80] = (uint32_t)sys_call;
-    setup_idt_entry(system_call_handler, 0x80, 3); //fix these numbers
-    //setup_idt_entry(&null_ptr_exception, 0x50, 0); //this
-    idt[0x20] = (uint32_t)isr_wrapper0;
-    idt[0x21] = (uint32_t)isr_wrapper1;
-    idt[0x22] = (uint32_t)isr_wrapper2;
-    idt[0x23] = (uint32_t)isr_wrapper3;
-    idt[0x24] = (uint32_t)isr_wrapper4;
-    idt[0x25] = (uint32_t)isr_wrapper5;
-    idt[0x26] = (uint32_t)isr_wrapper6;
-    idt[0x27] = (uint32_t)isr_wrapper7;
-    idt[0x28] = (uint32_t)isr_wrapper8;
-    idt[0x29] = (uint32_t)isr_wrapper9;
-    idt[0x2A] = (uint32_t)isr_wrapperA;
-    idt[0x2B] = (uint32_t)isr_wrapperB;
-    idt[0x2C] = (uint32_t)isr_wrapperC;
-    idt[0x2D] = (uint32_t)isr_wrapperD;
-    idt[0x2E] = (uint32_t)isr_wrapperE;
-    idt[0x2F] = (uint32_t)isr_wrapperF;
-    
+    /* setup system call */
+    setup_idt_entry(sys_call, 0x80, 3); 
+
+    /* setup interrupts */
+    setup_idt_entry(isr_wrapper0, 0x20, 0);
+    setup_idt_entry(isr_wrapper1, 0x21, 0);
+    setup_idt_entry(isr_wrapper2, 0x22, 0);
+    setup_idt_entry(isr_wrapper3, 0x23, 0);
+    setup_idt_entry(isr_wrapper4, 0x24, 0);
+    setup_idt_entry(isr_wrapper5, 0x25, 0);
+    setup_idt_entry(isr_wrapper6, 0x26, 0);
+    setup_idt_entry(isr_wrapper7, 0x27, 0);
+    setup_idt_entry(isr_wrapper8, 0x28, 0);
+    setup_idt_entry(isr_wrapper9, 0x29, 0);
+    setup_idt_entry(isr_wrapperA, 0x2A, 0);
+    setup_idt_entry(isr_wrapperB, 0x2B, 0);
+    setup_idt_entry(isr_wrapperC, 0x2C, 0);
+    setup_idt_entry(isr_wrapperD, 0x2D, 0);
+    setup_idt_entry(isr_wrapperE, 0x2E, 0);
+    setup_idt_entry(isr_wrapperF, 0x2F, 0);
+
+    /* setup exceptions */
     setup_idt_entry(divide, 0x00, 0);
     setup_idt_entry(debug, 0x01, 0);
     setup_idt_entry(nmi, 0x02, 0);
@@ -116,8 +109,8 @@ void setup_idt() { //replace with assembly linkage
     setup_idt_entry(simd, 0x13, 0);
     setup_idt_entry(virtual_e, 0x14, 0);
     setup_idt_entry(security, 0x1E, 0);
-   
 }
+
 void system_call_handler()
 {
     printf("system call executed");

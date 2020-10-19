@@ -76,7 +76,6 @@ sys_call:
 
     addl $-1, %eax
     
-
     pushl %ecx
     pushl %edx
     pushl %ebx
@@ -95,6 +94,7 @@ sys_call:
 
     leave
     iret
+    
 jump_table:
     .long halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn
 
