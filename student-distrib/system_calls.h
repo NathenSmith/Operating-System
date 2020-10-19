@@ -1,0 +1,10 @@
+extern void halt(); 
+extern void execute();
+extern void read();
+extern void write();
+extern void open();
+extern void close();
+extern void getargs();
+extern void vidmap();
+extern void set_handler();
+extern void sigreturn();

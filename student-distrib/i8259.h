@@ -7,6 +7,7 @@
 #define _I8259_H
 
 #include "types.h"
+#include "lib.h"
 
 /* Ports that each PIC sits on */
 #define MASTER_8259_PORT    0x20
@@ -26,6 +27,9 @@
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
 #define EOI                 0x60
+
+//slave starting irq number
+#define SLAVE_START 8
 
 /* Externally-visible functions */
 

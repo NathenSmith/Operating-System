@@ -2,6 +2,8 @@
 #include "x86_desc.h"
 #include "lib.h"
 
+#include "linkage.h" //REMOVE LATER
+
 #define PASS 1
 #define FAIL 0
 
@@ -20,29 +22,85 @@ static inline void assertion_failure(){
 
 /* Checkpoint 1 tests */
 
-/* IDT Test - Example
+/* exception_test 
  * 
- * Asserts that first 10 IDT entries are not NULL
+ * Tests the exceptions by dereferencing a null pointer.
  * Inputs: None
  * Outputs: PASS/FAIL
  * Side Effects: None
- * Coverage: Load IDT, IDT definition
- * Files: x86_desc.h/S
  */
-int idt_test(){
+
+int exception_test(){
 	TEST_HEADER;
+	int *res;
+	int a = 1;
+	res = &a;
+	res = NULL;
+	int exception = *res;
+	return exception;
+}
 
-	int i;
-	int result = PASS;
-	for (i = 0; i < 10; ++i){
-		if ((idt[i].offset_15_00 == NULL) && 
-			(idt[i].offset_31_16 == NULL)){
-			assertion_failure();
-			result = FAIL;
-		}
-	}
 
-	return result;
+/* divide_test
+ * 
+ * Tests the exceptions by dividing by zero.
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ */
+
+int divide_test(){
+	TEST_HEADER;
+	//return 1 / 0;
+	return 0;
+}
+
+/* system_call_2
+ * 
+ * Tests the system call using the int 0x80 instruction.
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ */
+
+int system_call_2(){
+	asm volatile( 
+          "movl $10, %eax;"
+		  "int $0x80"
+    );
+	return 0;
+}
+
+/* Paging Out of Bounds Test
+ *
+ * Checks if an invalid memory address can be accessed
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Files: paging.h/c
+ */
+
+int paging_oob(){
+	int * invalidInt = (int*)(0xB8000 - 1);
+	int x;
+	x = *invalidInt;
+	return FAIL;
+}
+
+/* Paging In Bounds Test
+ *
+ * Checks if an valid memory address can be accessed
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Files: paging.h/c
+ */
+
+int paging_ib(){
+	int * validInt = (int*)(0xB8000 + 1);
+	int x;
+	x = *validInt;
+	return PASS;
 }
 
 // add more tests here
@@ -52,9 +110,18 @@ int idt_test(){
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
-
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("Dereference NULL test", exception_test());
+	//TEST_OUTPUT("divide-by-zero test", divide_test());
+	//TEST_OUTPUT("system call test 2", system_call_2());
+	//TEST_OUTPUT("paging test 1", paging_oob());	
+	//TEST_OUTPUT("paging test 2", paging_ib());	
 	// launch your tests here
 }
+
+
+
+
+
