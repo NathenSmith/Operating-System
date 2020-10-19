@@ -31,13 +31,10 @@ void initialize_rtc(){
  * Side Effects: None
  * Return value: None
  */ 
-void rtc_handler(){  
-   
-    
+void rtc_handler(){ 
+    send_eoi(RTC_IRQ);   //to stop interrupt that was recieved 
     outb(REGISTER_C, RTC_PORT);	// select register C
-    
     inb(CMOS_PORT);		// just throw away contents
-    test_interrupts();
-    send_eoi(RTC_IRQ);   //to stop interrupt that was recieved
+    //test_interrupts();
 }
 

@@ -143,6 +143,7 @@ void system_call_handler()
  */
 
 void divide() {
+    cli();
     printf("Divide-by-zero Error");
     while(1) {
         //do nothing
@@ -158,6 +159,7 @@ void divide() {
  */
 
 void debug() {
+    cli();
     printf("Debug");
     while(1) {
         //do nothing
@@ -173,6 +175,7 @@ void debug() {
  */
 
 void nmi() {
+    cli();
     printf("Non-maskable Interrupt");
     while(1) {
         //do nothing
@@ -188,6 +191,7 @@ void nmi() {
  */
 
 void breakpoint() {
+    cli();
     printf("Breakpoint");
     while(1) {
         //do nothing
@@ -203,6 +207,7 @@ void breakpoint() {
  */
 
 void overflow() {
+    cli();
     printf("Overflow");
     while(1) {
         //do nothing
@@ -218,6 +223,7 @@ void overflow() {
  */
 
 void boundexceed() {
+    cli();
     printf("Bound Range Exceeded");
     while(1) {
         //do nothing
@@ -232,6 +238,7 @@ void boundexceed() {
  * Side Effects: None
  */
 void invalidopcode() {
+    cli();
     printf("Invalid Opcode");
     while(1) {
         //do nothing
@@ -248,6 +255,7 @@ void invalidopcode() {
  */
 
 void decidenot() {
+    cli();
     printf("Decide Not Available");
     while(1) {
         //do nothing
@@ -263,6 +271,7 @@ void decidenot() {
  */
 
 void doublefault() {
+    cli();
     printf("Double Fault");
     while(1) {
         //do nothing
@@ -278,6 +287,7 @@ void doublefault() {
  */
 
 void invalidtss() {
+    cli();
     printf("Invalid TSS");
     while(1) {
         //do nothing
@@ -293,6 +303,7 @@ void invalidtss() {
  */
 
 void segmentnot() {
+    cli();
     printf("Segment Not Present");
     while(1) {
         //do nothing
@@ -308,6 +319,7 @@ void segmentnot() {
  */
 
 void stacksegfault() {
+    cli();
     printf("Stack-Segment Fault");
     while(1) {
         //do nothing
@@ -323,6 +335,7 @@ void stacksegfault() {
  */
 
 void genprotfault() {
+    cli();
     printf("General Protection Fault");
     while(1) {
         //do nothing
@@ -338,6 +351,7 @@ void genprotfault() {
  */
 
 void pagefault() {
+    cli();
     printf("Page Fault");
     while(1) {
         //do nothing
@@ -353,6 +367,7 @@ void pagefault() {
  */
 
 void floatingpoint() {
+    cli();
     printf("x87 Floating-Point-Exception");
     while(1) {
         //do nothing
@@ -367,6 +382,7 @@ void floatingpoint() {
  * Side Effects: None
  */
 void alignment_c() {
+    cli();
     printf("Alignment Check");
     while(1) {
         //do nothing
@@ -382,6 +398,7 @@ void alignment_c() {
  */
 
 void machine_c() {
+    cli();
     printf("Machine Check");
     while(1) {
         //do nothing
@@ -397,6 +414,7 @@ void machine_c() {
  */
 
 void simd() {
+    cli();
     printf("SIMD Floating-Point Exception");
     while(1) {
         //do nothing
@@ -412,6 +430,7 @@ void simd() {
  */
 
 void virtual_e() {
+    cli();
     printf("Virtualization Exception");
     while(1) {
         //do nothing
@@ -427,6 +446,7 @@ void virtual_e() {
  */
 
 void security() {
+    cli();
     printf("Security Exception");
     while(1) {
         //do nothing

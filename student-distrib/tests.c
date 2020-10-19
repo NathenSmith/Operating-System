@@ -31,20 +31,43 @@ static inline void assertion_failure(){
  * Coverage: Load IDT, IDT definition
  * Files: x86_desc.h/S
  */
-int idt_test(){
-	TEST_HEADER;
 
-	int i;
-	int result = PASS;
-	for (i = 0; i < 9; ++i){
-		if ((idt[i].offset_15_00 == NULL) && 
-			(idt[i].offset_31_16 == NULL)){
-			assertion_failure();
-			result = FAIL;
-		}
-	}
+// int idt_test(){
+// 	TEST_HEADER;
 
-	return result;
+// 	int i;
+// 	int result = PASS;
+// 	for (i = 0; i < 9; ++i){
+// 		if ((idt[i].offset_15_00 == NULL) && 
+// 			(idt[i].offset_31_16 == NULL)){
+// 			assertion_failure();
+// 			result = FAIL;
+// 		}
+// 	}
+
+// 	return result;
+// }
+
+// int exception_test(){
+// 	TEST_HEADER;
+// 	int *res;
+// 	int a = 1;
+// 	res = &a;
+// 	res = NULL;
+// 	int exception = *res;
+// 	return exception;
+// }
+// int divide_test(){
+// 	TEST_HEADER;
+// 	//return 1 / 0;
+// 	return 0;
+// }
+int system_call_2(){
+	asm volatile( 
+          "movl $10, %eax;"
+		  "int $0x80"
+    );
+	return 0;
 }
 
 // add more tests here
@@ -58,5 +81,10 @@ int idt_test(){
 /* Test suite entry point */
 void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("Dereference NULL test", exception_test());
+	//TEST_OUTPUT("divide-by-zero test", divide_test());
+	TEST_OUTPUT("system call test 2", system_call_2());
 	// launch your tests here
 }
+
+

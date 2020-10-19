@@ -196,7 +196,7 @@ sys_call:
     pushl %ebp
     pushl %esi
     pushl %edi
-    jmp *jump_table(, %ecx, 4) #jump table access
+    jmp *jump_table(, %eax, 4) #jump table access
     popl %edi
     popl %esi
     popl %ebp
