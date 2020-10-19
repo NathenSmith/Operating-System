@@ -15,21 +15,20 @@ uint16_t SLAVE_DATA = SLAVE_8259_PORT + 1;
 
 /* Initialize the 8259 PIC */
 void i8259_init(void) {   
-
-    outb(0xff, MASTER_DATA);       //mask interrupts on master data port
-    outb(0xff, SLAVE_DATA);       //mask interrupts on slave data port
+    outb(master_mask, MASTER_DATA);
+    outb(slave_mask, SLAVE_DATA);
     
     //send control words to master
     outb(ICW1, MASTER_8259_PORT);      //initialization control word
     outb(ICW2_MASTER, MASTER_DATA);  //second control word to master, mapped on 0x20
     outb(ICW3_MASTER, MASTER_DATA);   //has slave on IR2
-    outb(EOI, MASTER_DATA);
+    outb(ICW4, MASTER_DATA);
 
     //send control words to slave
     outb(ICW1, SLAVE_8259_PORT);      //initialization control word
     outb(ICW2_SLAVE, SLAVE_DATA);  //second control word to SLAVE, mapped on 0x20
     outb(ICW3_SLAVE, SLAVE_DATA);   //has slave on IR2
-    outb(EOI, SLAVE_DATA);  //end of interrupt
+    outb(ICW4, SLAVE_DATA);  //end of interrupt
 
     outb(master_mask, MASTER_DATA);
     outb(slave_mask, SLAVE_DATA);
@@ -68,6 +67,6 @@ void disable_irq(uint32_t irq_num) {
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
     if(irq_num >= 8)             ///if inq_num is on slave
-		outb(EOI, SLAVE_8259_PORT);
-    outb(EOI, MASTER_8259_PORT);
+		outb(EOI | irq_num, SLAVE_8259_PORT);
+    outb(EOI | irq_num, MASTER_8259_PORT);
 }
