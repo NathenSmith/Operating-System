@@ -29,7 +29,8 @@
  * to declare the interrupt finished */
 #define EOI                 0x60
 
-
+//slave starting irq number
+#define SLAVE_START 8
 
 /* Externally-visible functions */
 
