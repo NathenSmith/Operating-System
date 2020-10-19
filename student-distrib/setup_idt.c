@@ -5,7 +5,7 @@
 
 void setup_idt_entry(void * handler_address, int irq_num, int privilege);
 void system_call_handler();
-void divide();    
+//void divide();    
 void debug();    
 void nmi();    
 void breakpoint();    
@@ -25,18 +25,28 @@ void machine_c();
 void simd();
 void virtual_e();
 void security();
-//ints
-extern void rtc_handler(void);
-extern void keyboard_handler(void);
 
-void rtc_handler(void){
+void test_func(){
+    printf("fuck");
+    while (1)
+    {
+        /* code */
+    }
+    
+}
+
+//ints
+//extern void rtc_handler(void);
+//extern void keyboard_handler(void);
+/*
+void rtc_handler(){
     //check for hardware ints
     printf("rtc");
 }
-void keyboard_handler(void){
+void key_board_handler(){
     //check for hardware ints
     printf("kbd");
-}
+}*/
 
 
 void setup_idt_entry(void * handler_address, int irq_num, int privilege)
@@ -72,7 +82,7 @@ void setup_idt() { //replace with assembly linkage
 
     /* setup interrupts */
     setup_idt_entry(isr_wrapper0, 0x20, 0);
-    setup_idt_entry(isr_wrapper1, 0x21, 0);
+    setup_idt_entry(test_func, 0x21, 0);
     setup_idt_entry(isr_wrapper2, 0x22, 0);
     setup_idt_entry(isr_wrapper3, 0x23, 0);
     setup_idt_entry(isr_wrapper4, 0x24, 0);

@@ -2,5 +2,7 @@
 #define NUM_KEYS   64
 #define KEYBOARD_PORT	0x60
 
-void initialize_keyboard();
-void key_board_handler();
+#include "i8259.h"
+
+extern void initialize_keyboard();
+extern void key_board_handler();

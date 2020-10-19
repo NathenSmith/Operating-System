@@ -2,9 +2,8 @@
 
 #define RTC_PORT 0x70
 #define CMOS_PORT 0x71
+#include "lib.h"
 
 
-
-
-void initialize_rtc();
-void rtc_handler();
+extern void initialize_rtc();
+extern void rtc_handler();

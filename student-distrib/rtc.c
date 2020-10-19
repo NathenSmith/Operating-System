@@ -11,9 +11,7 @@ void initialize_rtc(){
 
 void rtc_handler(){  
     send_eoi(RTC_IRQ);   //to stop interrupt that was recieved
-    cli();
-    outportb(0x70, 0x0C);	// select register C
-    inportb(0x71);		// just throw away contents
-    sti();
+    outb(0x0C, 0x70);	// select register C
+    inb(0x71);		// just throw away contents
 }
 

@@ -4,8 +4,12 @@
 #include "lib.h"
 #include "system_calls.h"
 
-extern void isr_wrapper0();
-extern void isr_wrapper1();
+extern void divide();
+
+extern void test_func();
+
+extern void isr_wrapper0(); //rtc
+extern void isr_wrapper1(); //kbd
 extern void isr_wrapper2();
 extern void isr_wrapper3();
 extern void isr_wrapper4();

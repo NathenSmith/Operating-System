@@ -15,26 +15,19 @@
 .globl   isr_wrapperE
 .globl   isr_wrapperF
 .globl   sys_call
-.align   4
  
 isr_wrapper0:
     cli
-    pushal /* might be pushal/ popal, check do irq, push ones not covered by pushal*/
-    pushfl
-     /* C code following the sysV ABI requires DF to be clear on function entry */
+    pushal
     call rtc_handler
     popal
-    popfl
     sti
     iret
 isr_wrapper1:
     cli
-    pushal /* might be pushal/ popal, check do irq, push ones not covered by pushal*/
-    pushfl
-     /* C code following the sysV ABI requires DF to be clear on function entry */
-    call keyboard_handler
+    pushal
+    call key_board_handler
     popal
-    popfl
     sti
     iret
 isr_wrapper2:

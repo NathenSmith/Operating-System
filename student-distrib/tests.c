@@ -2,6 +2,8 @@
 #include "x86_desc.h"
 #include "lib.h"
 
+#include "linkage.h" //REMOVE LATER
+
 #define PASS 1
 #define FAIL 0
 
@@ -34,9 +36,10 @@ int idt_test(){
 
 	int i;
 	int result = PASS;
-	for (i = 0; i < 10; ++i){
-		if ((idt[i].offset_15_00 == NULL) && 
-			(idt[i].offset_31_16 == NULL)){
+	for (i = 33; i < 34; i++){
+		if ((idt[i].offset_15_00 != ((uint32_t)(test_func) & 0xFFFF)) ||
+			(idt[i].offset_31_16 != ((uint32_t)(test_func) & 0xFFFF0000) >> 16)
+			){
 			assertion_failure();
 			result = FAIL;
 		}
