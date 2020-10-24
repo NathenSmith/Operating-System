@@ -140,6 +140,7 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
+    clear();
     /* Init the PIC */
     //enable irq for kbd, rtc
     i8259_init();
