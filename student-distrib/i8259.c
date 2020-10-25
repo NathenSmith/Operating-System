@@ -99,7 +99,9 @@ void disable_irq(uint32_t irq_num) {
  */ 
 
 void send_eoi(uint32_t irq_num) {
-    if(irq_num >= SLAVE_START)             ///if inq_num is on slave
-		outb(EOI | irq_num, SLAVE_8259_PORT);
+    if(irq_num >= SLAVE_START){             ///if inq_num is on slave
+		outb(EOI | (irq_num - SLAVE_START), SLAVE_8259_PORT);
+        outb(EOI | ICW3_SLAVE, MASTER_8259_PORT); //master needs to know slave was serviced
+    }
     outb(EOI | irq_num, MASTER_8259_PORT);
 }
