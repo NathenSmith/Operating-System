@@ -5,7 +5,7 @@
 */
 
 static uint8_t check_if_letter(char index);
-static uint8_t check_if_symbol(char index);
+static char check_if_symbol(char index);
 
 static char scan_codes[NUM_KEYS]= 	{ //presses
     '\0', '\0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\0', '\0',
@@ -101,7 +101,7 @@ static uint8_t check_if_letter(char index){
  * Side Effects: None
  * Return value: converted index (0 if not symbol)
  */ 
-static uint8_t check_if_symbol(char index){
+static char check_if_symbol(char index){
     switch(index){
         //scancodes (0x02-0x0B) for numbers 0-9
         case 0x02:
@@ -124,6 +124,40 @@ static uint8_t check_if_symbol(char index){
             return '(';
         case 0x0B:
             return ')';
+        //scancode for - (0x0C)
+        case 0x0C:
+            return '_';
+        //scancode for = (0x0D)
+        case 0x0D:
+            return '+';
+        //scancode for [ (0x1A)
+        case 0x1A:
+            return '{';
+        //scancode for ] (0x1B)
+        case 0x1B:
+            return '}';
+        //scancode for ; (0x27)
+        case 0x27:
+            return ':';
+        //scancode for ' (0x28)
+        case 0x28:
+            return '\"';
+        //scancode for ` (0x29)
+        case 0x29:
+            return '~';
+        //scancode for \ (0x2B)
+        case 0x2B:
+            return '|';
+        //scancode for , (0x33)
+        case 0x33:
+            return '<';
+        //scancode for . (0x34)
+        case 0x34:
+            return '>';
+        //scancode for / (0x35)
+        case 0x35:
+            return '?';
+        //not symbol
         default:
             return 0;
     }
