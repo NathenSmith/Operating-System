@@ -1,5 +1,5 @@
 #include "lib.h"
-#define VGA_WIDTH 320
+#define VGA_WIDTH 80
 
 uint32_t terminal_read (uint32_t fd, void* buf, uint32_t nbytes);
 uint32_t terminal_write (uint32_t fd, const void* buf, uint32_t nbytes);
