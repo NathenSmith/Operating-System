@@ -2,6 +2,8 @@
 
 #define FILENAME_LEN 32
 #define N_INODES 32
+#define BLOCK_SIZE 4096
+#define N_BLOCKS 32
 
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
@@ -30,9 +32,3 @@ typedef struct inode
     int32_t length;
     int32_t data_block_num [1023];
 } inode_t;
-
-typedef struct blocks
-{
-    boot_block_t boot_block;
-    inode_t inodes[N_INODES];
-} files_t;
