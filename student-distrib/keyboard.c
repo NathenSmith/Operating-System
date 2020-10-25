@@ -46,6 +46,10 @@ void key_board_handler(){
             putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
             send_eoi(KEYBOARD_IRQ);  
         }
+        else if(check_if_symbol(inb(KEYBOARD_PORT))){
+            putc(check_if_symbol(inb(KEYBOARD_PORT)));
+            send_eoi(KEYBOARD_IRQ);
+        }
         else if(inb(KEYBOARD_PORT) != 0xAA || inb(KEYBOARD_PORT) != 0xB6){
             shift_state = 0;
             send_eoi(KEYBOARD_IRQ); 
@@ -65,7 +69,15 @@ void key_board_handler(){
     send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin    
 }
 
-
+/* check_if_letter
+ * 
+ * Description:checks if the scan code is a letter so 
+ * it can be capitalized during a shift
+ * Inputs: index: scan code index
+ * Outputs: none
+ * Side Effects: None
+ * Return value: true/false (0/1)
+ */ 
 static uint8_t check_if_letter(char index){
     uint8_t check = 0;
     if(index >= 0x10 && index <= 0x19){
@@ -80,10 +92,39 @@ static uint8_t check_if_letter(char index){
     return check;
 }
 
+/* check_if_symbol
+ * 
+ * Description:checks if the scan code is a symbol so 
+ * it can be changed during a shift
+ * Inputs: index: scan code index
+ * Outputs: none
+ * Side Effects: None
+ * Return value: converted index (0 if not symbol)
+ */ 
 static uint8_t check_if_symbol(char index){
-    uint8_t shift_index = 0;
-    // switch(shift_index){
-    //     case
-    // }
-    return shift_index;
+    switch(index){
+        //scancodes (0x02-0x0B) for numbers 0-9
+        case 0x02:
+            return '!';
+        case 0x03:
+            return '@';
+        case 0x04:
+            return '#';
+        case 0x05:
+            return '$';
+        case 0x06:
+            return '%';
+        case 0x07:
+            return '^';
+        case 0x08:
+            return '&';
+        case 0x09:
+            return '*';
+        case 0x0A:
+            return '(';
+        case 0x0B:
+            return ')';
+        default:
+            return 0;
+    }
 }
