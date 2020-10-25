@@ -40,7 +40,8 @@ void initialize_keyboard(){
  * Side Effects: None
  * Return value: None
  */ 
-void key_board_handler(){   
+void key_board_handler(){ 
+    //0x3A, keycode for capslock  
     if(inb(KEYBOARD_PORT) == 0x3A){
         states[1] = ~(states[1]);
         send_eoi(KEYBOARD_IRQ);  
