@@ -15,7 +15,9 @@ static char scan_codes[NUM_KEYS]= 	{ //presses
       '\0', '\0', '\0', '\0', '\0','\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', 
       '\0', '\0', '\0', '\0', '\0', '\0', '\0'
      }; 
-static shift_state = 0;  //state to check if shift key is pressed
+
+//0: shift state, 1: capslock state, 3: ctrl state
+static uint8_t states[NUM_STATES] = {0, 0, 0};
 
 
 /* initialize_keyboard
@@ -40,31 +42,80 @@ void initialize_keyboard(){
  */ 
 void key_board_handler(){   
     //---------shift checks---------
-    if(shift_state){        
+    if(states[0]){  //states[0] is shift state        
         //conversion to uppercase
         if(check_if_letter(inb(KEYBOARD_PORT))){
             putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
             send_eoi(KEYBOARD_IRQ);  
+            return;
         }
         else if(check_if_symbol(inb(KEYBOARD_PORT))){
             putc(check_if_symbol(inb(KEYBOARD_PORT)));
             send_eoi(KEYBOARD_IRQ);
+            return;
         }
+        //0xAA and 0xB6, release scan codes for l and r shift respectively
         else if(inb(KEYBOARD_PORT) != 0xAA || inb(KEYBOARD_PORT) != 0xB6){
-            shift_state = 0;
+            states[0] = 0;
             send_eoi(KEYBOARD_IRQ); 
+            return;
         }
     }
-    else{
-        if(inb(KEYBOARD_PORT) == 0x2A || inb(KEYBOARD_PORT) == 0x36){
-            shift_state = 1;
+    //-----caps lock checks------------
+    if(states[1]){  //state[1] is capslock state
+        if(check_if_letter(inb(KEYBOARD_PORT))){
+            putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
             send_eoi(KEYBOARD_IRQ); 
+            return; 
+        }
+        //0x3A scan code for capslock
+        else if(inb(KEYBOARD_PORT) == 0x3A){
+            states[1] = 0;
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }       
+    }
+    //-----control check---------
+    if(states[2]){   //state[2] is ctrl state
+        //0x26 is scancode for l
+        if(inb(KEYBOARD_PORT) == 0x26){
+            clear();
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+        //0xE0, 0x9D, release scan codes for l,r ctrl respectively
+        else if(inb(KEYBOARD_PORT) == 0xE0 || inb(KEYBOARD_PORT) ==0x9D){
+            states[2] = 0;
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+    }
+    //----set states and generic output
+    else{
+        //0x2A and 0x36 scan codes for l,r shifts respecitvely
+        if(inb(KEYBOARD_PORT) == 0x2A || inb(KEYBOARD_PORT) == 0x36){
+            states[0] = 1;
+            send_eoi(KEYBOARD_IRQ); 
+            return;
+        }
+        //0x3A, scancode for capslock
+        else if(inb(KEYBOARD_PORT) == 0x3A){
+            states[1] = 1;
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+        //0x1D, 0xE0, scan codes for l,r ctrl respectively
+        else if(inb(KEYBOARD_PORT) == 0xE0 || inb(KEYBOARD_PORT) == 0x1D){
+            states[2] = 1;
+            send_eoi(KEYBOARD_IRQ);
+            return;            
         }
         //check if scan code is in bounds of scan code array
         else if(inb(KEYBOARD_PORT) < NUM_KEYS && inb(KEYBOARD_PORT) >= 0){   
             putc(scan_codes[inb(KEYBOARD_PORT)]);   //print character to screen
             send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
         }
+        return;
     }
     send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin    
 }
