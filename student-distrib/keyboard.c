@@ -41,8 +41,13 @@ void initialize_keyboard(){
  * Return value: None
  */ 
 void key_board_handler(){   
+    if(inb(KEYBOARD_PORT) == 0x3A){
+        states[1] = ~(states[1]);
+        send_eoi(KEYBOARD_IRQ);  
+        return;
+    }
     //---------shift checks---------
-    if(states[0]){  //states[0] is shift state        
+    else if(states[0]){  //states[0] is shift state        
         //conversion to uppercase
         if(check_if_letter(inb(KEYBOARD_PORT))){
             putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
@@ -67,14 +72,7 @@ void key_board_handler(){
             putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
             send_eoi(KEYBOARD_IRQ); 
             return; 
-        }
-        //0x3A scan code for capslock
-        else if(inb(KEYBOARD_PORT) == 0x3A){
-            printf("RELEASED");            
-            states[1] = 0;
-            send_eoi(KEYBOARD_IRQ);
-            return;
-        }       
+        }     
     }
     //-----control check---------
     else if(states[2]){   //state[2] is ctrl state
@@ -97,13 +95,6 @@ void key_board_handler(){
         if(inb(KEYBOARD_PORT) == 0x2A || inb(KEYBOARD_PORT) == 0x36){
             states[0] = 1;
             send_eoi(KEYBOARD_IRQ); 
-            return;
-        }
-        //0x3A, scancode for capslock
-        else if(inb(KEYBOARD_PORT) == 0x3A){
-            printf("PRESSED");
-            states[1] = 1;
-            send_eoi(KEYBOARD_IRQ);
             return;
         }
         //0x1D, 0xE0, scan codes for l,r ctrl respectively
