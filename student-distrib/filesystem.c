@@ -3,11 +3,9 @@
 uint32_t filesystem_start_addr;
 boot_block_t * boot_block;
 inode_t * inodes;
-file_desc_t * pcb;
-file_op_t * file_operations;
-dir_op_t * directory_operations;
-rtc_op_t * rtc_operations;
-
+dentry_t * curr_file; //contains the current file
+uint32_t file_in_use; // 1 = in use
+uint32_t n_bytes_read_so_far;
 /*  init_filesystem
     Inputs:
     Outputs:
@@ -18,16 +16,7 @@ void init_filesystem(uint32_t start_addr){
   filesystem_start_addr = start_addr;
   boot_block = filesystem_start_addr;
   inodes = filesystem_start_addr + BLOCK_SIZE;
-  int i;
-
-  //initialize file descriptors for stdin and stdout
-  pcb[0].flags = 1;
-  pcb[1].flags = 1;
-
-  //initialize all other file descriptors to 0
-  for(i = 2; i < 8; i++) {
-      pcb[i].flags = 0;
-  }
+  n_bytes_read_so_far = 0;
 }
 
 /* read_dentry_by_name
@@ -51,7 +40,7 @@ int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry) {
     uint32_t i;
 
     for(i = 0; i < boot_block->dir_count; i++) {
-        if(strncmp(boot_block->direntries[i]->filename, fname, 32) == 0){
+        if(strncmp((boot_block->direntries)[i].filename, fname, 32) == 0){
           /* read directory entry by index corresponding to name */
           return read_dentry_by_index(i, dentry);
         }
@@ -107,8 +96,6 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry) {
 int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32_t length) {
 
     /* offset represents the number of bytes that have been read so far. */
-
-
 
     //validate inode
     if(inode_number >= 0 && inode_number < boot_block->inode_count) return -1;
@@ -168,12 +155,12 @@ int32_t min(uint32_t a, uint32_t b) {
 
 /* file read */
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
-    uint32_t nBytesRead = read_data(pcb[fd].inode_index, pcb[fd].file_position, buf, nbytes);
+    uint32_t nBytesRead = read_data(curr_file->inode_num, n_bytes_read_so_far, buf, nbytes);
     if(nBytesRead == -1) {
         return -1;
     }
     else {
-        pcb[fd].file_position += nBytesRead;
+        n_bytes_read_so_far += nBytesRead;
         return nBytesRead;
     }
 }
@@ -183,38 +170,27 @@ int32_t file_write(int32_t fd, void* buf, int32_t nbytes){
     return -1;
 }
 
+//cameron said he initialized inode length during open,
+//not sure if we need to do that or not.
+
+//also we don't need to worry about pcb for this checkpoint
+
 /* file open */
-int32_t file_open(const uint8_t* filename){
-    dentry_t entry;
-    int status;
-    status = read_dentry_by_name (filename, &entry);
-    
-    //return -1 if file does not exist
-    if(status == -1) {
+int32_t file_open(const uint8_t* filename) {
+    if(file_in_use) {
         return -1;
     }
 
-    //allocate unused file_descriptor
-    int i;
-    for(i = 2; i < 8; i++) {
-        if(pcb[i].flags == 0) {
-            pcb[i].flags = 1;
-            if(entry.filetype == 0) {
-                pcb[i].file_op = rtc_operations;
-            }
-            if(entry.filetype == 1) {
-                pcb[i].file_op = directory_operations;
-                pcb[i].file_position = 0;
-            }
-            else if(entry.filetype == 2) {
-                pcb[i].file_op = file_operations;
-            }
-            return 0;
-        }
+    int status = read_dentry_by_name (filename, curr_file);
+    
+    if(status == -1) { // file does not exist
+        return -1;
     }
-
-    //return -1 if all file descriptors are in use(reaches end of loop)
-    return -1;
+    else {
+        n_bytes_read_so_far = 0;
+        file_in_use = 1;
+        return 0;
+    }
 }
 
 /* file_close */
@@ -223,12 +199,14 @@ int32_t file_close(int32_t fd){
     if(fd == 0 || fd == 1) {
         return -1;
     }
-    pcb[fd].flags = 0;
+    file_in_use = 0;
+    return 0;
 }
 
 /* dir read */
-int32_t dir_read(int32_t fd, void* buf, int32_t nbytes){
-
+int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {  
+    strcpy(buf, curr_file->filename);
+    return 0;
 }
 
 /* dir write */
@@ -237,12 +215,29 @@ int32_t dir_write(int32_t fd, void* buf, int32_t nbytes){
 }
 
 /* dir open */
-int32_t dir_open(const uint8_t* filename){
+int32_t dir_open(const uint8_t* filename) {
+    if(file_in_use) {
+        return -1;
+    }
 
+    int status = read_dentry_by_name (filename, curr_file);
+
+    if(status == -1) { // directory does not exist
+        return -1;
+    }
+    else {
+        file_in_use = 1;
+        return 0;
+    }
 }
 
 /* dir_close */
 int32_t dir_close(int32_t fd){
-
+    //the user is not allowed to close the default files
+    if(fd == 0 || fd == 1) {
+        return -1;
+    }
+    file_in_use = 0;
+    return 0;
 }
 
