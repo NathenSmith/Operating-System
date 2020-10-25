@@ -32,3 +32,42 @@ typedef struct inode
     int32_t length;
     int32_t data_block_num [1023];
 } inode_t;
+
+typedef struct file_descriptor 
+{
+    file_op_t * file_op;
+    uint32_t inode_index; 
+    uint32_t file_position;
+    uint32_t flags; //0 means available, 1 means in use
+} file_desc_t;
+
+//this is probably wrong syntax, fix
+
+typedef struct file_operations
+{
+    void * file_open;
+    void * file_close;
+    void * file_read;
+    void * file_write;
+} file_op_t;
+
+typedef struct directory_operations
+{
+    void * dir_open;
+    void * dir_close;
+    void * dir_read;
+    void * dir_write;
+} dir_op_t;
+
+typedef struct RTC_operations
+{
+    void * rtc_open;
+    void * rtc_close;
+    void * rtc_read;
+    void * rtc_write;
+} rtc_op_t;
+
+typedef struct terminal_operations
+{
+
+} terminal_op_t;
