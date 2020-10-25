@@ -62,7 +62,7 @@ void key_board_handler(){
         }
     }
     //-----caps lock checks------------
-    if(states[1]){  //state[1] is capslock state
+    else if(states[1]){  //state[1] is capslock state
         if(check_if_letter(inb(KEYBOARD_PORT))){
             putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
             send_eoi(KEYBOARD_IRQ); 
@@ -70,13 +70,14 @@ void key_board_handler(){
         }
         //0x3A scan code for capslock
         else if(inb(KEYBOARD_PORT) == 0x3A){
+            printf("RELEASED");            
             states[1] = 0;
             send_eoi(KEYBOARD_IRQ);
             return;
         }       
     }
     //-----control check---------
-    if(states[2]){   //state[2] is ctrl state
+    else if(states[2]){   //state[2] is ctrl state
         //0x26 is scancode for l
         if(inb(KEYBOARD_PORT) == 0x26){
             clear();
@@ -90,8 +91,8 @@ void key_board_handler(){
             return;
         }
     }
-    //----set states and generic output
-    else{
+    //----set states and generic output-----
+    else{                
         //0x2A and 0x36 scan codes for l,r shifts respecitvely
         if(inb(KEYBOARD_PORT) == 0x2A || inb(KEYBOARD_PORT) == 0x36){
             states[0] = 1;
@@ -100,6 +101,7 @@ void key_board_handler(){
         }
         //0x3A, scancode for capslock
         else if(inb(KEYBOARD_PORT) == 0x3A){
+            printf("PRESSED");
             states[1] = 1;
             send_eoi(KEYBOARD_IRQ);
             return;
@@ -110,14 +112,28 @@ void key_board_handler(){
             send_eoi(KEYBOARD_IRQ);
             return;            
         }
+        //0x0F, scan code for tab
+        else if(inb(KEYBOARD_PORT) == 0x0F){
+            putc(' ');
+            putc(' ');
+            putc(' ');
+            putc(' ');
+            send_eoi(KEYBOARD_IRQ);
+            return;             
+        }
+        else if(scan_codes[inb(KEYBOARD_PORT)] == '\0'){
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        } 
         //check if scan code is in bounds of scan code array
         else if(inb(KEYBOARD_PORT) < NUM_KEYS && inb(KEYBOARD_PORT) >= 0){   
             putc(scan_codes[inb(KEYBOARD_PORT)]);   //print character to screen
             send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
+            return;
         }
-        return;
     }
-    send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin    
+    send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin  
+    return;  
 }
 
 /* check_if_letter
