@@ -58,7 +58,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
 
     int32_t freq = *buf;
     int32_t i;
-    uint8_t rate = 0x0F;
+    char rate = 0x0F;
     if ((freq & (freq - 1)) == 0) && (freq <= FREQ_MAX){ //if freq is a power of 2, https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
         if(freq == 0) rate = 0;
         else{
