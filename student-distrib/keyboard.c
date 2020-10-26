@@ -3,7 +3,8 @@
 /* SOURCES:  https://wiki.osdev.org/PS/2_Keyboard
     some code from Linux documentation of PS/2 Keyboard
 */
-static int buf_counter = 0;
+//static int buf_counter = 0;
+buf_counter = 0;
 static int scroll_flag = 0;
 static uint8_t check_if_letter(char index);
 static char check_if_symbol(char index);
@@ -51,7 +52,7 @@ void key_board_handler(){
     if(states[SHIFT_STATE]){  //states[0] is shift state        
         //conversion to uppercase
         if(check_if_letter(inb(KEYBOARD_PORT))){
-            //clears for Ctrl-L
+            //clears for Ctrl-L (l is scancode 0x26)
             if(states[CTRL_STATE] && inb(KEYBOARD_PORT) == 0x26){
                 clear();
                 send_eoi(KEYBOARD_IRQ);
@@ -61,6 +62,7 @@ void key_board_handler(){
             send_eoi(KEYBOARD_IRQ);  
             return;
         }
+        //shift symbols as well
         else if(check_if_symbol(inb(KEYBOARD_PORT))){
             add_to_kdb_buf(check_if_symbol(inb(KEYBOARD_PORT)));
             send_eoi(KEYBOARD_IRQ);
@@ -131,6 +133,7 @@ void key_board_handler(){
         send_eoi(KEYBOARD_IRQ);
         return;
     }
+    //null character, don't do anything
     else if(scan_codes[inb(KEYBOARD_PORT)] == '\0'){
         send_eoi(KEYBOARD_IRQ);
         return;

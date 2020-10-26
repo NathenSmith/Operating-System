@@ -7,13 +7,13 @@ uint32_t terminal_read (uint32_t fd, char* buf, uint32_t nbytes){
 
 		buf[i] = '\0';
 	}
-	i = 0;
+	int j = 0;
 	while(1){
-		if(i == nbytes || i == BUF_SIZE) return i;
-		if(kbd_buf[i] == '\0') continue;		
-		buf[i] = kbd_buf[i];
-		if(buf[i] == '\n') return i;
-		i++;
+		if(j == nbytes || j == BUF_SIZE) return j;
+		if(kbd_buf[j] == '\0') continue;		
+		buf[j] = kbd_buf[j];
+		if(buf[j] == '\n') return j;
+		j++;
 	}
 }
 uint32_t terminal_write (uint32_t fd, const char* buf, uint32_t nbytes){

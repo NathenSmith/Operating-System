@@ -10,7 +10,7 @@
 
 #include "i8259.h"
 char kbd_buf[128];
-
+int buf_counter;
 
 
 //extern functions

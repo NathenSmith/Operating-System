@@ -111,7 +111,6 @@ int paging_ib(){
 // add more tests here
 
 /* Checkpoint 2 tests */
-<<<<<<< HEAD
 
 
 /* List Files Test
@@ -151,7 +150,10 @@ int list_files(uint32_t start_addr) {
 		printf("     file size: ");
 		printf("%d", length);
 		printf("\n");
-=======
+	}
+	return PASS;
+}
+
 int rtc_test(){
 	TEST_HEADER;
 	int32_t i, f = 2;
@@ -165,13 +167,11 @@ int rtc_test(){
 		*f_ptr *= 2;
 		add_to_kdb_buf('\n');
 		clear();
->>>>>>> terminal_driver
 
 	}
 	return PASS;
 }
 
-<<<<<<< HEAD
 /* List Files Test
  *
  * Prints the contents of the file
@@ -197,7 +197,6 @@ int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 	return PASS;
 }
 
-=======
 int terminal_test(){
 	TEST_HEADER;
 	//while(1){	
@@ -207,28 +206,24 @@ int terminal_test(){
 		return PASS;
 	//}
 }
->>>>>>> terminal_driver
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
 /* Test suite entry point */
 void launch_tests(uint32_t input_start_addr){
-	uint32_t start_addr = input_start_addr;
-	TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"frame0.txt"))
+	//uint32_t start_addr = input_start_addr;
+	//TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"frame0.txt"))
 	//TEST_OUTPUT("List Files", list_files(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("Dereference NULL test", exception_test());
 	//TEST_OUTPUT("divide-by-zero test", divide_test());
 	//TEST_OUTPUT("system call test 2", system_call_2());
-<<<<<<< HEAD
 	//TEST_OUTPUT("paging test 1", paging_oob());
 	//TEST_OUTPUT("paging test 2", paging_ib());
-=======
 	//TEST_OUTPUT("paging test 1", paging_oob());	
 	//TEST_OUTPUT("paging test 2", paging_ib());	
 	//TEST_OUTPUT("rtc test", rtc_test());
 	TEST_OUTPUT("terminal r/w", terminal_test());
->>>>>>> terminal_driver
 	// launch your tests here
 }
