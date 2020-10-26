@@ -106,6 +106,28 @@ int paging_ib(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+list_files(){
+	uint8_t currentFile[FILENAME_LEN];
+	int i;
+
+  dentry_t result;
+	dentry_t * resultPtr = &result;
+
+	for(int i = 0; i < boot_block->dir_count){
+		int errorCheck = read_dentry_by_name(boot_block->direntries[i], resultPtr);
+		//errorCheck = read_dir(i, currentFile, FILENAME_LEN);
+		if(errorCheck == -1) return FAIL;
+
+		printf(resultPtr->filename);
+		printf(resultPtr->filetype);
+		printf("\n");
+	}
+
+	return PASS;
+
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
