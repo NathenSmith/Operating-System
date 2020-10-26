@@ -19,7 +19,7 @@ static char scan_codes[NUM_KEYS]= 	{ //presses
 
 //0: shift state, 1: capslock state, 3: ctrl state
 static uint8_t states[NUM_STATES] = {0, 0, 0};
-
+static char screen[80][25];
 
 /* initialize_keyboard
  * 
@@ -52,14 +52,18 @@ void key_board_handler(){
     if(states[0]){  //states[0] is shift state        
         //conversion to uppercase
         if(check_if_letter(inb(KEYBOARD_PORT))){
+            //clears for Ctrl-L
+            if(states[2] && inb(KEYBOARD_PORT) == 0x26){
+                clear();
+                send_eoi(KEYBOARD_IRQ);
+                return;                
+            }
             add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION);
-            //putc(); 
             send_eoi(KEYBOARD_IRQ);  
             return;
         }
         else if(check_if_symbol(inb(KEYBOARD_PORT))){
             add_to_kdb_buf(check_if_symbol(inb(KEYBOARD_PORT)));
-            //putc();
             send_eoi(KEYBOARD_IRQ);
             return;
         }
@@ -73,8 +77,13 @@ void key_board_handler(){
     //-----caps lock checks------------
     if(states[1]){  //state[1] is capslock state
         if(check_if_letter(inb(KEYBOARD_PORT))){
+            //clears for Ctrl-L
+            if(states[2] && inb(KEYBOARD_PORT) == 0x26){
+                clear();
+                send_eoi(KEYBOARD_IRQ);
+                return;                
+            }
             add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION);
-            //putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
             send_eoi(KEYBOARD_IRQ); 
             return; 
         }   
@@ -114,13 +123,13 @@ void key_board_handler(){
         add_to_kdb_buf(' ');
         add_to_kdb_buf(' ');
         add_to_kdb_buf(' ');
-        /*
-        putc(' ');
-        putc(' ');
-        putc(' ');
-        putc(' ');*/
         send_eoi(KEYBOARD_IRQ);
         return;             
+    }
+    else if(inb(KEYBOARD_PORT) == 0X0E){
+        backspace_buffer();
+        send_eoi(KEYBOARD_IRQ);
+        return;
     }
     else if(scan_codes[inb(KEYBOARD_PORT)] == '\0'){
         send_eoi(KEYBOARD_IRQ);
@@ -129,7 +138,6 @@ void key_board_handler(){
     //check if scan code is in bounds of scan code array
     else if(inb(KEYBOARD_PORT) < NUM_KEYS && inb(KEYBOARD_PORT) >= 0){   
         add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)]);
-        //putc();   //print character to screen
         send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
         return;
     }
@@ -259,7 +267,21 @@ void add_to_kdb_buf(char c){
         for(i = 0; i < 128; i++){
             kbd_buf[i] = '\0';
         }
-    }
-    
+    }    
+}
 
+/* backspace_buffer
+ * 
+ * Description: Accounts for backspace in the keyboard buffer, deletes the previously written
+ * Inputs: none
+ * Outputs: none
+ * Side Effects: gets rid of last character in buffer
+ * Return value: none
+ */ 
+void backspace_buffer(){
+    backspace();
+    if(buf_counter > 0){ 
+        buf_counter--;
+        kbd_buf[buf_counter] = '\0';
+    }
 }

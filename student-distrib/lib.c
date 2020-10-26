@@ -185,6 +185,23 @@ void putc(uint8_t c) {
     }
 }
 
+void backspace() {
+    if(!(screen_x == 0 && screen_y == 0)){
+        if(screen_x == 0){
+            screen_x = NUM_COLS - 1;
+            screen_y--;
+        }
+        else{
+            screen_x--;
+        }
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;        
+    }
+    update_cursor(screen_x, screen_y);
+}
+
+//put scroll here and directly modify video memory
+
 int get_x(){
     return screen_x;
 }
