@@ -11,6 +11,7 @@
 #include "keyboard.h"
 #include "rtc.h"
 #include "paging.h"
+#include "terminal.h"
 //uint16_t MASTER_DATA = MASTER_8259_PORT + 1;
 
 #define RUN_TESTS
@@ -19,9 +20,12 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
+
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void entry(unsigned long magic, unsigned long addr) {
+
+    uint32_t filesystem_start_addr;
 
     multiboot_info_t *mbi;
 
@@ -56,6 +60,7 @@ void entry(unsigned long magic, unsigned long addr) {
         int mod_count = 0;
         int i;
         module_t* mod = (module_t*)mbi->mods_addr;
+        filesystem_start_addr = mod->mod_start;
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -140,6 +145,7 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
+
     /* Init the PIC */
     //enable irq for kbd, rtc
     i8259_init();
@@ -149,19 +155,23 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
     initialize_rtc();
-    
+
+    init_filesystem(filesystem_start_addr);
+
+    clear();    
+    //update_cursor(0,0);
     initialize_keyboard();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    printf("Enabling Interrupts\n");
+    //printf("Enabling Interrupts\n");
     sti();
-    
+
 
 #ifdef RUN_TESTS
     /* Run tests */
-    launch_tests();
+    launch_tests(filesystem_start_addr);
 #endif
     /* Execute the first program ("shell") ... */
 

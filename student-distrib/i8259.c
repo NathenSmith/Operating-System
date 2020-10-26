@@ -53,7 +53,7 @@ void i8259_init(void) {
  */ 
 
 void enable_irq(uint32_t irq_num) {
-    printf("enable irq");
+    //printf("enable irq");
     if(irq_num < SLAVE_START) {     //on master
         master_mask = inb(MASTER_DATA) & ~(1 << irq_num);
         outb(master_mask, MASTER_DATA);
