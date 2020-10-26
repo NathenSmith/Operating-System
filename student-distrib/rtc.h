@@ -6,19 +6,10 @@
 #define REGISTER_B 0x8B
 #define REGISTER_C 0x0C
 #define INT_TURN_ON 0x40  //turn on interrupt on CMOS PORT
-/*
-#define F0 0x00
-#define F2 0x0F
-#define F4 0x0E
-#define F8 0x0D
-#define F16 0x0C
-#define F32	0x0B
-#define F64	0x0A
-#define F128 0x09
-#define F256 0x08
-#define F512 0x07
-#define F1024 0x06
-*/
+
+#define RATE_MAX 0x0F
+#define RATE_MIN 0x02
+#define SECOND_HEX_MASK 0xF0
 
 
 #define FREQ_MAX 1024
