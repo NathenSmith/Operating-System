@@ -1,12 +1,12 @@
 #include "filesystem.h"
 
-uint32_t filesystem_start_addr;
-uint32_t datablocks_start_address;
+uint32_t filesystem_start_addr;    //starting address of filesystem
+uint32_t datablocks_start_address; //address of first datablock
 
-boot_block_t boot_block_original;
+boot_block_t boot_block_original; //boot block variable and pointer
 boot_block_t * boot_block = &boot_block_original;
 
-inode_t inodes_original;
+inode_t inodes_original; //inodes variable and pointer
 inode_t * inodes = &inodes_original;
 
 dentry_t curr_file_original;
@@ -15,14 +15,16 @@ dentry_t * curr_file = &curr_file_original; //contains the current file
 
 uint32_t file_in_use; // 1 = in use
 uint32_t n_bytes_read_so_far;
+
 /*  init_filesystem
-    Inputs:
-    Outputs:
-    Return Value:
+    initialzies several variables necessary for utilizing the file system
+    Inputs: start_addr - starting address of file system
+    Outputs: none
+    Return Value: none
 */
 
 void init_filesystem(uint32_t start_addr){
-  filesystem_start_addr = start_addr;
+  filesystem_start_addr = start_addr; //
   boot_block = (boot_block_t *)filesystem_start_addr;
   inodes = (inode_t *)(filesystem_start_addr + BLOCK_SIZE);
   uint32_t n_inodes = boot_block->inode_count;
@@ -115,8 +117,8 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
     if(inode_number < 0 || inode_number > boot_block->inode_count) return -1;
     inode_t currentInode = inodes[inode_number];
 
-    uint32_t offsetBlocks = offset / BLOCK_SIZE;
-    uint32_t offsetBlocksRemainder = offset % BLOCK_SIZE;
+    uint32_t offsetBlocks = offset / BLOCK_SIZE; //calculate which block to start at
+    uint32_t offsetBlocksRemainder = offset % BLOCK_SIZE; //calculate where in block to start
 
     //validate offsetBlocks aka blockNumber
     if(offsetBlocks < 0 || offsetBlocks > boot_block->data_count) return -1;
@@ -162,6 +164,15 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
     return length_to_copy;
 }
 
+/* min
+    returns the smaller number between a and b
+
+    Inputs: a, b are integers
+    Outputs: none
+    Return Value: if a < b, return a. Otherwise return b.
+    Side Effects: none
+*/
+
 int32_t min(uint32_t a, uint32_t b) {
     if(a < b) {
         return a;
@@ -171,25 +182,50 @@ int32_t min(uint32_t a, uint32_t b) {
     }
 }
 
-/* file read */
+/* file_read
+    calls read_data for a file, reading a given amount of bytes
+    Inputs:
+      fd - file descriptor, not used in the function
+      buf - buffer to write file data into
+      nbytes - number of bytes to write into buffer
+    Outputs:
+        uint8_t * buf - the pointer to the buffer in which the data needs to be stored
+    Return Value: returns the number of bytes read. If unable to read, it returns -1.
+    Side Effects: none
+*/
 int32_t file_read(int32_t fd, uint8_t * buf, int32_t nbytes) {
     uint32_t nBytesRead = read_data(curr_file->inode_num, n_bytes_read_so_far, buf, nbytes);
     if(nBytesRead == -1) {
         return -1;
     }
     else {
-        n_bytes_read_so_far += nBytesRead;
+        n_bytes_read_so_far += nBytesRead; // keep track of number of bytes read
         return nBytesRead;
     }
 }
 
-/* file write */
+/* file_write
+    file system is read only
+    Inputs:
+      fd - file descriptor, not used in the function
+      buf - buffer with data to write
+      nbytes - number of bytes to write
+    Outputs: None
+    Return Value: file system is read only so return -1
+    Side Effects: none
+*/
 int32_t file_write(int32_t fd, uint8_t * buf, int32_t nbytes){
     return -1;
 }
 
-
-/* file open */
+/* file_open
+    given a filename, it initialzies variables and marks file in as in use
+    Inputs:
+      filename - name of file
+    Outputs: None
+    Return Value: return -1 if cannot find file, 0 otherwise
+    Side Effects: none
+*/
 int32_t file_open(const uint8_t* filename) {
     if(file_in_use) {
         return -1;
@@ -199,36 +235,70 @@ int32_t file_open(const uint8_t* filename) {
 
     if(status == -1) { // file does not exist
         return -1;
-    }
-    else {
+    }else {
         n_bytes_read_so_far = 0;
-        file_in_use = 1;
+        file_in_use = 1; // given file is currently being used
         return 0;
     }
 }
 
-/* file_close */
+/* file_close
+    mark file as not in use
+    Inputs:
+      fd - file descriptor
+    Outputs: None
+    Return Value: return 0 successfully closed file, -1 otherwise
+    Side Effects: none
+*/
+
 int32_t file_close(int32_t fd){
     //the user is not allowed to close the default files
     if(fd == 0 || fd == 1) {
         return -1;
     }
-    file_in_use = 0;
+    file_in_use = 0; // mark file as no longer in use
     return 0;
 }
 
-/* dir read */
+/* dir_read
+    returns file names present in directory
+    Inputs:
+      fd - file descriptor, not used in the function
+      buf - buffer to write file data into
+      nbytes - number of bytes to write into buffer
+    Outputs:
+        uint8_t * buf - the pointer to the buffer in which the data needs to be stored
+    Return Value: returns the number of bytes read. If unable to read, it returns -1.
+    Side Effects: none
+*/
+
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
-    strcpy(buf, curr_file->filename);
+    strcpy(buf, curr_file->filename); //move file name into buffer
     return 0;
 }
 
-/* dir write */
+/* dir_write
+    file system is read only
+    Inputs:
+      fd - file descriptor, not used in the function
+      buf - buffer with data to write
+      nbytes - number of bytes to write
+    Outputs: None
+    Return Value: file system is read only so return -1
+    Side Effects: none
+*/
 int32_t dir_write(int32_t fd, void* buf, int32_t nbytes){
     return -1;
 }
 
-/* dir open */
+/* dir_open
+    given a filename, it initialzies variables and marks file in as in use
+    Inputs:
+      filename - name of file
+    Outputs: None
+    Return Value: return -1 if directory does not exist, 0 otherwise
+    Side Effects: none
+*/
 int32_t dir_open(const uint8_t* filename) {
     if(file_in_use) {
         return -1;
@@ -240,12 +310,19 @@ int32_t dir_open(const uint8_t* filename) {
         return -1;
     }
     else {
-        file_in_use = 1;
+        file_in_use = 1; // mark as in use
         return 0;
     }
 }
 
-/* dir_close */
+/* dir_close
+    mark file as not in use
+    Inputs:
+      fd - file descriptor
+    Outputs: None
+    Return Value: return 0 successfully closed file, -1 otherwise
+    Side Effects: none
+*/
 int32_t dir_close(int32_t fd){
     //the user is not allowed to close the default files
     if(fd == 0 || fd == 1) {

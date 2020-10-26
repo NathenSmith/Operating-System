@@ -109,29 +109,38 @@ int paging_ib(){
 
 /* Checkpoint 2 tests */
 
+
+/* List Files Test
+ *
+ * Prints the name, type, and size for every file in the directory
+ * Inputs: starting addr of filesystem
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Files: filesystem.h/c
+ */
+
 int list_files(uint32_t start_addr) {
 	clear();
 	int i;
 
-  	dentry_t result;
+  dentry_t result;
 	dentry_t * resultPtr = &result;
 
 	boot_block_t * boot_block = (boot_block_t *) start_addr;
 	for(i = 0; i < boot_block->dir_count; i++){
 		int errorCheck = read_dentry_by_name((uint8_t *)boot_block->direntries[i].filename, resultPtr);
-		//errorCheck = read_dir(i, currentFile, FILENAME_LEN);
-		if(errorCheck == -1) return FAIL;
+		if(errorCheck == -1) return FAIL; //make sure that there exists file with that filename
 
 		uint32_t inode_num = resultPtr->inode_num;
 		inode_t * inodes = (inode_t *)(start_addr + BLOCK_SIZE);
-		inode_t currentInode = inodes[inode_num];
+		inode_t currentInode = inodes[inode_num]; // find inode associated with file
 		uint32_t length = currentInode.length;
 
-		int8_t string_to_print[33];
+		int8_t string_to_print[33]; //filename has a size of 32 + 1 for end char
 		strncpy(string_to_print, resultPtr->filename, 32);
 		string_to_print[32] = '\0';
 
-		printf("file name: ");
+		printf("file name: "); //print out filename, file type, and file size
 		printf(string_to_print);
 		printf("     file type: ");
 		printf("%d", resultPtr->filetype);
@@ -143,13 +152,22 @@ int list_files(uint32_t start_addr) {
 	return PASS;
 }
 
+/* List Files Test
+ *
+ * Prints the contents of the file
+ * Inputs: starting addr of filesystem, name of file
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Files: filesystem.h/c
+ */
+
 int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 	clear();
 	int i;
-	uint8_t buf[200];
+	uint8_t buf[200]; // we will be splitting the file into 200 byte chunks
 
-	int open_status = file_open(filename);
-	int n_bytes_read = file_read(0, buf, 200);
+	int open_status = file_open(filename); //call file_open to retrieve necessary file info
+	int n_bytes_read = file_read(0, buf, 200); //write the file contents into the buffer
 	printf("%s", buf);
 	// for(i = 0; i < n_bytes_read; i++) {
 	// 	putc(buf[i]);
