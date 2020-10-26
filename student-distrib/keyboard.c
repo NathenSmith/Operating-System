@@ -19,7 +19,6 @@ static char scan_codes[NUM_KEYS]= 	{ //presses
 
 //0: shift state, 1: capslock state, 3: ctrl state
 static uint8_t states[NUM_STATES] = {0, 0, 0};
-static char screen[80][25];
 
 /* initialize_keyboard
  * 
@@ -44,16 +43,16 @@ void initialize_keyboard(){
 void key_board_handler(){ 
     //0x3A, keycode for capslock  
     if(inb(KEYBOARD_PORT) == 0x3A){
-        states[1] = ~(states[1]);
+        states[CAPS_STATE] = ~(states[1]);
         send_eoi(KEYBOARD_IRQ);  
         return;
     }
     //---------shift checks---------
-    if(states[0]){  //states[0] is shift state        
+    if(states[SHIFT_STATE]){  //states[0] is shift state        
         //conversion to uppercase
         if(check_if_letter(inb(KEYBOARD_PORT))){
             //clears for Ctrl-L
-            if(states[2] && inb(KEYBOARD_PORT) == 0x26){
+            if(states[CTRL_STATE] && inb(KEYBOARD_PORT) == 0x26){
                 clear();
                 send_eoi(KEYBOARD_IRQ);
                 return;                
@@ -69,16 +68,16 @@ void key_board_handler(){
         }
         //0xAA and 0xB6, release scan codes for l and r shift respectively
         else if(inb(KEYBOARD_PORT) != 0xAA || inb(KEYBOARD_PORT) != 0xB6){
-            states[0] = 0;
+            states[SHIFT_STATE] = 0;
             send_eoi(KEYBOARD_IRQ); 
             return;
         }
     }
     //-----caps lock checks------------
-    if(states[1]){  //state[1] is capslock state
+    if(states[CAPS_STATE]){  //state[1] is capslock state
         if(check_if_letter(inb(KEYBOARD_PORT))){
-            //clears for Ctrl-L
-            if(states[2] && inb(KEYBOARD_PORT) == 0x26){
+            //clears for Ctrl-L (L scancode is 0x26)
+            if(states[CTRL_STATE] && inb(KEYBOARD_PORT) == 0x26){
                 clear();
                 send_eoi(KEYBOARD_IRQ);
                 return;                
@@ -89,7 +88,7 @@ void key_board_handler(){
         }   
     }
     //-----control check---------
-    if(states[2]){   //state[2] is ctrl state
+    if(states[CTRL_STATE]){   //state[2] is ctrl state
         //0x26 is scancode for l
         if(inb(KEYBOARD_PORT) == 0x26){
             clear();
@@ -98,7 +97,7 @@ void key_board_handler(){
         }
         //0xE0, 0x9D, release scan codes for l,r ctrl respectively
         else if(inb(KEYBOARD_PORT) == 0xE0 || inb(KEYBOARD_PORT) ==0x9D){
-            states[2] = 0;
+            states[CTRL_STATE] = 0;
             send_eoi(KEYBOARD_IRQ);
             return;
         }
@@ -107,13 +106,13 @@ void key_board_handler(){
                     
     //0x2A and 0x36 scan codes for l,r shifts respecitvely
     if(inb(KEYBOARD_PORT) == 0x2A || inb(KEYBOARD_PORT) == 0x36){
-        states[0] = 1;
+        states[SHIFT_STATE] = 1;
         send_eoi(KEYBOARD_IRQ); 
         return;
     }
     //0x1D, 0xE0, scan codes for l,r ctrl respectively
     else if(inb(KEYBOARD_PORT) == 0xE0 || inb(KEYBOARD_PORT) == 0x1D){
-        states[2] = 1;
+        states[CTRL_STATE] = 1;
         send_eoi(KEYBOARD_IRQ);
         return;            
     }
@@ -126,6 +125,7 @@ void key_board_handler(){
         send_eoi(KEYBOARD_IRQ);
         return;             
     }
+    //0x0E, scancode for backspace
     else if(inb(KEYBOARD_PORT) == 0X0E){
         backspace_buffer();
         send_eoi(KEYBOARD_IRQ);
@@ -157,12 +157,15 @@ void key_board_handler(){
  */ 
 static uint8_t check_if_letter(char index){
     uint8_t check = 0;
+    //all letters between scancodes 0x10 and 0x19
     if(index >= 0x10 && index <= 0x19){
         check = 1;
     }
+    //all letters between scancodes 0x1E and 0x26
     else if(index >= 0x1E && index <= 0x26){
         check = 1;
     }
+    //all letters between scancodes 0x2C and 0x32
     else if(index >= 0x2C && index <= 0x32){
         check = 1;
     }
@@ -254,9 +257,9 @@ void add_to_kdb_buf(char c){
     putc(c);
         
     int i;
-    if(buf_counter == 128){
+    if(buf_counter == BUF_SIZE){
         buf_counter = 0;
-        for(i = 0; i < 128; i++){
+        for(i = 0; i < BUF_SIZE; i++){
             kbd_buf[i] = '\0';
         }
     }    
