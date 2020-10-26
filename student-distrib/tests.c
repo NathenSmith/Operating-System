@@ -163,11 +163,12 @@ int list_files(uint32_t start_addr) {
 
 int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 	clear();
-	int i;
+	//int i;
 	uint8_t buf[200]; // we will be splitting the file into 200 byte chunks
 
-	int open_status = file_open(filename); //call file_open to retrieve necessary file info
+	file_open(filename); //call file_open to retrieve necessary file info
 	int n_bytes_read = file_read(0, buf, 200); //write the file contents into the buffer
+	printf("nbytesread: %d\n", n_bytes_read);
 	printf("%s", buf);
 	// for(i = 0; i < n_bytes_read; i++) {
 	// 	putc(buf[i]);
@@ -183,7 +184,7 @@ int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 /* Test suite entry point */
 void launch_tests(uint32_t input_start_addr){
 	uint32_t start_addr = input_start_addr;
-	TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, "frame0.txt"))
+	TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"frame0.txt"))
 	//TEST_OUTPUT("List Files", list_files(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("Dereference NULL test", exception_test());

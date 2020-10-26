@@ -49,14 +49,10 @@ void init_filesystem(uint32_t start_addr){
 
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry) {
     /* scans through dir entries in boot block to find file name, find corresponding index */
-
-    // validate fname
-    // if(!fname || strlen((int8_t*)fname) > FILENAME_LEN) return -1;
-
     uint32_t i;
 
     for(i = 0; i < boot_block->dir_count; i++) {
-        if(strncmp((boot_block->direntries)[i].filename, (int8_t *)fname, 32) == 0){
+        if(strncmp((boot_block->direntries)[i].filename, (int8_t *)fname, FILENAME_LEN) == 0){
           /* read directory entry by index corresponding to name */
           return read_dentry_by_index(i, dentry);
         }
@@ -85,10 +81,10 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry) {
     if(index < 0 || index >= boot_block->dir_count) return -1;
 
     /* Deepcopy the entry at that index into the passed in dentry structure. */
-    strncpy(dentry->filename, entry.filename, 32);
+    strncpy(dentry->filename, entry.filename, FILENAME_LEN);
     dentry->filetype = entry.filetype;
     dentry->inode_num = entry.inode_num;
-    strncpy(dentry->reserved, entry.reserved, 24);
+    strncpy(dentry->reserved, entry.reserved, RESERVED_LENGTH_DENTRY);
 
     return 0;
 }
