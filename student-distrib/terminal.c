@@ -10,6 +10,7 @@
  * Return value: Number of bytes read
  */ 
 uint32_t terminal_read (uint32_t fd, char* buf, uint32_t nbytes){
+	if(buf == NULL || nbytes <= 0) return 0;
 	//clear the buffer being sent in
 	int i;
 	for(i = 0; i < BUF_SIZE; i++){
@@ -45,7 +46,7 @@ uint32_t terminal_read (uint32_t fd, char* buf, uint32_t nbytes){
  * Return value: number of bytes written
  */ 
 uint32_t terminal_write (uint32_t fd, const char* buf, uint32_t nbytes){
-	if(nbytes == 0) return -1; //no bytes to read
+	if(buf == NULL || nbytes <= 0) return -1; //no bytes to read
 	uint32_t i, counter = 0;
 	for(i = 0; i < nbytes; i++){
 		if(i == BUF_SIZE) break; //iterates until reaches max size of buffer or the number of bytes
@@ -80,5 +81,5 @@ uint32_t terminal_open (const uint8_t* filename){
  * Return value: Zero on success
  */ 
 uint32_t terminal_close (uint32_t fd){
-    return 0;
+    return -1;
 }
