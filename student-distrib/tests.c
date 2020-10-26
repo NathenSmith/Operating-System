@@ -104,6 +104,11 @@ int paging_ib(){
 	return PASS;
 }
 
+
+
+// add more tests here
+
+/* Checkpoint 2 tests */
 int rtc_test(){
 	TEST_HEADER;
 	int32_t i, f = 2;
@@ -124,16 +129,13 @@ int rtc_test(){
 
 int terminal_test(){
 	TEST_HEADER;
-	while(1){	
+	//while(1){	
 		char buf[128];
-		terminal_read(0,buf,1);
-		terminal_write(0,buf,1);
-	}
+		terminal_read(0,buf,128);
+		terminal_write(0,buf,128);
+		return PASS;
+	//}
 }
-
-// add more tests here
-
-/* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -147,7 +149,7 @@ void launch_tests(){
 	//TEST_OUTPUT("paging test 1", paging_oob());	
 	//TEST_OUTPUT("paging test 2", paging_ib());	
 	//TEST_OUTPUT("rtc test", rtc_test());
-	TEST_OUTPUT("backspace", terminal_test());
+	TEST_OUTPUT("terminal r/w", terminal_test());
 	// launch your tests here
 }
 

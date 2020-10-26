@@ -9,13 +9,12 @@ uint32_t terminal_read (uint32_t fd, char* buf, uint32_t nbytes){
 	}
 	i = 0;
 	while(1){
-		if(i == 128) break;
-		
+		if(i == nbytes || i == BUF_SIZE) return i;
+		if(kbd_buf[i] == '\0') continue;		
 		buf[i] = kbd_buf[i];
-		if(buf[i] == '\n') break;
+		if(buf[i] == '\n') return i;
 		i++;
 	}
-	return i;
 }
 uint32_t terminal_write (uint32_t fd, const char* buf, uint32_t nbytes){
 	
