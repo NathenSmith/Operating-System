@@ -1,9 +1,17 @@
 #include "filesystem.h"
 
 uint32_t filesystem_start_addr;
-boot_block_t * boot_block;
-inode_t * inodes;
-dentry_t * curr_file; //contains the current file
+
+
+boot_block_t boot_block_original;
+boot_block_t * boot_block = &boot_block_original;
+
+inode_t inodes_original;
+inode_t * inodes = &inodes;
+
+dentry_t curr_file_original;
+dentry_t * curr_file = &curr_file_original; //contains the current file
+
 uint32_t file_in_use; // 1 = in use
 uint32_t n_bytes_read_so_far;
 /*  init_filesystem
@@ -14,8 +22,8 @@ uint32_t n_bytes_read_so_far;
 
 void init_filesystem(uint32_t start_addr){
   filesystem_start_addr = start_addr;
-  boot_block = filesystem_start_addr;
-  inodes = filesystem_start_addr + BLOCK_SIZE;
+  boot_block = (boot_block_t *)filesystem_start_addr;
+  inodes = (inode_t *) filesystem_start_addr + BLOCK_SIZE;
   n_bytes_read_so_far = 0;
 }
 
@@ -115,11 +123,11 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
     //find length of data to copy
     uint32_t position_after_copy = min(currentInode.length, offset + length);
     uint32_t length_to_copy = position_after_copy - offset;
-    
+
     /* If length to copy is small enough that it does not require going
      onto the next block, do a simple copy of length length_to_copy. */
     if((offset + length_to_copy)/BLOCK_SIZE == offsetBlocks) {
-        strncpy(buf, start_addr_in_datablock, length_to_copy);
+        strncpy((int8_t *)buf, (int8_t *)start_addr_in_datablock, length_to_copy);
     }
     /* Otherwise, we have to copy over multiple blocks. */
     else {
@@ -127,20 +135,20 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
         int final_block = position_after_copy/BLOCK_SIZE;
         int final_in_block_offset = position_after_copy % BLOCK_SIZE;
         for(block = offsetBlocks; block <= final_block; block++) {
-            //first block 
+            //first block
             if(block == offsetBlocks) {
                 //addr of end of block - start addr in block
-                uint32_t block_length_to_copy = currentInode.data_block_num[offsetBlocks] 
+                uint32_t block_length_to_copy = currentInode.data_block_num[offsetBlocks]
                                                 + BLOCK_SIZE - start_addr_in_datablock;
-                strncpy(buf, start_addr_in_datablock, block_length_to_copy);
+                strncpy((int8_t *)buf, (int8_t *)start_addr_in_datablock, block_length_to_copy);
             }
             //last block
             else if(block == final_block) {
-                strncpy(buf, currentInode.data_block_num[block], final_in_block_offset);
+                strncpy((int8_t *)buf, (int8_t *)currentInode.data_block_num[block], final_in_block_offset);
             }
             //all blocks in between first and last block
             else {
-                strncpy(buf, currentInode.data_block_num[block], BLOCK_SIZE);
+                strncpy((int8_t *)buf, (int8_t *)currentInode.data_block_num[block], BLOCK_SIZE);
             }
         }
     }
@@ -185,7 +193,7 @@ int32_t file_open(const uint8_t* filename) {
     }
 
     int status = read_dentry_by_name (filename, curr_file);
-    
+
     if(status == -1) { // file does not exist
         return -1;
     }
@@ -207,7 +215,7 @@ int32_t file_close(int32_t fd){
 }
 
 /* dir read */
-int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {  
+int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
     strcpy(buf, curr_file->filename);
     return 0;
 }
@@ -243,4 +251,3 @@ int32_t dir_close(int32_t fd){
     file_in_use = 0;
     return 0;
 }
-

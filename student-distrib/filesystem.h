@@ -5,11 +5,6 @@
 #define BLOCK_SIZE 4096
 #define N_BLOCKS 32
 
-int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry);
-int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
-int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
-void init();
-
 typedef struct dentry
 {
     int8_t filename[FILENAME_LEN];
@@ -33,4 +28,8 @@ typedef struct inode
     int32_t data_block_num [1023];
 } inode_t;
 
-
+int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry);
+int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
+int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
+void init_filesystem(uint32_t start_addr);
+int32_t min(uint32_t a, uint32_t b);

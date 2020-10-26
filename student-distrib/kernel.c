@@ -149,7 +149,10 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
     initialize_rtc();
-    
+
+    module_t* mod = (module_t*)mbi->mods_addr;
+    init_filesystem(mod->mod_start);
+
     initialize_keyboard();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
@@ -157,11 +160,11 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-    
+
 
 #ifdef RUN_TESTS
     /* Run tests */
-    launch_tests();
+    launch_tests(mod->mod_start);
 #endif
     /* Execute the first program ("shell") ... */
 

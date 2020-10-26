@@ -22,8 +22,8 @@ static inline void assertion_failure(){
 
 /* Checkpoint 1 tests */
 
-/* exception_test 
- * 
+/* exception_test
+ *
  * Tests the exceptions by dereferencing a null pointer.
  * Inputs: None
  * Outputs: PASS/FAIL
@@ -42,7 +42,7 @@ int exception_test(){
 
 
 /* divide_test
- * 
+ *
  * Tests the exceptions by dividing by zero.
  * Inputs: None
  * Outputs: PASS/FAIL
@@ -56,7 +56,7 @@ int divide_test(){
 }
 
 /* system_call_2
- * 
+ *
  * Tests the system call using the int 0x80 instruction.
  * Inputs: None
  * Outputs: PASS/FAIL
@@ -64,7 +64,7 @@ int divide_test(){
  */
 
 int system_call_2(){
-	asm volatile( 
+	asm volatile(
           "movl $10, %eax;"
 		  "int $0x80"
     );
@@ -107,23 +107,22 @@ int paging_ib(){
 
 /* Checkpoint 2 tests */
 
-list_files(){
-	uint8_t currentFile[FILENAME_LEN];
+int list_files(uint32_t start_addr){
 	int i;
 
   dentry_t result;
 	dentry_t * resultPtr = &result;
 
-	for(int i = 0; i < boot_block->dir_count){
-		int errorCheck = read_dentry_by_name(boot_block->direntries[i], resultPtr);
+	boot_block_t * boot_block = (boot_block_t *) start_addr;
+	for(i = 0; i < boot_block->dir_count; i++){
+		int errorCheck = read_dentry_by_name(boot_block->direntries[i]->filename, resultPtr);
 		//errorCheck = read_dir(i, currentFile, FILENAME_LEN);
 		if(errorCheck == -1) return FAIL;
 
 		printf(resultPtr->filename);
-		printf(resultPtr->filetype);
+		// printf(resultPtr->filetype);
 		printf("\n");
 	}
-
 	return PASS;
 
 }
@@ -133,17 +132,14 @@ list_files(){
 /* Checkpoint 5 tests */
 
 /* Test suite entry point */
-void launch_tests(){
+void launch_tests(uint32_t input_start_addr){
+	uint32_t start_addr = input_start_addr;
+	TEST_OUTPUT("List Files", list_files(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("Dereference NULL test", exception_test());
 	//TEST_OUTPUT("divide-by-zero test", divide_test());
 	//TEST_OUTPUT("system call test 2", system_call_2());
-	//TEST_OUTPUT("paging test 1", paging_oob());	
-	//TEST_OUTPUT("paging test 2", paging_ib());	
+	//TEST_OUTPUT("paging test 1", paging_oob());
+	//TEST_OUTPUT("paging test 2", paging_ib());
 	// launch your tests here
 }
-
-
-
-
-
