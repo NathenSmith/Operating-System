@@ -6,8 +6,14 @@
 #define _LIB_H
 
 #include "types.h"
+#include "terminal.h"
 
 void test_interrupts(void);
+
+void backspace();
+void scroll_up();
+int get_x();
+int get_y();
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);

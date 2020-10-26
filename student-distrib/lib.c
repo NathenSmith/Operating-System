@@ -17,11 +17,14 @@ static char* video_mem = (char *)VIDEO;
  * Return Value: none
  * Function: Clears video memory */
 void clear(void) {
+    update_cursor(0,0);
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+    screen_x = 0;
+    screen_y = 0;
 }
 
 /* Standard printf().
@@ -169,15 +172,80 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_y++;
+        if(screen_y == NUM_ROWS-1) {scroll_up();}
+        else {screen_y++;}
         screen_x = 0;
+        update_cursor(screen_x, screen_y);
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
+        if(screen_x == NUM_COLS) {screen_y++;}
+        else {screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;}
+        if(screen_y == NUM_ROWS) {scroll_up();}
         screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        update_cursor(screen_x, screen_y);
     }
+}
+
+/* void backspace();
+ * Inputs: none
+ * Return Value: void
+ *  Function: Delete most recently written char */
+void backspace() {
+    if(!(screen_x == 0 && screen_y == 0)){
+        if(screen_x == 0){
+            screen_x = NUM_COLS - 1;
+            screen_y--;
+        }
+        else{
+            screen_x--;
+        }
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;        
+    }
+    update_cursor(screen_x, screen_y);
+}
+
+/* void scroll_up();
+ * Inputs: none
+ * Return Value: void
+ *  Function: Moves up screen by one line when typing at end to account for scrolling */
+void scroll_up() {
+    int i;
+    int j; 
+    for(i = 0; i < NUM_ROWS; i++){
+        for(j=0; j < NUM_COLS; j++){
+            if(i == NUM_ROWS-1){
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1)) = ' ';
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1) + 1) = ATTRIB;
+            }
+            else{
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1)) = 
+                    *(uint8_t *)(video_mem + ((NUM_COLS * (i + 1) + j) << 1));
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1) + 1) = ATTRIB;
+            }
+        }
+    }
+    screen_x = 0;
+    screen_y = NUM_ROWS -1;
+    update_cursor(screen_x, screen_y);
+}
+
+/* void get_x();
+ * Inputs: uint_8* c = none
+ * Return Value: void
+ *  Function: gets screen_x */
+int get_x(){
+    return screen_x;
+}
+
+/* void get_y();
+ * Inputs: uint_8* c = none
+ * Return Value: void
+ *  Function: gets screen_x */
+int get_y(){
+    return screen_y;
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

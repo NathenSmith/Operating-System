@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "rtc.h"
 
 #include "linkage.h" //REMOVE LATER
 
@@ -105,9 +106,12 @@ int paging_ib(){
 	return PASS;
 }
 
+
+
 // add more tests here
 
 /* Checkpoint 2 tests */
+<<<<<<< HEAD
 
 
 /* List Files Test
@@ -147,11 +151,27 @@ int list_files(uint32_t start_addr) {
 		printf("     file size: ");
 		printf("%d", length);
 		printf("\n");
+=======
+int rtc_test(){
+	TEST_HEADER;
+	int32_t i, f = 2;
+	int32_t *f_ptr = &f;
+	while(f <= 1024){
+		rtc_write(0, f_ptr, 4);
+		for(i = 0; i < 10; i++){
+			rtc_read(0,0,0);
+			add_to_kdb_buf('1');
+		}
+		*f_ptr *= 2;
+		add_to_kdb_buf('\n');
+		clear();
+>>>>>>> terminal_driver
 
 	}
 	return PASS;
 }
 
+<<<<<<< HEAD
 /* List Files Test
  *
  * Prints the contents of the file
@@ -177,6 +197,17 @@ int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 	return PASS;
 }
 
+=======
+int terminal_test(){
+	TEST_HEADER;
+	//while(1){	
+		char buf[128];
+		terminal_read(0,buf,128);
+		terminal_write(0,buf,128);
+		return PASS;
+	//}
+}
+>>>>>>> terminal_driver
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -190,7 +221,14 @@ void launch_tests(uint32_t input_start_addr){
 	//TEST_OUTPUT("Dereference NULL test", exception_test());
 	//TEST_OUTPUT("divide-by-zero test", divide_test());
 	//TEST_OUTPUT("system call test 2", system_call_2());
+<<<<<<< HEAD
 	//TEST_OUTPUT("paging test 1", paging_oob());
 	//TEST_OUTPUT("paging test 2", paging_ib());
+=======
+	//TEST_OUTPUT("paging test 1", paging_oob());	
+	//TEST_OUTPUT("paging test 2", paging_ib());	
+	//TEST_OUTPUT("rtc test", rtc_test());
+	TEST_OUTPUT("terminal r/w", terminal_test());
+>>>>>>> terminal_driver
 	// launch your tests here
 }
