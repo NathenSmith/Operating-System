@@ -36,6 +36,9 @@ void init_filesystem(uint32_t start_addr){
 int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry) {
     /* scans through dir entries in boot block to find file name, find corresponding index */
 
+    // validate fname
+    if(!fname || strlen((int8_t*)fname) > FILENAME_LEN) return -1;
+
     int found = 0;
     uint32_t i;
 
