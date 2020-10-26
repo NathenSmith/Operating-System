@@ -13,13 +13,13 @@ uint32_t terminal_read (uint32_t fd, void* buf, uint32_t nbytes){
 	}
 	return i;
 }
-uint32_t terminal_write (uint32_t fd, const void* buf, uint32_t nbytes){
+uint32_t terminal_write (uint32_t fd, const char* buf, uint32_t nbytes){
 	
 	if(nbytes == 0) return -1;
 	uint32_t i, counter = 0;
 	for(i = 0; i < nbytes; i++){
-		if(terminal_buf[i] != '\0'){
-			putc(terminal_buf[i]);
+		if(buf[i] != '\0'){
+			putc(buf[i]);
 			counter++;
 		} 
 	}
