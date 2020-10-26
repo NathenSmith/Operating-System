@@ -146,12 +146,10 @@ int list_files(uint32_t start_addr) {
 int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 	clear();
 	int i;
-	uint8_t buf[100];
+	uint8_t buf[10000];
 
 	int open_status = file_open(filename);
-	// printf("open status: %d", open_status);
-	int read_status = file_read(0, buf, 50);
-	// printf("read status: %d", read_status);
+	int read_status = file_read(0, buf, 5000);
 	printf("%s", buf);
 
 	return PASS;
@@ -164,7 +162,7 @@ int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 /* Test suite entry point */
 void launch_tests(uint32_t input_start_addr){
 	uint32_t start_addr = input_start_addr;
-	TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, "frame0.txt"))
+	TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, "grep"))
 	//TEST_OUTPUT("List Files", list_files(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("Dereference NULL test", exception_test());

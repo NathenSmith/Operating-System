@@ -126,38 +126,39 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
      offsetBlocksRemainder;
 
     //find length of data to copy
+    //min() is to make sure it only reads up to the length of the file.
     uint32_t position_after_copy = min(currentInode.length, offset + length);
     uint32_t length_to_copy = position_after_copy - offset;
+    uint32_t final_block = position_after_copy/BLOCK_SIZE;
+    uint32_t final_block_length = position_after_copy % BLOCK_SIZE;
 
     /* If length to copy is small enough that it does not require going
      onto the next block, do a simple copy of length length_to_copy. */
-    if((offset + length_to_copy)/BLOCK_SIZE == offsetBlocks) {
+    if((offset + length_to_copy)/BLOCK_SIZE == offsetBlocks) { // if it would still be in the same block #
         strncpy((int8_t *)buf, (int8_t *)start_addr_to_copy, length_to_copy);
-        printf("test5");
     }
-    // /* Otherwise, we have to copy over multiple blocks. */
-    // else {
-    //     int block;
-    //     int final_block = position_after_copy/BLOCK_SIZE;
-    //     int final_in_block_offset = position_after_copy % BLOCK_SIZE;
-    //     for(block = offsetBlocks; block <= final_block; block++) {
-    //         //first block
-    //         if(block == offsetBlocks) {
-    //             //addr of end of block - start addr in block
-    //             uint32_t block_length_to_copy = currentInode.data_block_num[offsetBlocks]
-    //                                             + BLOCK_SIZE - start_addr_in_datablock;
-    //             strncpy((int8_t *)buf, (int8_t *)start_addr_in_datablock, block_length_to_copy);
-    //         }
-    //         //last block
-    //         else if(block == final_block) {
-    //             strncpy((int8_t *)buf, (int8_t *)currentInode.data_block_num[block], final_in_block_offset);
-    //         }
-    //         //all blocks in between first and last block
-    //         else {
-    //             strncpy((int8_t *)buf, (int8_t *)currentInode.data_block_num[block], BLOCK_SIZE);
-    //         }
-    //     }
-    // }
+    /* Otherwise, we have to copy over multiple blocks. */
+    else {
+        uint32_t buffer_offset = 0;
+
+        //copy first block data
+        uint32_t n_bytes_left_in_block = BLOCK_SIZE - offsetBlocksRemainder;
+        strncpy((int8_t *)(buf + buffer_offset), (int8_t *)start_addr_to_copy, n_bytes_left_in_block);
+        buffer_offset += n_bytes_left_in_block;
+
+        //now we loop through the other blocks
+        int i;
+        for(i = offsetBlocks + 1; i <= final_block; i++) {
+            start_addr_to_copy = datablocks_start_address + (currentInode.data_block_num[i])*BLOCK_SIZE;
+            if(i != final_block) {
+                strncpy((int8_t *)(buf + buffer_offset), (int8_t *)start_addr_to_copy, BLOCK_SIZE);
+                buffer_offset += BLOCK_SIZE;
+            }
+            else {
+                strncpy((int8_t *)(buf + buffer_offset), (int8_t *)start_addr_to_copy, final_block_length);
+            }
+        }
+    }
     return length_to_copy;
 }
 
