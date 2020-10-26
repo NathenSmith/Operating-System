@@ -115,7 +115,7 @@ int list_files(uint32_t start_addr){
 
 	boot_block_t * boot_block = (boot_block_t *) start_addr;
 	for(i = 0; i < boot_block->dir_count; i++){
-		int errorCheck = read_dentry_by_name(boot_block->direntries[i]->filename, resultPtr);
+		int errorCheck = read_dentry_by_name((uint8_t *)boot_block->direntries[i].filename, resultPtr);
 		//errorCheck = read_dir(i, currentFile, FILENAME_LEN);
 		if(errorCheck == -1) return FAIL;
 

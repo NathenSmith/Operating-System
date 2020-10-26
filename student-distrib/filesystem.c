@@ -7,7 +7,7 @@ boot_block_t boot_block_original;
 boot_block_t * boot_block = &boot_block_original;
 
 inode_t inodes_original;
-inode_t * inodes = &inodes;
+inode_t * inodes = &inodes_original;
 
 dentry_t curr_file_original;
 dentry_t * curr_file = &curr_file_original; //contains the current file
@@ -47,11 +47,10 @@ int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry) {
     // validate fname
     if(!fname || strlen((int8_t*)fname) > FILENAME_LEN) return -1;
 
-    int found = 0;
     uint32_t i;
 
     for(i = 0; i < boot_block->dir_count; i++) {
-        if(strncmp((boot_block->direntries)[i].filename, fname, 32) == 0){
+        if(strncmp((boot_block->direntries)[i].filename, (int8_t *)fname, 32) == 0){
           /* read directory entry by index corresponding to name */
           return read_dentry_by_index(i, dentry);
         }
