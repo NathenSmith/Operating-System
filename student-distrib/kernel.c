@@ -19,9 +19,12 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
+
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void entry(unsigned long magic, unsigned long addr) {
+
+    uint32_t filesystem_start_addr;
 
     multiboot_info_t *mbi;
 
@@ -56,6 +59,7 @@ void entry(unsigned long magic, unsigned long addr) {
         int mod_count = 0;
         int i;
         module_t* mod = (module_t*)mbi->mods_addr;
+        filesystem_start_addr = mod->mod_start;
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -150,8 +154,7 @@ void entry(unsigned long magic, unsigned long addr) {
      * PIC, any other initialization stuff... */
     initialize_rtc();
 
-    module_t* mod = (module_t*)mbi->mods_addr;
-    init_filesystem(mod->mod_start);
+    init_filesystem(filesystem_start_addr);
 
     initialize_keyboard();
     /* Enable interrupts */
@@ -164,7 +167,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-    launch_tests(mod->mod_start);
+    launch_tests(filesystem_start_addr);
 #endif
     /* Execute the first program ("shell") ... */
 

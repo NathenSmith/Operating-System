@@ -1,7 +1,7 @@
 #include "filesystem.h"
 
 uint32_t filesystem_start_addr;
-
+uint32_t datablocks_start_address;
 
 boot_block_t boot_block_original;
 boot_block_t * boot_block = &boot_block_original;
@@ -11,6 +11,7 @@ inode_t * inodes = &inodes_original;
 
 dentry_t curr_file_original;
 dentry_t * curr_file = &curr_file_original; //contains the current file
+
 
 uint32_t file_in_use; // 1 = in use
 uint32_t n_bytes_read_so_far;
@@ -23,8 +24,11 @@ uint32_t n_bytes_read_so_far;
 void init_filesystem(uint32_t start_addr){
   filesystem_start_addr = start_addr;
   boot_block = (boot_block_t *)filesystem_start_addr;
-  inodes = (inode_t *) filesystem_start_addr + BLOCK_SIZE;
+  inodes = (inode_t *)(filesystem_start_addr + BLOCK_SIZE);
+  uint32_t n_inodes = boot_block->inode_count;
+  datablocks_start_address = filesystem_start_addr + BLOCK_SIZE + BLOCK_SIZE*n_inodes;
   n_bytes_read_so_far = 0;
+  file_in_use = 0;
 }
 
 /* read_dentry_by_name
@@ -45,7 +49,7 @@ int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry) {
     /* scans through dir entries in boot block to find file name, find corresponding index */
 
     // validate fname
-    if(!fname || strlen((int8_t*)fname) > FILENAME_LEN) return -1;
+    // if(!fname || strlen((int8_t*)fname) > FILENAME_LEN) return -1;
 
     uint32_t i;
 
@@ -79,10 +83,10 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry) {
     if(index < 0 || index >= boot_block->dir_count) return -1;
 
     /* Deepcopy the entry at that index into the passed in dentry structure. */
-    strcpy(dentry->filename, entry.filename);
+    strncpy(dentry->filename, entry.filename, 32);
     dentry->filetype = entry.filetype;
     dentry->inode_num = entry.inode_num;
-    strcpy(dentry->reserved, entry.reserved);
+    strncpy(dentry->reserved, entry.reserved, 24);
 
     return 0;
 }
@@ -108,16 +112,18 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
     /* offset represents the number of bytes that have been read so far. */
 
     //validate inode
-    if(inode_number >= 0 && inode_number < boot_block->inode_count) return -1;
+    if(inode_number < 0 || inode_number > boot_block->inode_count) return -1;
     inode_t currentInode = inodes[inode_number];
 
     uint32_t offsetBlocks = offset / BLOCK_SIZE;
+    uint32_t offsetBlocksRemainder = offset % BLOCK_SIZE;
 
     //validate offsetBlocks aka blockNumber
-    if(offsetBlocks >= 0 && offsetBlocks < boot_block->data_count) return -1;
+    if(offsetBlocks < 0 || offsetBlocks > boot_block->data_count) return -1;
 
-    uint32_t offsetBlocksRemainder = offset % BLOCK_SIZE;
-    uint32_t start_addr_in_datablock = currentInode.data_block_num[offsetBlocks] + offsetBlocksRemainder;
+    uint32_t start_addr_to_copy = datablocks_start_address +
+     (currentInode.data_block_num[offsetBlocks])*BLOCK_SIZE +
+     offsetBlocksRemainder;
 
     //find length of data to copy
     uint32_t position_after_copy = min(currentInode.length, offset + length);
@@ -126,31 +132,32 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
     /* If length to copy is small enough that it does not require going
      onto the next block, do a simple copy of length length_to_copy. */
     if((offset + length_to_copy)/BLOCK_SIZE == offsetBlocks) {
-        strncpy((int8_t *)buf, (int8_t *)start_addr_in_datablock, length_to_copy);
+        strncpy((int8_t *)buf, (int8_t *)start_addr_to_copy, length_to_copy);
+        printf("test5");
     }
-    /* Otherwise, we have to copy over multiple blocks. */
-    else {
-        int block;
-        int final_block = position_after_copy/BLOCK_SIZE;
-        int final_in_block_offset = position_after_copy % BLOCK_SIZE;
-        for(block = offsetBlocks; block <= final_block; block++) {
-            //first block
-            if(block == offsetBlocks) {
-                //addr of end of block - start addr in block
-                uint32_t block_length_to_copy = currentInode.data_block_num[offsetBlocks]
-                                                + BLOCK_SIZE - start_addr_in_datablock;
-                strncpy((int8_t *)buf, (int8_t *)start_addr_in_datablock, block_length_to_copy);
-            }
-            //last block
-            else if(block == final_block) {
-                strncpy((int8_t *)buf, (int8_t *)currentInode.data_block_num[block], final_in_block_offset);
-            }
-            //all blocks in between first and last block
-            else {
-                strncpy((int8_t *)buf, (int8_t *)currentInode.data_block_num[block], BLOCK_SIZE);
-            }
-        }
-    }
+    // /* Otherwise, we have to copy over multiple blocks. */
+    // else {
+    //     int block;
+    //     int final_block = position_after_copy/BLOCK_SIZE;
+    //     int final_in_block_offset = position_after_copy % BLOCK_SIZE;
+    //     for(block = offsetBlocks; block <= final_block; block++) {
+    //         //first block
+    //         if(block == offsetBlocks) {
+    //             //addr of end of block - start addr in block
+    //             uint32_t block_length_to_copy = currentInode.data_block_num[offsetBlocks]
+    //                                             + BLOCK_SIZE - start_addr_in_datablock;
+    //             strncpy((int8_t *)buf, (int8_t *)start_addr_in_datablock, block_length_to_copy);
+    //         }
+    //         //last block
+    //         else if(block == final_block) {
+    //             strncpy((int8_t *)buf, (int8_t *)currentInode.data_block_num[block], final_in_block_offset);
+    //         }
+    //         //all blocks in between first and last block
+    //         else {
+    //             strncpy((int8_t *)buf, (int8_t *)currentInode.data_block_num[block], BLOCK_SIZE);
+    //         }
+    //     }
+    // }
     return length_to_copy;
 }
 
@@ -164,7 +171,7 @@ int32_t min(uint32_t a, uint32_t b) {
 }
 
 /* file read */
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
+int32_t file_read(int32_t fd, uint8_t * buf, int32_t nbytes) {
     uint32_t nBytesRead = read_data(curr_file->inode_num, n_bytes_read_so_far, buf, nbytes);
     if(nBytesRead == -1) {
         return -1;
@@ -176,14 +183,10 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
 }
 
 /* file write */
-int32_t file_write(int32_t fd, void* buf, int32_t nbytes){
+int32_t file_write(int32_t fd, uint8_t * buf, int32_t nbytes){
     return -1;
 }
 
-//cameron said he initialized inode length during open,
-//not sure if we need to do that or not.
-
-//also we don't need to worry about pcb for this checkpoint
 
 /* file open */
 int32_t file_open(const uint8_t* filename) {

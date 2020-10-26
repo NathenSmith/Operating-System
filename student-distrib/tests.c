@@ -7,6 +7,8 @@
 #define PASS 1
 #define FAIL 0
 
+#define BLOCK_SIZE 4096
+
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -107,10 +109,11 @@ int paging_ib(){
 
 /* Checkpoint 2 tests */
 
-int list_files(uint32_t start_addr){
+int list_files(uint32_t start_addr) {
+	clear();
 	int i;
 
-  dentry_t result;
+  	dentry_t result;
 	dentry_t * resultPtr = &result;
 
 	boot_block_t * boot_block = (boot_block_t *) start_addr;
@@ -119,12 +122,39 @@ int list_files(uint32_t start_addr){
 		//errorCheck = read_dir(i, currentFile, FILENAME_LEN);
 		if(errorCheck == -1) return FAIL;
 
-		printf(resultPtr->filename);
-		// printf(resultPtr->filetype);
+		uint32_t inode_num = resultPtr->inode_num;
+		inode_t * inodes = (inode_t *)(start_addr + BLOCK_SIZE);
+		inode_t currentInode = inodes[inode_num];
+		uint32_t length = currentInode.length;
+
+		int8_t string_to_print[33];
+		strncpy(string_to_print, resultPtr->filename, 32);
+		string_to_print[32] = '\0';
+
+		printf("file name: ");
+		printf(string_to_print);
+		printf("     file type: ");
+		printf("%d", resultPtr->filetype);
+		printf("     file size: ");
+		printf("%d", length);
 		printf("\n");
+
 	}
 	return PASS;
+}
 
+int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
+	clear();
+	int i;
+	uint8_t buf[100];
+
+	int open_status = file_open(filename);
+	// printf("open status: %d", open_status);
+	int read_status = file_read(0, buf, 50);
+	// printf("read status: %d", read_status);
+	printf("%s", buf);
+
+	return PASS;
 }
 
 /* Checkpoint 3 tests */
@@ -134,7 +164,8 @@ int list_files(uint32_t start_addr){
 /* Test suite entry point */
 void launch_tests(uint32_t input_start_addr){
 	uint32_t start_addr = input_start_addr;
-	TEST_OUTPUT("List Files", list_files(start_addr));
+	TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, "frame0.txt"))
+	//TEST_OUTPUT("List Files", list_files(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("Dereference NULL test", exception_test());
 	//TEST_OUTPUT("divide-by-zero test", divide_test());
