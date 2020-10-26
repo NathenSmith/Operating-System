@@ -124,11 +124,11 @@ int rtc_test(){
 
 int terminal_test(){
 	TEST_HEADER;
-	char buf[128];
-	terminal_read(0,buf,1);
-	terminal_write(0,buf,1);
-
-	return PASS;
+	while(1){	
+		char buf[128];
+		terminal_read(0,buf,1);
+		terminal_write(0,buf,1);
+	}
 }
 
 // add more tests here
