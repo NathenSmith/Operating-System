@@ -1,10 +1,29 @@
 #include "terminal.h"
-
+char terminal_buf[128];
+//global variables: buffer size < 128 including /n, maybe cursor
 uint32_t terminal_read (uint32_t fd, void* buf, uint32_t nbytes){
-    return 0;
+	int i;
+	for(i = 0; i < 128; i++){
+		terminal_buf[i] = '\0';
+	}
+	i = 0;
+	while(kbd_buf[i] != '\n'){
+		terminal_buf[i] = kbd_buf[i];
+		i++;
+	}
+	return i;
 }
 uint32_t terminal_write (uint32_t fd, const void* buf, uint32_t nbytes){
-    return 0;
+	
+	if(nbytes == 0) return -1;
+	uint32_t i, counter = 0;
+	for(i = 0; i < nbytes; i++){
+		if(terminal_buf[i] != '\0'){
+			putc(terminal_buf[i]);
+			counter++;
+		} 
+	}
+    return counter;
 }
 uint32_t terminal_open (const uint8_t* filename){
     return 0;

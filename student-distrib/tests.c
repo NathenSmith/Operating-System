@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "rtc.h"
 
 #include "linkage.h" //REMOVE LATER
 
@@ -103,6 +104,24 @@ int paging_ib(){
 	return PASS;
 }
 
+int rtc_test(){
+	TEST_HEADER;
+	int32_t i, f = 2;
+	int32_t *f_ptr = &f;
+	while(f <= 1024){
+		rtc_write(0, f_ptr, 4);
+		for(i = 0; i < 10; i++){
+			rtc_read(0,0,0);
+			add_to_kdb_buf('1');
+		}
+		*f_ptr *= 2;
+		add_to_kdb_buf('\n');
+		clear();
+
+	}
+	return PASS;
+}
+
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -118,6 +137,7 @@ void launch_tests(){
 	//TEST_OUTPUT("system call test 2", system_call_2());
 	//TEST_OUTPUT("paging test 1", paging_oob());	
 	//TEST_OUTPUT("paging test 2", paging_ib());	
+	//TEST_OUTPUT("rtc test", rtc_test());
 	// launch your tests here
 }
 

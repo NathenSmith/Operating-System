@@ -43,46 +43,47 @@ void rtc_handler(){
     //test_interrupts();
 }
 //should only return 0: appendix b
-// int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
-//     while(!rtc_interrupt_flag)
-//     {
-//         //Do nothing
-//     }
+  int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
+      while(!rtc_interrupt_flag)
+      {
+           //Do nothing
+      }
 
-//     rtc_interrupt_flag = 0;
-//     return 0;
-// }
+      rtc_interrupt_flag = 0;
+      return 0;
+  }
 
-// int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
-//     if(nbytes != 4 || buf == NULL) return -1;
+  int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes){
+      if(nbytes != 4 || buf == NULL) return -1;
 
-//     int32_t freq = *buf;
-//     int32_t i;
-//     uint8_t rate = 0x0F;
-//     if ((freq & (freq - 1)) == 0) && (freq <= FREQ_MAX){ //if freq is a power of 2, https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
-//         if(freq == 0) rate = 0;
-//         else{
-//             //for(i = freq; i != 0x02; i >> 1)
-//             while(freq != 0x02){
-//                 freq >> 1;
-//                 rate--;
-//             }
-//         }
-//         cli(); //changing interrupt rate, from osdev
-//         outb(REGISTER_A, RTC_PORT);
-//         char prev = inb(CMOS_PORT);
-//         outb(REGISTER_A, RTC_PORT);
-//         outb(CMOS_PORT, (prev & 0xF0) | rate);
-//         sti();
-//         return 0; //success
-//     }
-//     return -1;
-// }
+      int32_t freq = *buf;
+      //int32_t i;
+      uint8_t rate = 0x0F;
+      if (((freq & (freq - 1)) == 0) && (freq <= FREQ_MAX)){  //if freq is a power of 2, https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
+          if(freq == 0) rate = 0;
+          else{
+             //for(i = freq; i != 0x02; i >> 1)
+              while(freq != 0x02){
+                  freq = freq >> 1;
+                  rate--;
+              }
+          }
+          cli(); //changing interrupt rate, from osdev
+          outb(REGISTER_A, RTC_PORT);
+          char prev = inb(CMOS_PORT);
+          outb(REGISTER_A, RTC_PORT);
+          outb((prev & 0xF0) | rate , CMOS_PORT);
+          sti();
+          return 0; //success
+      }
+      return -1;
+  }
 
-// int32_t rtc_open(const uint8_t* filename){
-//     return 0;
-// }
+  int32_t rtc_open(const uint8_t* filename){
+      //call write and set frequency to 2
+      return 0;
+  }
 
-// int32_t rtc_close(int32_t fd){
-//     return 0;
-// }
+  int32_t rtc_close(int32_t fd){
+      return 0;
+  }

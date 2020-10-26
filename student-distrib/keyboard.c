@@ -3,7 +3,8 @@
 /* SOURCES:  https://wiki.osdev.org/PS/2_Keyboard
     some code from Linux documentation of PS/2 Keyboard
 */
-
+static int buf_counter = 0;
+static int row_flag = 0;
 static uint8_t check_if_letter(char index);
 static char check_if_symbol(char index);
 
@@ -48,15 +49,17 @@ void key_board_handler(){
         return;
     }
     //---------shift checks---------
-    else if(states[0]){  //states[0] is shift state        
+    if(states[0]){  //states[0] is shift state        
         //conversion to uppercase
         if(check_if_letter(inb(KEYBOARD_PORT))){
-            putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
+            add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION);
+            //putc(); 
             send_eoi(KEYBOARD_IRQ);  
             return;
         }
         else if(check_if_symbol(inb(KEYBOARD_PORT))){
-            putc(check_if_symbol(inb(KEYBOARD_PORT)));
+            add_to_kdb_buf(check_if_symbol(inb(KEYBOARD_PORT)));
+            //putc();
             send_eoi(KEYBOARD_IRQ);
             return;
         }
@@ -68,15 +71,16 @@ void key_board_handler(){
         }
     }
     //-----caps lock checks------------
-    else if(states[1]){  //state[1] is capslock state
+    if(states[1]){  //state[1] is capslock state
         if(check_if_letter(inb(KEYBOARD_PORT))){
-            putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
+            add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION);
+            //putc(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION); 
             send_eoi(KEYBOARD_IRQ); 
             return; 
-        }     
+        }   
     }
     //-----control check---------
-    else if(states[2]){   //state[2] is ctrl state
+    if(states[2]){   //state[2] is ctrl state
         //0x26 is scancode for l
         if(inb(KEYBOARD_PORT) == 0x26){
             clear();
@@ -91,39 +95,45 @@ void key_board_handler(){
         }
     }
     //----set states and generic output-----
-    else{                
-        //0x2A and 0x36 scan codes for l,r shifts respecitvely
-        if(inb(KEYBOARD_PORT) == 0x2A || inb(KEYBOARD_PORT) == 0x36){
-            states[0] = 1;
-            send_eoi(KEYBOARD_IRQ); 
-            return;
-        }
-        //0x1D, 0xE0, scan codes for l,r ctrl respectively
-        else if(inb(KEYBOARD_PORT) == 0xE0 || inb(KEYBOARD_PORT) == 0x1D){
-            states[2] = 1;
-            send_eoi(KEYBOARD_IRQ);
-            return;            
-        }
-        //0x0F, scan code for tab
-        else if(inb(KEYBOARD_PORT) == 0x0F){
-            putc(' ');
-            putc(' ');
-            putc(' ');
-            putc(' ');
-            send_eoi(KEYBOARD_IRQ);
-            return;             
-        }
-        else if(scan_codes[inb(KEYBOARD_PORT)] == '\0'){
-            send_eoi(KEYBOARD_IRQ);
-            return;
-        } 
-        //check if scan code is in bounds of scan code array
-        else if(inb(KEYBOARD_PORT) < NUM_KEYS && inb(KEYBOARD_PORT) >= 0){   
-            putc(scan_codes[inb(KEYBOARD_PORT)]);   //print character to screen
-            send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
-            return;
-        }
+                    
+    //0x2A and 0x36 scan codes for l,r shifts respecitvely
+    if(inb(KEYBOARD_PORT) == 0x2A || inb(KEYBOARD_PORT) == 0x36){
+        states[0] = 1;
+        send_eoi(KEYBOARD_IRQ); 
+        return;
     }
+    //0x1D, 0xE0, scan codes for l,r ctrl respectively
+    else if(inb(KEYBOARD_PORT) == 0xE0 || inb(KEYBOARD_PORT) == 0x1D){
+        states[2] = 1;
+        send_eoi(KEYBOARD_IRQ);
+        return;            
+    }
+    //0x0F, scan code for tab
+    else if(inb(KEYBOARD_PORT) == 0x0F){
+        add_to_kdb_buf(' ');
+        add_to_kdb_buf(' ');
+        add_to_kdb_buf(' ');
+        add_to_kdb_buf(' ');
+        /*
+        putc(' ');
+        putc(' ');
+        putc(' ');
+        putc(' ');*/
+        send_eoi(KEYBOARD_IRQ);
+        return;             
+    }
+    else if(scan_codes[inb(KEYBOARD_PORT)] == '\0'){
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    } 
+    //check if scan code is in bounds of scan code array
+    else if(inb(KEYBOARD_PORT) < NUM_KEYS && inb(KEYBOARD_PORT) >= 0){   
+        add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)]);
+        //putc();   //print character to screen
+        send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
+        return;
+    }
+    
     send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin  
     return;  
 }
@@ -220,4 +230,36 @@ static char check_if_symbol(char index){
         default:
             return 0;
     }
+}
+/* add_to_kdb_buf
+ * 
+ * Description: Adds to keyboard buffer to keep track of the 128 char limit for calling terminal driver.
+ * Also will roll over to next line when max number of chars is entered for a row.
+ * Inputs: Char to print
+ * Outputs: none
+ * Side Effects: Rolls over to next line
+ * Return value: none
+ */ 
+void add_to_kdb_buf(char c){
+    kbd_buf[buf_counter] = c;
+    buf_counter++;
+    putc(c);
+    int x = get_x();
+    //if the cursor is at the last spot, set a flag
+    if(row_flag == 1){ //in the case we typed at the last spot in the row
+        if(c != '\n') putc('\n'); //ignores newline so it does not print newline twice
+        row_flag = 0;
+    }
+    if(x == 79) row_flag = 1;
+
+    int i;
+
+    if(buf_counter == 128){
+        buf_counter = 0;
+        for(i = 0; i < 128; i++){
+            kbd_buf[i] = '\0';
+        }
+    }
+    
+
 }

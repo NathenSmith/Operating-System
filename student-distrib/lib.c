@@ -181,7 +181,15 @@ void putc(uint8_t c) {
         screen_x++;
         screen_x %= NUM_COLS;
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        update_cursor(screen_x, screen_y);
     }
+}
+
+int get_x(){
+    return screen_x;
+}
+int get_y(){
+    return screen_y;
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
