@@ -1,14 +1,18 @@
 #include "terminal.h"
-char terminal_buf[128];
+//char terminal_buf[128];
 //global variables: buffer size < 128 including /n, maybe cursor
-uint32_t terminal_read (uint32_t fd, void* buf, uint32_t nbytes){
+uint32_t terminal_read (uint32_t fd, char* buf, uint32_t nbytes){
 	int i;
 	for(i = 0; i < 128; i++){
-		terminal_buf[i] = '\0';
+
+		buf[i] = '\0';
 	}
 	i = 0;
-	while(kbd_buf[i] != '\n'){
-		terminal_buf[i] = kbd_buf[i];
+	while(1){
+		if(i == 128) break;
+		
+		buf[i] = kbd_buf[i];
+		if(buf[i] == '\n') break;
 		i++;
 	}
 	return i;

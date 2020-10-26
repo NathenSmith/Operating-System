@@ -122,6 +122,15 @@ int rtc_test(){
 	return PASS;
 }
 
+int terminal_test(){
+	TEST_HEADER;
+	char buf[128];
+	terminal_read(0,buf,1);
+	terminal_write(0,buf,1);
+
+	return PASS;
+}
+
 // add more tests here
 
 /* Checkpoint 2 tests */
@@ -138,6 +147,7 @@ void launch_tests(){
 	//TEST_OUTPUT("paging test 1", paging_oob());	
 	//TEST_OUTPUT("paging test 2", paging_ib());	
 	//TEST_OUTPUT("rtc test", rtc_test());
+	TEST_OUTPUT("backspace", terminal_test());
 	// launch your tests here
 }
 

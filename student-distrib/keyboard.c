@@ -4,7 +4,6 @@
     some code from Linux documentation of PS/2 Keyboard
 */
 static int buf_counter = 0;
-static int row_flag = 0;
 static int scroll_flag = 0;
 static uint8_t check_if_letter(char index);
 static char check_if_symbol(char index);
@@ -253,21 +252,8 @@ void add_to_kdb_buf(char c){
     kbd_buf[buf_counter] = c;
     buf_counter++;
     putc(c);
-    int x = get_x();
-    //int y = get_y();
-    //if the cursor is at the last spot, set a flag
-    // if(scroll_flag == 1){
-    //     scroll_up();
-    //     scroll_flag = 0;
-    // }
-    if(row_flag == 1){ //in the case we typed at the last spot in the row
-        if(c != '\n') putc('\n'); //ignores newline so it does not print newline twice
-        row_flag = 0;
-    }
-    // if(x == 79 && y == 24) scroll_flag = 1;
-    if(x == 79) row_flag = 1;
+        
     int i;
-
     if(buf_counter == 128){
         buf_counter = 0;
         for(i = 0; i < 128; i++){
