@@ -10,6 +10,8 @@
 
 void test_interrupts(void);
 
+void backspace();
+void scroll_up();
 int get_x();
 int get_y();
 

@@ -172,7 +172,12 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_y++;
+        if(screen_y == NUM_ROWS-1){
+            scroll_up();
+        }
+        else{
+            screen_y++;
+        }
         screen_x = 0;
         update_cursor(screen_x, screen_y);
     } else {
@@ -180,11 +185,15 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;      
         update_cursor(screen_x, screen_y);
     }
 }
 
+/* void backspace();
+ * Inputs: none
+ * Return Value: void
+ *  Function: Delete most recently written char */
 void backspace() {
     if(!(screen_x == 0 && screen_y == 0)){
         if(screen_x == 0){
@@ -200,11 +209,39 @@ void backspace() {
     update_cursor(screen_x, screen_y);
 }
 
-//put scroll here and directly modify video memory
+void scroll_up() {
+    int i;
+    int j; 
+    for(i = 0; i < NUM_ROWS; i++){
+        for(j=0; j < NUM_COLS; j++){
+            if(i == NUM_ROWS-1){
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1)) = ' ';
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1) + 1) = ATTRIB;
+            }
+            else{
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1)) = 
+                    *(uint8_t *)(video_mem + ((NUM_COLS * (i + 1) + j) << 1));
+                *(uint8_t *)(video_mem + ((NUM_COLS * i + j) << 1) + 1) = ATTRIB;
+            }
+        }
+    }
+    screen_x = 0;
+    screen_y = NUM_ROWS -1;
+    update_cursor(screen_x, screen_y);
+}
 
+/* void get_x();
+ * Inputs: uint_8* c = none
+ * Return Value: void
+ *  Function: gets screen_x */
 int get_x(){
     return screen_x;
 }
+
+/* void get_y();
+ * Inputs: uint_8* c = none
+ * Return Value: void
+ *  Function: gets screen_x */
 int get_y(){
     return screen_y;
 }
