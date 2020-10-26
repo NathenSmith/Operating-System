@@ -10,6 +10,7 @@
 #define RATE_MAX 0x0F
 #define RATE_MIN 0x02
 #define SECOND_HEX_MASK 0xF0
+#define EXPECTED_BYTES 4
 
 
 #define FREQ_MAX 1024

@@ -3,9 +3,9 @@
 /* SOURCES:  https://wiki.osdev.org/PS/2_Keyboard
     some code from Linux documentation of PS/2 Keyboard
 */
-//static int buf_counter = 0;
-buf_counter = 0;
-static int scroll_flag = 0;
+static int buf_counter = 0;
+//buf_counter = 0;
+//static int scroll_flag = 0;
 static uint8_t check_if_letter(char index);
 static char check_if_symbol(char index);
 
@@ -255,17 +255,11 @@ static char check_if_symbol(char index){
  * Return value: none
  */ 
 void add_to_kdb_buf(char c){
+    if(buf_counter >= BUF_SIZE) return;
     kbd_buf[buf_counter] = c;
     buf_counter++;
     putc(c);
-        
-    int i;
-    if(buf_counter == BUF_SIZE){
-        buf_counter = 0;
-        for(i = 0; i < BUF_SIZE; i++){
-            kbd_buf[i] = '\0';
-        }
-    }    
+    if(c == '\n') buf_counter = 0;      
 }
 
 /* backspace_buffer

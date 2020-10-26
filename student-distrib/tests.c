@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "rtc.h"
+#include "terminal.h"
 
 #include "linkage.h" //REMOVE LATER
 
@@ -153,12 +154,54 @@ int list_files(uint32_t start_addr) {
 	}
 	return PASS;
 }
-
+/* RTC test
+ *
+ * Prints 1's at every possible frequency, from lowest to highest
+ * Inputs: none
+ * Outputs: PASS
+ * Side Effects: Prints to screen
+ * Files: rtc.c/h, keyboard.c/h
+ */
 int rtc_test(){
 	TEST_HEADER;
 	int32_t i, f = 2;
 	int32_t *f_ptr = &f;
 	while(f <= 1024){
+		rtc_write(0, f_ptr, 4);
+		for(i = 0; i < 10; i++){
+			rtc_read(0,0,0);
+			add_to_kdb_buf('1');
+		}
+		*f_ptr *= 2;
+		add_to_kdb_buf('\n');
+		clear();
+
+	}
+	return PASS;
+}
+
+/* RTC open test
+ *
+ * Tests open
+ * Inputs: none
+ * Outputs: PASS
+ * Side Effects: Prints to screen
+ * Files: rtc.c/h, keyboard.c/h
+ */
+int rtc_open_test(){
+	TEST_HEADER;
+	int32_t i, f = 2;
+	int32_t *f_ptr = &f;
+	while(f <= 1024){
+		if(f == 1024){
+			printf("rtc open called\n");
+			rtc_open(0);
+			for(i = 0; i < 10; i++){
+				rtc_read(0,0,0);
+				add_to_kdb_buf('1');
+			}
+			break;
+		}
 		rtc_write(0, f_ptr, 4);
 		for(i = 0; i < 10; i++){
 			rtc_read(0,0,0);
@@ -197,14 +240,51 @@ int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 	return PASS;
 }
 
+/* Terminal R/W Test
+ *
+ * Will wait on a newline to be pressed and will write to screen
+ * Inputs: none
+ * Outputs: PASS, although will never reach there
+ * Side Effects: Writes to screen
+ * Files: terminal.c, terminal.h, lib.c, lib.h, keyboard.c, keyboard.h
+ */
 int terminal_test(){
 	TEST_HEADER;
-	//while(1){	
-		char buf[128];
-		terminal_read(0,buf,128);
-		terminal_write(0,buf,128);
-		return PASS;
-	//}
+	char buf[128];
+	int32_t bytes = 0;
+	while(1){	
+		
+		bytes = terminal_read(0,buf,128);
+		printf("terminal write: ");
+		terminal_write(0,buf,bytes);
+		
+	}
+	return PASS;
+}
+/* Terminal nbytes
+ *
+ * Tests invalid number of bytes sent to terminal driver
+ * Inputs: none
+ * Outputs: PASS
+ * Side Effects: Writes to screen valid number of chars
+ * Files: terminal.c, terminal.h, lib.c, lib.h, keyboard.c, keyboard.h
+ */
+int nbytes_test(){
+	TEST_HEADER;
+	char buf[128];
+	int32_t i;
+	
+	for(i = 0; i < 240; i++){
+		add_to_kdb_buf('1');
+	}
+	//add_to_kdb_buf('\n');
+	
+	terminal_read(0,buf,240);
+	printf("terminal write: ");
+	terminal_write(0,buf,240);
+		
+	
+	return PASS;
 }
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -224,6 +304,8 @@ void launch_tests(uint32_t input_start_addr){
 	//TEST_OUTPUT("paging test 1", paging_oob());	
 	//TEST_OUTPUT("paging test 2", paging_ib());	
 	//TEST_OUTPUT("rtc test", rtc_test());
-	TEST_OUTPUT("terminal r/w", terminal_test());
+	//TEST_OUTPUT("rtc open test", rtc_open_test());
+	//TEST_OUTPUT("terminal r/w", terminal_test());
+	//TEST_OUTPUT("Terminal overflow", nbytes_test());
 	// launch your tests here
 }

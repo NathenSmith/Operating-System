@@ -71,7 +71,7 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
  * Return value: Zero on success, -1 if an invalid byte being sent, NULL pointer being passed in, or a frequency not a power of 2
  */ 
 int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes){
-    if(nbytes != 4 || buf == NULL) return -1;
+    if(nbytes != EXPECTED_BYTES || buf == NULL) return -1;
 
     int32_t freq = *buf;
     uint8_t rate = RATE_MAX;
@@ -105,7 +105,7 @@ int32_t rtc_open(const uint8_t* filename){
     //reset frequency to 2 hz
     int32_t f = 2;
     int32_t *f_ptr = &f;
-    rtc_write(0,f_ptr,4);
+    rtc_write(0,f_ptr,EXPECTED_BYTES); //4 is default number of bytes
     return 0;
 }
 /* rtc_close

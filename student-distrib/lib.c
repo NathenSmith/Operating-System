@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "terminal.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -166,6 +167,20 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+/* void update_cursor
+ * Inputs: X and Y location of where to update cursor
+ * Return Value: none
+ *  Function: Updates position of cursor */
+void update_cursor(int x, int y)
+{
+	uint16_t pos = y * VGA_WIDTH + x;
+    //from osdev
+	outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+	outb(0x0E, 0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+}
+
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
@@ -176,6 +191,7 @@ void putc(uint8_t c) {
         else {screen_y++;}
         screen_x = 0;
         update_cursor(screen_x, screen_y);
+        terminal_flag = 1;
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
