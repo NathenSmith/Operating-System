@@ -123,7 +123,7 @@ int list_files(uint32_t start_addr) {
 	clear();
 	int i;
 
-  dentry_t result;
+	dentry_t result;
 	dentry_t * resultPtr = &result;
 
 	boot_block_t * boot_block = (boot_block_t *) start_addr;
@@ -152,7 +152,7 @@ int list_files(uint32_t start_addr) {
 	return PASS;
 }
 
-/* List Files Test
+/* read_data_from_file Test
  *
  * Prints the contents of the file
  * Inputs: starting addr of filesystem, name of file
