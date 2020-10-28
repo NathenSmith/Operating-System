@@ -1,37 +1,37 @@
-.globl   isr_wrapper0
-.globl   isr_wrapper1
-.globl   isr_wrapper2
-.globl   isr_wrapper3
-.globl   isr_wrapper4
-.globl   isr_wrapper5
-.globl   isr_wrapper6
-.globl   isr_wrapper7
-.globl   isr_wrapper8
-.globl   isr_wrapper9
-.globl   isr_wrapperA
-.globl   isr_wrapperB
-.globl   isr_wrapperC
-.globl   isr_wrapperD
-.globl   isr_wrapperE
-.globl   isr_wrapperF
+.globl   isr_wrapper20
+.globl   isr_wrapper21
+.globl   isr_wrapper22
+.globl   isr_wrapper23
+.globl   isr_wrapper24
+.globl   isr_wrapper25
+.globl   isr_wrapper26
+.globl   isr_wrapper27
+.globl   isr_wrapper28
+.globl   isr_wrapper29
+.globl   isr_wrapper2A
+.globl   isr_wrapper2B
+.globl   isr_wrapper2C
+.globl   isr_wrapper2D
+.globl   isr_wrapper2E
+.globl   isr_wrapper2F
 .globl   sys_call
 
-# isr_wrapper0
+# isr_wrapper20
 # Contains the assembly linkage for interrupt 0(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapper0:
+isr_wrapper20:
     iret
 
-# isr_wrapper1
+# isr_wrapper21
 # Contains the assembly linkage for the keyboard.
 # inputs: none
 # outputs: none
 # side effects: disables interrupts during call.
 
-isr_wrapper1:
+isr_wrapper21:
     cli
     pushal
     call key_board_handler
@@ -39,67 +39,67 @@ isr_wrapper1:
     sti
     iret
 
-# isr_wrapper2
+# isr_wrapper22
 # Contains the assembly linkage for interrupt 3(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapper2:
+isr_wrapper22:
     iret
 
-# isr_wrapper3
+# isr_wrapper23
 # Contains the assembly linkage for interrupt 4(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapper3:
+isr_wrapper23:
     iret
 
-# isr_wrapper4
+# isr_wrapper24
 # Contains the assembly linkage for interrupt 5(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapper4:
+isr_wrapper24:
     iret
 
-# isr_wrapper5
+# isr_wrapper25
 # Contains the assembly linkage for interrupt 6(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapper5:
+isr_wrapper25:
     iret
 
-# isr_wrapper6
+# isr_wrapper26
 # Contains the assembly linkage for interrupt 7(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapper6:
+isr_wrapper26:
     iret
 
-# isr_wrapper7
+# isr_wrapper27
 # Contains the assembly linkage for interrupt 8(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapper7:
+isr_wrapper27:
     iret
 
-# isr_wrapper8
+# isr_wrapper28
 # Contains the assembly linkage for the rtc.
 # inputs: none
 # outputs: none
 # side effects: disables interrupts during call.
 
-isr_wrapper8:
+isr_wrapper28:
     cli
     pushal
     call rtc_handler
@@ -107,49 +107,49 @@ isr_wrapper8:
     sti
     iret
 
-# isr_wrapper9
+# isr_wrapper29
 # Contains the assembly linkage for interrupt 10(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapper9:
+isr_wrapper29:
     iret
 
-# isr_wrapperA
+# isr_wrapper2A
 # Contains the assembly linkage for interrupt 11(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapperA:
+isr_wrapper2A:
     iret
 
-# isr_wrapperB
+# isr_wrapper2B
 # Contains the assembly linkage for interrupt 12(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapperB:
+isr_wrapper2B:
     iret
 
-# isr_wrapperC
+# isr_wrapper2C
 # Contains the assembly linkage for interrupt 13(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapperC:
+isr_wrapper2C:
     iret
 
-# isr_wrapperD
+# isr_wrapper2D
 # Contains the assembly linkage for interrupt 14(not filled in yet).
 # inputs: none
 # outputs: none
 # side effects: none.
 
-isr_wrapperD:
+isr_wrapper2D:
     iret
 
 # isr_wrapperE
@@ -158,7 +158,7 @@ isr_wrapperD:
 # outputs: none
 # side effects: none.
 
-isr_wrapperE:
+isr_wrapper2E:
     iret
 
 # isr_wrapperF
@@ -167,7 +167,7 @@ isr_wrapperE:
 # outputs: none
 # side effects: none.
 
-isr_wrapperF:
+isr_wrapper2F:
     iret
 
 # sys_call
