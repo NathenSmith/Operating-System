@@ -154,6 +154,20 @@ int list_files(uint32_t start_addr) {
 	}
 	return PASS;
 }
+
+int read_dir_test(start_addr) {
+	int i;
+	boot_block_t * boot_block = (boot_block_t *) start_addr;
+	uint8_t filename[33];
+	for(i = 0; i < 100; i++) {
+		filename[0] = '\0';
+		dir_read(0, filename, 0);
+		filename[32] = '\0';
+		if(filename[0] != '\0') {
+			printf("filename: %s\n", filename);
+		}
+	}
+}
 /* RTC test
  *
  * Prints 1's at every possible frequency, from lowest to highest
@@ -291,8 +305,9 @@ int nbytes_test(){
 /* Test suite entry point */
 void launch_tests(uint32_t input_start_addr){
 	uint32_t start_addr = input_start_addr;
-	TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"verylargetextwithverylongname.tx"))
-	// TEST_OUTPUT("List Files", list_files(start_addr));
+	//TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"verylargetextwithverylongname.tx"))
+	//TEST_OUTPUT("List Files", list_files(start_addr));
+	TEST_OUTPUT("Read Dir Test", read_dir_test(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("Dereference NULL test", exception_test());
 	//TEST_OUTPUT("divide-by-zero test", divide_test());

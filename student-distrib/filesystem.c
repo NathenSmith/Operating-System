@@ -14,6 +14,7 @@ dentry_t * curr_file = &curr_file_original; //contains the current file
 
 uint32_t file_in_use; // 1 = in use
 uint32_t n_bytes_read_so_far;
+uint32_t currentDirectoryEntry;
 
 /*  init_filesystem
     initialzies several variables necessary for utilizing the file system
@@ -30,6 +31,7 @@ void init_filesystem(uint32_t start_addr){
   datablocks_start_address = filesystem_start_addr + BLOCK_SIZE + BLOCK_SIZE*n_inodes;
   n_bytes_read_so_far = 0;
   file_in_use = 0;
+  currentDirectoryEntry = 0;
 }
 
 /* read_dentry_by_name
@@ -150,10 +152,6 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
             //if we're in the final block, copy the remaining data.
             if(length_left_to_copy <= BLOCK_SIZE) { 
                 memcpy(buf, start_addr_to_copy, length_left_to_copy);
-                // int x;
-                // for(x = 3120; x < 3614; x++) {
-                //     putc(buf + x);
-                // }
                 buf += length_left_to_copy;
                 nBytesRead += length_left_to_copy;
             }
@@ -280,7 +278,10 @@ int32_t file_close(int32_t fd){
 */
 
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
-    strcpy(buf, curr_file->filename); //move file name into buffer
+    if(currentDirectoryEntry < boot_block->dir_count) {
+        strcpy(buf, boot_block->direntries[currentDirectoryEntry].filename); 
+        currentDirectoryEntry++;
+    }
     return 0;
 }
 
