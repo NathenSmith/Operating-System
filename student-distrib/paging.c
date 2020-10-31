@@ -30,6 +30,9 @@ void paging_init() {
     pageTable[index + 2] = 0xBA000 | 0x3;
     pageTable[index + 3] = 0xBB000 | 0x3;
 
+    uint32_t task_memory = 0x8000000; // task memory is a 4 MB page, 128MB in virtual memory
+    pageDirectory[2] = task_memory | 0x83;
+
     asm volatile( // code to enable paging by setting a bit of cr0
           "movl %0, %%eax;"
           "movl %%eax, %%cr3;"
