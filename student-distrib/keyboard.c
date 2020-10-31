@@ -4,7 +4,6 @@
     some code from Linux documentation of PS/2 Keyboard
 */
 static int buf_counter = 0;
-static int chars_filled = 0;
 //buf_counter = 0;
 //static int scroll_flag = 0;
 static uint8_t check_if_letter(char index);
@@ -256,15 +255,11 @@ static char check_if_symbol(char index){
  * Return value: none
  */ 
 void add_to_kdb_buf(char c){
-    if(buf_counter == BUF_SIZE - 1) chars_filled = 1;
-    else if(buf_counter >= BUF_SIZE) return;
-    if(!chars_filled || c == '/n') kbd_buf[buf_counter] = c;
+    if(buf_counter >= BUF_SIZE) return;
+    kbd_buf[buf_counter] = c;
     buf_counter++;
     putc(c);
-    if(c == '\n'){
-        chars_filled = 0;
-        buf_counter = 0;   
-    }   
+    if(c == '\n') buf_counter = 0;      
 }
 
 /* backspace_buffer
