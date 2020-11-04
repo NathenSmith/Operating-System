@@ -8,22 +8,22 @@ extern void divide();
 
 extern void test_func();
 
-extern void isr_wrapper0(); //rtc
-extern void isr_wrapper1(); //kbd
-extern void isr_wrapper2();
-extern void isr_wrapper3();
-extern void isr_wrapper4();
-extern void isr_wrapper5();
-extern void isr_wrapper6();
-extern void isr_wrapper7();
-extern void isr_wrapper8();
-extern void isr_wrapper9();
-extern void isr_wrapperA();
-extern void isr_wrapperB();
-extern void isr_wrapperC();
-extern void isr_wrapperD();
-extern void isr_wrapperE();
-extern void isr_wrapperF();
+extern void isr_wrapper20(); //rtc
+extern void isr_wrapper21(); //kbd
+extern void isr_wrapper22();
+extern void isr_wrapper23();
+extern void isr_wrapper24();
+extern void isr_wrapper25();
+extern void isr_wrapper26();
+extern void isr_wrapper27();
+extern void isr_wrapper28();
+extern void isr_wrapper29();
+extern void isr_wrapper2A();
+extern void isr_wrapper2B();
+extern void isr_wrapper2C();
+extern void isr_wrapper2D();
+extern void isr_wrapper2E();
+extern void isr_wrapper2F();
 extern void sys_call();
 
 #endif

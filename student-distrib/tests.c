@@ -127,7 +127,7 @@ int list_files(uint32_t start_addr) {
 	clear();
 	int i;
 
-  dentry_t result;
+	dentry_t result;
 	dentry_t * resultPtr = &result;
 
 	boot_block_t * boot_block = (boot_block_t *) start_addr;
@@ -153,6 +153,20 @@ int list_files(uint32_t start_addr) {
 		printf("\n");
 	}
 	return PASS;
+}
+
+int read_dir_test(start_addr) {
+	int i;
+	boot_block_t * boot_block = (boot_block_t *) start_addr;
+	uint8_t filename[33];
+	for(i = 0; i < 100; i++) {
+		filename[0] = '\0';
+		dir_read(0, filename, 0);
+		filename[32] = '\0';
+		if(filename[0] != '\0') {
+			printf("filename: %s\n", filename);
+		}
+	}
 }
 /* RTC test
  *
@@ -215,7 +229,7 @@ int rtc_open_test(){
 	return PASS;
 }
 
-/* List Files Test
+/* read_data_from_file Test
  *
  * Prints the contents of the file
  * Inputs: starting addr of filesystem, name of file
@@ -226,16 +240,16 @@ int rtc_open_test(){
 
 int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 	clear();
-	//int i;
-	uint8_t buf[200]; // we will be splitting the file into 200 byte chunks
+	int i;
+	uint8_t buf[1000000]; 
 
 	file_open(filename); //call file_open to retrieve necessary file info
-	int n_bytes_read = file_read(0, buf, 200); //write the file contents into the buffer
+	int n_bytes_read = file_read(0, buf, 1000000); //write the file contents into the buffer
 	printf("nbytesread: %d\n", n_bytes_read);
-	printf("%s", buf);
-	// for(i = 0; i < n_bytes_read; i++) {
-	// 	putc(buf[i]);
-	// }
+
+	for(i = 0; i < n_bytes_read; i++) {
+		putc(buf[i]);
+	}
 
 	return PASS;
 }
@@ -253,11 +267,9 @@ int terminal_test(){
 	char buf[128];
 	int32_t bytes = 0;
 	while(1){	
-		
 		bytes = terminal_read(0,buf,128);
 		printf("terminal write: ");
 		terminal_write(0,buf,bytes);
-		
 	}
 	return PASS;
 }
@@ -292,9 +304,10 @@ int nbytes_test(){
 
 /* Test suite entry point */
 void launch_tests(uint32_t input_start_addr){
-	//uint32_t start_addr = input_start_addr;
-	//TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"frame0.txt"))
+	uint32_t start_addr = input_start_addr;
+	//TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"verylargetextwithverylongname.tx"))
 	//TEST_OUTPUT("List Files", list_files(start_addr));
+	TEST_OUTPUT("Read Dir Test", read_dir_test(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("Dereference NULL test", exception_test());
 	//TEST_OUTPUT("divide-by-zero test", divide_test());

@@ -12,9 +12,9 @@ inode_t * inodes = &inodes_original;
 dentry_t curr_file_original;
 dentry_t * curr_file = &curr_file_original; //contains the current file
 
-
 uint32_t file_in_use; // 1 = in use
 uint32_t n_bytes_read_so_far;
+uint32_t currentDirectoryEntry;
 
 /*  init_filesystem
     initialzies several variables necessary for utilizing the file system
@@ -31,6 +31,7 @@ void init_filesystem(uint32_t start_addr){
   datablocks_start_address = filesystem_start_addr + BLOCK_SIZE + BLOCK_SIZE*n_inodes;
   n_bytes_read_so_far = 0;
   file_in_use = 0;
+  currentDirectoryEntry = 0;
 }
 
 /* read_dentry_by_name
@@ -127,36 +128,44 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
     //min() is to make sure it only reads up to the length of the file.
     uint32_t position_after_copy = min(currentInode.length, offset + length);
     uint32_t length_to_copy = position_after_copy - offset;
-    uint32_t final_block = position_after_copy/BLOCK_SIZE;
-    uint32_t final_block_length = position_after_copy % BLOCK_SIZE;
 
     /* If length to copy is small enough that it does not require going
      onto the next block, do a simple copy of length length_to_copy. */
+
     if((offset + length_to_copy)/BLOCK_SIZE == offsetBlocks) { // if it would still be in the same block #
-        strncpy((int8_t *)buf, (int8_t *)start_addr_to_copy, length_to_copy);
+        memcpy(buf, start_addr_to_copy, length_to_copy);
     }
     /* Otherwise, we have to copy over multiple blocks. */
     else {
-        uint32_t buffer_offset = 0;
-
         //copy first block data
         uint32_t n_bytes_left_in_block = BLOCK_SIZE - offsetBlocksRemainder;
-        strncpy((int8_t *)(buf + buffer_offset), (int8_t *)start_addr_to_copy, n_bytes_left_in_block);
-        buffer_offset += n_bytes_left_in_block;
+        memcpy(buf, start_addr_to_copy, n_bytes_left_in_block);        
+        buf += n_bytes_left_in_block;
 
         //now we loop through the other blocks
-        int i;
-        for(i = offsetBlocks + 1; i <= final_block; i++) {
+        int i = offsetBlocks + 1;
+        int nBytesRead = n_bytes_left_in_block;
+
+        while(nBytesRead < length_to_copy) {
             start_addr_to_copy = datablocks_start_address + (currentInode.data_block_num[i])*BLOCK_SIZE;
-            if(i != final_block) {
-                strncpy((int8_t *)(buf + buffer_offset), (int8_t *)start_addr_to_copy, BLOCK_SIZE);
-                buffer_offset += BLOCK_SIZE;
+            uint32_t length_left_to_copy = length_to_copy - nBytesRead;
+            //if we're in the final block, copy the remaining data.
+            if(length_left_to_copy <= BLOCK_SIZE) { 
+                memcpy(buf, start_addr_to_copy, length_left_to_copy);
+                buf += length_left_to_copy;
+                nBytesRead += length_left_to_copy;
             }
+            //otherwise, copy a 4kB block of data.
             else {
-                strncpy((int8_t *)(buf + buffer_offset), (int8_t *)start_addr_to_copy, final_block_length);
+                memcpy(buf, start_addr_to_copy, BLOCK_SIZE);
+                buf += BLOCK_SIZE;
+                nBytesRead += BLOCK_SIZE;
             }
+            i++;
         }
+
     }
+
     return length_to_copy;
 }
 
@@ -269,7 +278,10 @@ int32_t file_close(int32_t fd){
 */
 
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
-    strcpy(buf, curr_file->filename); //move file name into buffer
+    if(currentDirectoryEntry < boot_block->dir_count) {
+        strcpy(buf, boot_block->direntries[currentDirectoryEntry].filename); 
+        currentDirectoryEntry++;
+    }
     return 0;
 }
 

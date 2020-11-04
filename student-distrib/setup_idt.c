@@ -77,22 +77,22 @@ void setup_idt() { //replace with assembly linkage
     setup_idt_entry(sys_call, 0x80, 3); 
 
     /* setup interrupts */
-    setup_idt_entry(isr_wrapper0, 0x20, 0);
-    setup_idt_entry(isr_wrapper1, 0x21, 0);
-    setup_idt_entry(isr_wrapper2, 0x22, 0);
-    setup_idt_entry(isr_wrapper3, 0x23, 0);
-    setup_idt_entry(isr_wrapper4, 0x24, 0);
-    setup_idt_entry(isr_wrapper5, 0x25, 0);
-    setup_idt_entry(isr_wrapper6, 0x26, 0);
-    setup_idt_entry(isr_wrapper7, 0x27, 0);
-    setup_idt_entry(isr_wrapper8, 0x28, 0);
-    setup_idt_entry(isr_wrapper9, 0x29, 0);
-    setup_idt_entry(isr_wrapperA, 0x2A, 0);
-    setup_idt_entry(isr_wrapperB, 0x2B, 0);
-    setup_idt_entry(isr_wrapperC, 0x2C, 0);
-    setup_idt_entry(isr_wrapperD, 0x2D, 0);
-    setup_idt_entry(isr_wrapperE, 0x2E, 0);
-    setup_idt_entry(isr_wrapperF, 0x2F, 0);
+    setup_idt_entry(isr_wrapper20, 0x20, 0);
+    setup_idt_entry(isr_wrapper21, 0x21, 0);
+    setup_idt_entry(isr_wrapper22, 0x22, 0);
+    setup_idt_entry(isr_wrapper23, 0x23, 0);
+    setup_idt_entry(isr_wrapper24, 0x24, 0);
+    setup_idt_entry(isr_wrapper25, 0x25, 0);
+    setup_idt_entry(isr_wrapper26, 0x26, 0);
+    setup_idt_entry(isr_wrapper27, 0x27, 0);
+    setup_idt_entry(isr_wrapper28, 0x28, 0);
+    setup_idt_entry(isr_wrapper29, 0x29, 0);
+    setup_idt_entry(isr_wrapper2A, 0x2A, 0);
+    setup_idt_entry(isr_wrapper2B, 0x2B, 0);
+    setup_idt_entry(isr_wrapper2C, 0x2C, 0);
+    setup_idt_entry(isr_wrapper2D, 0x2D, 0);
+    setup_idt_entry(isr_wrapper2E, 0x2E, 0);
+    setup_idt_entry(isr_wrapper2F, 0x2F, 0);
 
     //then initialize rtc, keyboard, cli sti
 
