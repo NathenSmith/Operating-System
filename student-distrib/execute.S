@@ -1,0 +1,2 @@
+interrupt_return:
+    IRET

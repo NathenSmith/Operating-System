@@ -3,7 +3,7 @@
 #include "paging.h"
 
 typedef struct PCB {
-    uint8_t * currArg;
+    uint8_t currArg[128]; //double check
     uint32_t n_tasks_executed;
     uint32_t parentPtr;
     uint32_t process_id;
@@ -24,3 +24,6 @@ typedef struct file_entry {
 //function prototypes
 void parseString(uint8_t * str);
 void checkIfExecutable(uint8_t * str);
+void switch_task_memory();
+void load_program_into_memory(uint8_t * filename);
+void create_pcb_child();
