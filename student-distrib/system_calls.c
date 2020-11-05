@@ -35,7 +35,7 @@ void execute() {
  * Side Effects: None
  */
 
-void read() {
+int32_t read(int32_t fd, void* buf, int32_t nbytes) {
     printf("read");
     while(1) {}
 }
@@ -48,7 +48,7 @@ void read() {
  * Side Effects: None
  */
 
-void write() {
+int32_t write(int32_t fd, void* buf, int32_t nbytes) {
     printf("write");
     while(1) {}
 }
@@ -61,8 +61,10 @@ void write() {
  * Side Effects: None
  */
 
-void open() {
+int32_t open(const uint8_t* filename) {
     printf("open");
+    //iterate through pcb starting at index 2
+    
     while(1) {}
 }
 
@@ -74,7 +76,7 @@ void open() {
  * Side Effects: None
  */
 
-void close() {
+int32_t close(int32_t fd) {
     printf("close");
     while(1) {}
 }
@@ -87,7 +89,7 @@ void close() {
  * Side Effects: None
  */
 
-void getargs() {
+int32_t getargs(uint8_t* buf, int32_t nbytes) {
     printf("getargs");
     while(1) {}
 }
@@ -100,7 +102,7 @@ void getargs() {
  * Side Effects: None
  */
 
-void vidmap() {
+int32_t vidmap(uint8_t** screen_start) {
     printf("vidmap");
     while(1) {}
 }
