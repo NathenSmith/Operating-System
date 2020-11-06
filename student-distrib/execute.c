@@ -2,8 +2,6 @@
 
 #define TASK_VIRTUAL_LOCATION 0x8000000
 
-PCB_t pcb_orig;
-PCB_t * pcb = &pcb_orig;
 
 void parseString(uint8_t * str) {
     uint8_t task_name[128];

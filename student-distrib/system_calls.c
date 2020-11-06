@@ -1,5 +1,8 @@
 #include "system_calls.h"
 #include "lib.h"
+#include "execute.h"
+#include "filesystem.h"
+
 
 /* halt
  * 
@@ -36,6 +39,7 @@ void execute() {
  */
 
 int32_t read(int32_t fd, void* buf, int32_t nbytes) {
+    //error check fd
     printf("read");
     while(1) {}
 }
@@ -49,6 +53,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
  */
 
 int32_t write(int32_t fd, void* buf, int32_t nbytes) {
+    //error check fd
     printf("write");
     while(1) {}
 }
@@ -64,8 +69,28 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes) {
 int32_t open(const uint8_t* filename) {
     printf("open");
     //iterate through pcb starting at index 2
-    
-    while(1) {}
+    dentry_t file_dentry;
+    if(read_dentry_by_name (filename, &file_dentry) == -1) return -1;
+    int i;
+    for(i=2; i< 8; i++){
+        if(!(pcb->file_desc_array[i].flag)){
+            pcb->file_desc_array[i].flag = 1;
+            //if statements, go through each type of device
+            //make fileop table point to respective table
+            if(file_dentry.file_type == 0){   //rtc
+                pcb->file_desc_array[i].file_op_ptr = {&rtc_open, &rtc_close, &rtc_read, rtc_write};
+                //fill in inode ptr
+                pcb->file_desc_array[i].inode_ptr = file_dentry.inode_num;
+                //fill in filepos
+                //
+                /////////////////
+                (pcb->file_desc_array[i].file_op_ptr[0]) ();   //this looks wrong
+            }
+            return i;
+        }
+        
+    }
+    return -1;
 }
 
 /* close
@@ -77,6 +102,7 @@ int32_t open(const uint8_t* filename) {
  */
 
 int32_t close(int32_t fd) {
+    //error check fd
     printf("close");
     while(1) {}
 }
