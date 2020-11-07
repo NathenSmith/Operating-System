@@ -10,26 +10,26 @@
 
 uint32_t curr_process_id = 1;
 PCB_t * parent_pcb; 
-PCB_t * child_pcb;
+PCB_t * child_pcb; //current_pcb
 uint8_t task_name[MAX_ARG_SIZE];
 
-void execute(uint8_t * str) {
-    //the init_task does not take up any memory, it is a kernel thread. It instead inherits the
-    //memory from the last user process.
+// void execute(uint8_t * str) {
+//     //the init_task does not take up any memory, it is a kernel thread. It instead inherits the
+//     //memory from the last user process.
 
-    //initialize parent pcb location
-    parent_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
-    parent_pcb->currArg = parent_pcb; //initializes currArg array to be at start of pcb.
-    parent_pcb->process_id = curr_process_id;
+//     //initialize parent pcb location
+//     parent_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
+//     parent_pcb->currArg = parent_pcb; //initializes currArg array to be at start of pcb.
+//     parent_pcb->process_id = curr_process_id;
 
-    parseString(str);
-    checkIfExecutable(parent_pcb->currArg);
-    switch_task_memory();
-    load_program_into_memory(task_name);
-    create_pcb_child();
-    prepare_context_switch();
-    push_iret_context();
-}
+//     parseString(str);
+//     checkIfExecutable(parent_pcb->currArg);
+//     switch_task_memory();
+//     load_program_into_memory(task_name);
+//     create_pcb_child();
+//     prepare_context_switch();
+//     push_iret_context();
+// }
 
 void parseString(uint8_t * str) {
     int i = 0;
@@ -103,19 +103,3 @@ void push_iret_context() {
     uint32_t ss = USER_DS;
     push_IRET_context(eip, cs, esp, ss);
 }
-
-void halt_task_memory(){
-    uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
-    pageDirectory[parent_pcb->process_id] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
-    //Flush TLB every time page directory is switched.
-    flush_tlb();
-}
-
-void close_open_files(){
-    int i;
-    for(i = 2; i <=7; i++){
-        file_close(i);
-    }
-}
-
-

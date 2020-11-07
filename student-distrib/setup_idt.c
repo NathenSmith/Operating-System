@@ -145,9 +145,7 @@ void divide() {
     cli();
     clear();
     printf("Divide-by-zero Error");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* debug
@@ -162,9 +160,7 @@ void debug() {
     cli(); 
     clear();
     printf("Debug");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* non-maskable interrupt
@@ -179,9 +175,7 @@ void nmi() {
     cli(); 
     clear();
     printf("Non-maskable Interrupt");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* breakpoint
@@ -196,9 +190,7 @@ void breakpoint() {
     cli(); 
     clear();
     printf("Breakpoint");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* overflow
@@ -213,9 +205,7 @@ void overflow() {
     cli(); 
     clear();
     printf("Overflow");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* boundexceed
@@ -230,9 +220,7 @@ void boundexceed() {
     cli();
     clear();
     printf("Bound Range Exceeded");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* invalidopcode
@@ -246,9 +234,7 @@ void invalidopcode() {
     cli(); 
     clear();
     printf("Invalid Opcode");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 
@@ -264,9 +250,7 @@ void decidenot() {
     cli(); 
     clear();
     printf("Decide Not Available");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* doublefault
@@ -281,9 +265,7 @@ void doublefault() {
     cli(); 
     clear();
     printf("Double Fault");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* invalidtss
@@ -298,9 +280,7 @@ void invalidtss() {
     cli(); 
     clear();
     printf("Invalid TSS");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* segmentnot
@@ -315,9 +295,7 @@ void segmentnot() {
     cli(); 
     clear();
     printf("Segment Not Present");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* stacksegfault
@@ -332,9 +310,7 @@ void stacksegfault() {
     cli(); 
     clear();
     printf("Stack-Segment Fault");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* genprotfault
@@ -349,9 +325,7 @@ void genprotfault() {
     cli(); 
     clear();
     printf("General Protection Fault");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* pagefault
@@ -366,9 +340,7 @@ void pagefault() {
     cli(); 
     //clear();
     printf("Page Fault");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* floatingfault
@@ -383,9 +355,7 @@ void floatingpoint() {
     cli(); 
     clear();
     printf("x87 Floating-Point-Exception");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* alignment_c
@@ -399,9 +369,7 @@ void alignment_c() {
     cli(); 
     clear();
     printf("Alignment Check");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* machine_c
@@ -416,9 +384,7 @@ void machine_c() {
     cli(); 
     clear();
     printf("Machine Check");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* simd
@@ -433,9 +399,7 @@ void simd() {
     cli(); 
     clear();
     printf("SIMD Floating-Point Exception");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* virtual_e
@@ -450,9 +414,7 @@ void virtual_e() {
     cli(); 
     clear();
     printf("Virtualization Exception");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
 
 /* security
@@ -467,7 +429,5 @@ void security() {
     cli(); 
     clear();
     printf("Security Exception");
-    while(1) {
-        //do nothing
-    }
+    halt();
 }
