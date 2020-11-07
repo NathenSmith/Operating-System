@@ -68,7 +68,7 @@ void checkIfExecutable(uint8_t * str) {
 void switch_task_memory() {
     uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
     pageDirectory[parent_pcb->process_id] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
-    //Flush TLB
+    //Flush TLB every time page directory is switched.
     flush_tlb();
 }
 
@@ -88,8 +88,8 @@ void create_pcb_child() {
 
 void prepare_context_switch() {
     //set SS0 and ESP0 in TSS 
-    tss.ss0 = ?;
-    tss.esp0 = ?; 
+    tss.ss0 = KERNEL_DS;
+    tss.esp0 = START_OF_KERNEL_STACKS - (parent_pcb->process_id)*SIZE_OF_KERNEL_STACK; 
     curr_process_id++; //increment current process_id
 }
 
@@ -97,13 +97,11 @@ void push_iret_context() {
     //set EIP(bytes 24-27 of executable loaded)
     uint32_t * eip_addr = (uint32_t *)(TASK_VIRTUAL_LOCATION + (parent_pcb->process_id - 2)*MEMORY_SIZE_PROCESS + 24);
     uint32_t eip = *eip_addr;
-    //set CS
     uint32_t cs = USER_CS;
-    //set EFLAGS(same as parent so do nothing)
     //set ESP for user stack to bottom of 4MB page holding executable image
     uint32_t esp = (uint32_t *)(TASK_VIRTUAL_LOCATION + (parent_pcb->process_id - 1)*MEMORY_SIZE_PROCESS);
-    uint32_t ss = ?;
-    goto push_IRET_context;
+    uint32_t ss = USER_DS;
+    push_IRET_context(eip, cs, esp, ss);
 }
 
 
