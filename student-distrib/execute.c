@@ -67,7 +67,7 @@ void checkIfExecutable(uint8_t * str) {
 //set up paging
 void switch_task_memory() {
     uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
-    pageDirectory[parent_pcb->process_id] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
+    pageDirectory[parent_pcb->process_id + 1] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
     //Flush TLB every time page directory is switched.
     flush_tlb();
 }
@@ -104,9 +104,18 @@ void push_iret_context() {
     push_IRET_context(eip, cs, esp, ss);
 }
 
+void halt_task_memory(){
+    uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
+    pageDirectory[parent_pcb->process_id] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
+    //Flush TLB every time page directory is switched.
+    flush_tlb();
+}
 
-
-
-
+void close_open_files(){
+    int i;
+    for(i = 2; i <=7; i++){
+        file_close(i);
+    }
+}
 
 
