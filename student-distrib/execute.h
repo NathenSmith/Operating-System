@@ -15,7 +15,7 @@ typedef struct PCB {
 
 typedef struct file_entry {
     uint32_t *file_op_ptr;
-    uint32_t inode_ptr;
+    uint32_t inode_num;
     uint32_t file_pos;
     uint32_t flags;
 } file_entry_t;

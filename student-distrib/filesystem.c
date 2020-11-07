@@ -13,7 +13,7 @@ dentry_t curr_file_original;
 dentry_t * curr_file = &curr_file_original; //contains the current file
 
 uint32_t file_in_use; // 1 = in use
-uint32_t n_bytes_read_so_far;
+uint32_t n_bytes_read_so_far[8];
 uint32_t currentDirectoryEntry;
 
 /*  init_filesystem
@@ -199,7 +199,7 @@ int32_t min(uint32_t a, uint32_t b) {
     Side Effects: none
 */
 int32_t file_read(int32_t fd, uint8_t * buf, int32_t nbytes) {
-    uint32_t nBytesRead = read_data(curr_file->inode_num, n_bytes_read_so_far, buf, nbytes);
+    uint32_t nBytesRead = read_data(curr_file->inode_num, n_bytes_read_so_far[fd], buf, nbytes);
     if(nBytesRead == -1) {
         return -1;
     }

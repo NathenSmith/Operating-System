@@ -2,6 +2,33 @@
 #include "lib.h"
 #include "execute.h"
 #include "filesystem.h"
+#include "rtc.h"
+
+typedef struct
+{
+    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
+    int32_t (*write)(int32_t fd, const int32_t* buf, int32_t nbytes);
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*close)(int32_t fd);
+}  rtc_ptrs;
+
+typedef struct
+{
+    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
+    int32_t (*write)(int32_t fd, const int32_t* buf, int32_t nbytes);
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*close)(int32_t fd);
+} file_ptrs;
+
+typedef struct
+{
+    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
+    int32_t (*write)(int32_t fd, const int32_t* buf, int32_t nbytes);
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*close)(int32_t fd);
+} dir_ptrs;
+
+
 
 
 /* halt
@@ -38,10 +65,11 @@ void execute() {
  * Side Effects: None
  */
 
-int32_t read(int32_t fd, void* buf, int32_t nbytes) {
-    //error check fd
-    printf("read");
-    while(1) {}
+int32_t read(int32_t fd,void* buf, int32_t nbytes) {
+    if(fd < 0 || fd >= 8 || !(file_desc_array[fd].flag)){ //not in bounds or not open
+        return -1;
+    }
+    return pcb->file_desc_array[fd].file_op_ptr->read(fd, buf, nbytes);
 }
 
 /* write
@@ -53,9 +81,10 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes) {
  */
 
 int32_t write(int32_t fd, void* buf, int32_t nbytes) {
-    //error check fd
-    printf("write");
-    while(1) {}
+    if(fd < 0 || fd >= 8 || !(file_desc_array[fd].flag)){ //not in bounds or not open
+        return -1;
+    }
+    return pcb->file_desc_array[fd].file_op_ptr->write(fd, buf, nbytes);
 }
 
 /* open
@@ -77,14 +106,37 @@ int32_t open(const uint8_t* filename) {
             pcb->file_desc_array[i].flag = 1;
             //if statements, go through each type of device
             //make fileop table point to respective table
-            if(file_dentry.file_type == 0){   //rtc
-                pcb->file_desc_array[i].file_op_ptr = {&rtc_open, &rtc_close, &rtc_read, rtc_write};
-                //fill in inode ptr
-                pcb->file_desc_array[i].inode_ptr = file_dentry.inode_num;
-                //fill in filepos
-                //
-                /////////////////
-                (pcb->file_desc_array[i].file_op_ptr[0]) ();   //this looks wrong
+            switch (file_dentry.filetype)
+            {
+            case 0: //real-time clock
+                pcb->file_desc_array[i].inode_num = 0; //should be ignored here and directory?
+                //file pos?
+                pcb->file_desc_array[i].file_pos = n_bytes_read_so_far[i]; 
+                rtc_ptrs rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
+                pcb->file_desc_array[i].file_op_ptr = &rtc_ptr;
+                rtc_ptr.open(filename);
+                break;
+            case 1: //directory
+                /* code */
+                pcb->file_desc_array[i].inode_num = 0; //should be ignored here and directory?
+                //file pos?
+                pcb->file_desc_array[i].file_pos = n_bytes_read_so_far[i];
+                dir_ptrs dir_ptr = {dir_read, dir_write, dir_open, dir_close};
+                pcb->file_desc_array[i].file_op_ptr = &dir_ptr;
+                dir_ptr.open(filename);
+                break;
+            case 2: //regular file
+                /* code */
+                pcb->file_desc_array[i].inode_num = file_dentry.inode_num; //should be ignored here and directory?
+                //file pos?
+                pcb->file_desc_array[i].file_pos = n_bytes_read_so_far[i];
+                file_ptrs file_ptr = {file_read, file_write, file_open, file_close};
+                pcb->file_desc_array[i].file_op_ptr = &file_ptr;
+                file_ptr.open(filename);
+                break;
+            default: //should never reach here
+                i = -1;
+                break;
             }
             return i;
         }
@@ -103,8 +155,15 @@ int32_t open(const uint8_t* filename) {
 
 int32_t close(int32_t fd) {
     //error check fd
-    printf("close");
-    while(1) {}
+    if(fd < 2 || fd >= 8 || !(file_desc_array[fd].flag)){ //not in bounds or not open
+        return -1;
+    }
+    pcb->file_desc_array[fd].flag = 0;
+    pcb->file_desc_array[fd].inode_num = 0; //should be ignored here and directory?
+    //file pos?
+    pcb->file_desc_array[fd].file_pos = 0;
+    pcb->file_desc_array[i].file_op_ptr = 0;
+    return 0;
 }
 
 /* getargs
