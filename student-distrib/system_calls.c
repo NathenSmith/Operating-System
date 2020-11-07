@@ -40,8 +40,11 @@ typedef struct
  */
 
 void halt() {
-    printf("halt");
-    while(1) {}
+
+    
+
+    // printf("halt");
+    // while(1) {}
 } 
 
 /* execute
