@@ -16,23 +16,27 @@ int32_t execute_steps(const uint8_t* command) {
     curr_process_id++;
 
     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
-    curr_pcb->currArg = (uint8_t *)(curr_pcb + PCB_SIZE_B4_ARG);
+    //curr_pcb->currArg = (uint8_t *)(curr_pcb + PCB_SIZE_B4_ARG);
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;
     curr_pcb->file_arr[0].inode_num = 0;
     curr_pcb->file_arr[1].flags = 1;
     curr_pcb->file_arr[1].inode_num = 0;
-
+   // printf("\nBEFORE CHECK");
     parseString(command);
-    if(checkIfExecutable(task_name) == -1) return -1;
-    printf("\nAFTER CHECK");
-    switch_task_memory();
-    load_program_into_memory(task_name);
-    create_pcb_child();
-    prepare_context_switch();
-    push_iret_context();
-
     
+    if(checkIfExecutable(task_name) == -1) return -1;
+    printf("\nBEFORE SWITCHTASK");
+    switch_task_memory();
+    printf("\nBEFORE LOADPROGRAM");
+    load_program_into_memory(task_name);
+    printf("\nBEFORE CREATEPCB");
+    create_pcb_child();
+    printf("\nBEFORE CONTEXTSWITCH");
+    prepare_context_switch();
+    printf("\nBEFORE IRET");
+    push_iret_context();
+        
     // asm(
     // "go_to_exec:"    
     // );
@@ -40,25 +44,27 @@ int32_t execute_steps(const uint8_t* command) {
 }
 
 void parseString(const uint8_t * str) {
-    printf("str: %s", str);
-    int i = 0;
-    int j = 0;
-    while(str[i] == ' '){
-            i++;
-    }
-    while(str[i] != ' ') {
-        task_name[i] = str[i];
-        i++;
-    }
+    // printf("str: %s", str);
+    // int i = 0;
+    // int j = 0;
+    // while(str[i] == ' '){
+    //         i++;
+    // }
+    // while(str[i] != ' ') {
+    //     task_name[i] = str[i];
+    //     i++;
+    // }
+    // printf("TASKNAME: %s\n", task_name);
+    // while(str[i] == ' '){
+    //         i++;
+    // } //counting remaining spaces
+    // while(str[i + j] != '\0') {
+    //     curr_pcb->currArg[j] = str[i + j];
+    //     j++;
+    // }
+    strcpy(task_name, str);
     printf("TASKNAME: %s\n", task_name);
-    while(str[i] == ' '){
-            i++;
-    }
-    while(str[i + j] != '\0') {
-        curr_pcb->currArg[j] = str[i + j];
-        j++;
-    }
-    printf("CURR_ARG: \n");
+    //printf("CURR_ARG: \n");
 }
 
 uint32_t checkIfExecutable(uint8_t * str) {
@@ -80,8 +86,8 @@ uint32_t checkIfExecutable(uint8_t * str) {
 //set up paging
 void switch_task_memory() {
     
-    uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
-    pageDirectory[curr_process_id] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
+    uint32_t task_memory = START_OF_KERNEL_STACKS + (curr_process_id - 2) * MEMORY_SIZE_PROCESS; // task memory is a 4 MB page, 128MB in virtual memory
+    pageDirectory[VIRTUAL_START] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
     //Flush TLB every time page directory is switched.
     flush_tlb();
 }
@@ -89,7 +95,7 @@ void switch_task_memory() {
 void load_program_into_memory(const uint8_t * filename) {
     
     //take file data and directly put into memory location
-    uint8_t * task_ptr = (uint8_t *)(TASK_VIRTUAL_LOCATION + (curr_process_id - 2)*MEMORY_SIZE_PROCESS);
+    uint8_t * task_ptr = (uint8_t *)(TASK_VIRTUAL_LOCATION + (curr_process_id - 2)*MEMORY_SIZE_PROCESS); //upper bound needed
     int32_t fd = open(filename);
     read(fd, task_ptr, REALLY_LARGE_NUMBER); //nbytes is a really large number because we want to read the whole file.
 }
@@ -131,5 +137,6 @@ void push_iret_context() {
     //set ESP for user stack to bottom of 4MB page holding executable image
     uint32_t esp = (uint32_t)(TASK_VIRTUAL_LOCATION + (curr_process_id - 1)*MEMORY_SIZE_PROCESS);
     uint32_t ss = USER_DS;
+    //printf("before iret asm\n");
     push_iret_context_asm(eip, cs, esp, ss);
 }

@@ -10,6 +10,7 @@
 #define REALLY_LARGE_NUMBER 0x10000000
 #define FDA_END 8 
 #define FDA_START 2
+#define VIRTUAL_START 32
 
 extern void flush_tlb();
 extern void push_iret_context_asm();

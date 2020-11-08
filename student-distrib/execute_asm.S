@@ -6,9 +6,7 @@ push_iret_context_asm:
     popl %eax
     popl %ebx
     pushfl 
-    popl %ecx
-    orl %ecx, 0x00000100
-    pushfl
+    orl $0x100, %esp
     pushl %ebx
     pushl %eax
     iret

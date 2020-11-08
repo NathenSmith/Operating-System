@@ -337,9 +337,13 @@ void genprotfault() {
  */
 
 void pagefault() {
-    //cli(); 
+    cli(); 
     //clear();
     printf("Page Fault");
+    while (1)
+    {
+        //nothing
+    }
     
 }
 

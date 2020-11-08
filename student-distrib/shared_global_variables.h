@@ -22,7 +22,7 @@ typedef struct PCB {
     uint32_t esp;
     uint32_t ebp;
     file_entry_t file_arr[8];
-    uint8_t * currArg;
+    uint8_t  currArg[128];
 } PCB_t;
 
 extern PCB_t * curr_pcb;

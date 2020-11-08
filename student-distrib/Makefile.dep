@@ -2,7 +2,7 @@ boot.o: boot.S multiboot.h x86_desc.h types.h
 execute_asm.o: execute_asm.S
 linkage.o: linkage.S
 x86_desc.o: x86_desc.S x86_desc.h types.h
-execute.o: execute.c paging.h x86_desc.h types.h lib.h \
+execute.o: execute.c paging.h x86_desc.h types.h lib.h i8259.h \
   shared_global_variables.h system_calls.h execute.h
 filesystem.o: filesystem.c filesystem.h lib.h types.h \
   shared_global_variables.h
@@ -12,7 +12,7 @@ kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   paging.h terminal.h system_calls.h
 keyboard.o: keyboard.c keyboard.h i8259.h types.h lib.h
 lib.o: lib.c lib.h types.h terminal.h keyboard.h i8259.h
-paging.o: paging.c paging.h x86_desc.h types.h lib.h
+paging.o: paging.c paging.h x86_desc.h types.h lib.h i8259.h
 rtc.o: rtc.c rtc.h lib.h types.h i8259.h
 setup_idt.o: setup_idt.c x86_desc.h types.h lib.h linkage.h \
   system_calls.h
