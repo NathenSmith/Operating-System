@@ -1,3 +1,6 @@
+#ifndef _SHARED_GLOBAL_VARIABLE_H
+#define _SHARED_GLOBAL_VARIABLE_H
+
 typedef struct func_ptrs
 {
     int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
@@ -24,3 +27,4 @@ typedef struct PCB {
 
 extern PCB_t * curr_pcb;
 extern uint32_t curr_process_id;
+#endif

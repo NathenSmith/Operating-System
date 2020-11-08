@@ -1,4 +1,9 @@
+#include "execute.h"
+#include "filesystem.h"
+#include "rtc.h"
+#include "terminal.h"
 #include "system_calls.h"
+#include "paging.h"
 
 //must declare globally or else stack will fill up everytime open is called
 //static func_ptrs terminal_ptr = {terminal_read, terminal_write, terminal_open, terminal_close};

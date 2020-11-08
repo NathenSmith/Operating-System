@@ -1,5 +1,8 @@
+#include "paging.h"
+#include "x86_desc.h"
+#include "shared_global_variables.h"
+#include "system_calls.h"
 #include "execute.h"
-
 #define PCB_SIZE_B4_ARG 144
 
 PCB_t * curr_pcb;
@@ -9,11 +12,17 @@ uint8_t task_name[MAX_ARG_SIZE];
 int32_t execute_steps(const uint8_t* command) {
     //the init_task does not take up any memory, it is a kernel thread. It instead inherits the
     //memory from the last user process.
+    
 
     curr_process_id++;
 
     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
     curr_pcb->currArg = (uint8_t *)(curr_pcb + PCB_SIZE_B4_ARG);
+    //set up stdin, stdout
+    curr_pcb->file_arr[0].flags = 1;
+    curr_pcb->file_arr[0].inode_num = 0;
+    curr_pcb->file_arr[1].flags = 1;
+    curr_pcb->file_arr[1].inode_num = 0;
 
     parseString(command);
     if(checkIfExecutable(curr_pcb->currArg) == -1) return -1;
@@ -23,14 +32,10 @@ int32_t execute_steps(const uint8_t* command) {
     prepare_context_switch();
     push_iret_context();
 
-    asm volatile("go_to_exec:");
     
-    //set up stdin, stdout
-    curr_pcb->file_arr[0].flags = 1;
-    curr_pcb->file_arr[0].inode_num = 0;
-    curr_pcb->file_arr[1].flags = 1;
-    curr_pcb->file_arr[1].inode_num = 0;
-    
+    // asm(
+    // "go_to_exec:"    
+    // );
     return 0;
 }
 
@@ -74,11 +79,11 @@ void switch_task_memory() {
     flush_tlb();
 }
 
-void load_program_into_memory(uint8_t * filename) {
+void load_program_into_memory(const uint8_t * filename) {
     //take file data and directly put into memory location
     uint32_t task_ptr = TASK_VIRTUAL_LOCATION + (curr_process_id - 2)*MEMORY_SIZE_PROCESS;
     open(filename);
-    read(0, task_ptr, REALLY_LARGE_NUMBER); //nbytes is a really large number because we want to read the whole file.
+    read(0, (void*)task_ptr, REALLY_LARGE_NUMBER); //nbytes is a really large number because we want to read the whole file.
 }
 
 void create_pcb_child() {

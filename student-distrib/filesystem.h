@@ -1,3 +1,5 @@
+#ifndef _FILESYSTEM_H
+#define _FILESYSTEM_H
 #include "lib.h"
 #include "shared_global_variables.h"
 
@@ -44,3 +46,4 @@ extern int32_t dir_read(int32_t fd, void* buf, int32_t nbytes);
 extern int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes);
 extern int32_t dir_open(const uint8_t* filename);
 extern int32_t dir_close(int32_t fd);
+#endif
