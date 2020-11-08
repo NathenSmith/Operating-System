@@ -10,7 +10,7 @@ typedef struct func_ptrs
 }  func_ptrs_t;
 
 typedef struct file_entry {
-    func_ptrs * file_op_ptr;
+    func_ptrs_t * file_op_ptr;
     uint32_t inode_num;
     uint32_t file_pos;
     uint32_t flags;

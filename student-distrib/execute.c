@@ -79,6 +79,7 @@ uint32_t checkIfExecutable(uint8_t * str) {
 
 //set up paging
 void switch_task_memory() {
+    
     uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
     pageDirectory[curr_process_id] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
     //Flush TLB every time page directory is switched.
@@ -86,10 +87,11 @@ void switch_task_memory() {
 }
 
 void load_program_into_memory(const uint8_t * filename) {
+    
     //take file data and directly put into memory location
-    uint32_t task_ptr = TASK_VIRTUAL_LOCATION + (curr_process_id - 2)*MEMORY_SIZE_PROCESS;
-    open(filename);
-    read(0, (void*)task_ptr, REALLY_LARGE_NUMBER); //nbytes is a really large number because we want to read the whole file.
+    uint8_t * task_ptr = (uint8_t *)(TASK_VIRTUAL_LOCATION + (curr_process_id - 2)*MEMORY_SIZE_PROCESS);
+    int32_t fd = open(filename);
+    read(fd, task_ptr, REALLY_LARGE_NUMBER); //nbytes is a really large number because we want to read the whole file.
 }
 
 void create_pcb_child() {

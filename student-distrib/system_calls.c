@@ -82,8 +82,8 @@ int32_t read(int32_t fd,void* buf, int32_t nbytes) {
         return -1;
     }
     //file pos only to be updated in file_read
-    printf("\nFILE OP PTR: %d\n", curr_pcb->file_arr[fd].file_op_ptr);
-    return curr_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes);
+    //printf("\nFILE OP PTR: %d\n", curr_pcb->file_arr[fd].file_op_ptr);
+    return curr_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes); //page faults
 }
 
 /* write

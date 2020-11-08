@@ -130,7 +130,7 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
      onto the next block, do a simple copy of length length_to_copy. */
 
     if((offset + length_to_copy)/BLOCK_SIZE == offsetBlocks) { // if it would still be in the same block #
-        memcpy(buf, (uint8_t *)start_addr_to_copy, length_to_copy);
+        memcpy(buf, (uint8_t *)start_addr_to_copy, length_to_copy); //PAGE FAULTS HERE
     }
     /* Otherwise, we have to copy over multiple blocks. */
     else {
