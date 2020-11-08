@@ -13,7 +13,6 @@ int32_t execute_steps(const uint8_t* command) {
     //the init_task does not take up any memory, it is a kernel thread. It instead inherits the
     //memory from the last user process.
     
-
     curr_process_id++;
 
     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
@@ -25,7 +24,8 @@ int32_t execute_steps(const uint8_t* command) {
     curr_pcb->file_arr[1].inode_num = 0;
 
     parseString(command);
-    if(checkIfExecutable(curr_pcb->currArg) == -1) return -1;
+    if(checkIfExecutable(task_name) == -1) return -1;
+    printf("\nAFTER CHECK");
     switch_task_memory();
     load_program_into_memory(task_name);
     create_pcb_child();
@@ -40,6 +40,7 @@ int32_t execute_steps(const uint8_t* command) {
 }
 
 void parseString(const uint8_t * str) {
+    printf("str: %s", str);
     int i = 0;
     int j = 0;
     while(str[i] == ' '){
@@ -49,6 +50,7 @@ void parseString(const uint8_t * str) {
         task_name[i] = str[i];
         i++;
     }
+    printf("TASKNAME: %s\n", task_name);
     while(str[i] == ' '){
             i++;
     }
@@ -56,15 +58,19 @@ void parseString(const uint8_t * str) {
         curr_pcb->currArg[j] = str[i + j];
         j++;
     }
+    printf("CURR_ARG: \n");
 }
 
 uint32_t checkIfExecutable(uint8_t * str) {
-    int8_t buf[4];
-    open(str);
-    if(read(0, buf, 4) == -1) {
+    uint8_t buf[4];
+    int fd = open(str);
+    printf("2AFTER_OPEN2\n");
+    printf("FD: %d", fd);
+    if(read(fd, buf, 4) == -1) {
         return -1;
     }
-    if(strncmp(buf + 1, "ELF", 3) != 0) { //not exectuable file
+
+    if(strncmp((int8_t *)buf + 1, "ELF", 3) != 0) { //not exectuable file
         return -1;        
     }
     return 0;

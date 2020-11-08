@@ -7,9 +7,9 @@
 
 //must declare globally or else stack will fill up everytime open is called
 //static func_ptrs terminal_ptr = {terminal_read, terminal_write, terminal_open, terminal_close};
-static func_ptrs rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
-static func_ptrs dir_ptr = {dir_read, dir_write, dir_open, dir_close};
-static func_ptrs file_ptr = {file_read, file_write, file_open, file_close};
+static func_ptrs_t rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
+static func_ptrs_t dir_ptr = {dir_read, dir_write, dir_open, dir_close};
+static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
 
 /* halt
  *
@@ -82,6 +82,7 @@ int32_t read(int32_t fd,void* buf, int32_t nbytes) {
         return -1;
     }
     //file pos only to be updated in file_read
+    printf("\nFILE OP PTR: %d\n", curr_pcb->file_arr[fd].file_op_ptr);
     return curr_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes);
 }
 

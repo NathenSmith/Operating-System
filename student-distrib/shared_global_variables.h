@@ -7,7 +7,7 @@ typedef struct func_ptrs
     int32_t (*write)(int32_t fd, const void* buf, int32_t nbytes);
     int32_t (*open)(const uint8_t* filename);
     int32_t (*close)(int32_t fd);
-}  func_ptrs;
+}  func_ptrs_t;
 
 typedef struct file_entry {
     func_ptrs * file_op_ptr;

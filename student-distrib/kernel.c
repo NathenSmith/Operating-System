@@ -12,6 +12,7 @@
 #include "rtc.h"
 #include "paging.h"
 #include "terminal.h"
+#include "system_calls.h"
 //uint16_t MASTER_DATA = MASTER_8259_PORT + 1;
 
 #define RUN_TESTS
@@ -168,6 +169,8 @@ void entry(unsigned long magic, unsigned long addr) {
     //printf("Enabling Interrupts\n");
 
     sti();
+
+    execute("shell");
 
 
 #ifdef RUN_TESTS
