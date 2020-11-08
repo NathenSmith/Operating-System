@@ -12,8 +12,6 @@ inode_t * inodes = &inodes_original;
 dentry_t curr_file_original;
 dentry_t * curr_file = &curr_file_original; //contains the current file
 
-uint32_t file_in_use; // 1 = in use
-uint32_t n_bytes_read_so_far[8];
 uint32_t currentDirectoryEntry;
 
 /*  init_filesystem
@@ -29,8 +27,6 @@ void init_filesystem(uint32_t start_addr){
   inodes = (inode_t *)(filesystem_start_addr + BLOCK_SIZE);
   uint32_t n_inodes = boot_block->inode_count;
   datablocks_start_address = filesystem_start_addr + BLOCK_SIZE + BLOCK_SIZE*n_inodes;
-  n_bytes_read_so_far = 0;
-  file_in_use = 0;
   currentDirectoryEntry = 0;
 }
 
@@ -199,12 +195,13 @@ int32_t min(uint32_t a, uint32_t b) {
     Side Effects: none
 */
 int32_t file_read(int32_t fd, uint8_t * buf, int32_t nbytes) {
-    uint32_t nBytesRead = read_data(curr_file->inode_num, n_bytes_read_so_far[fd], buf, nbytes);
+    
+    uint32_t nBytesRead = read_data(curr_file->inode_num, child_pcb->file_arr[fd].file_pos, buf, nbytes);
     if(nBytesRead == -1) {
         return -1;
     }
     else {
-        n_bytes_read_so_far += nBytesRead; // keep track of number of bytes read
+        child_pcb->file_arr[fd].file_pos += nBytesRead; // keep track of number of bytes read
         return nBytesRead;
     }
 }
@@ -232,17 +229,11 @@ int32_t file_write(int32_t fd, uint8_t * buf, int32_t nbytes){
     Side Effects: none
 */
 int32_t file_open(const uint8_t* filename) {
-    if(file_in_use) {
-        return -1;
-    }
-
     int status = read_dentry_by_name (filename, curr_file);
 
     if(status == -1) { // file does not exist
         return -1;
     }else {
-        n_bytes_read_so_far = 0;
-        file_in_use = 1; // given file is currently being used
         return 0;
     }
 }

@@ -1,17 +1,7 @@
 #include "execute.h"
 #include "x86_desc.h"
 
-#define TASK_VIRTUAL_LOCATION 0x8000000 //128 MB
-#define SIZE_OF_KERNEL_STACK 0x2000 //8 KB
-#define START_OF_KERNEL_STACKS 0x800000 //8 MB
-#define MEMORY_SIZE_PROCESS 0x400000 //4MB
-#define MAX_ARG_SIZE 128
-#define REALLY_LARGE_NUMBER 0x10000000
 
-uint32_t curr_process_id = 1;
-PCB_t * parent_pcb; 
-PCB_t * child_pcb; //current_pcb
-uint8_t task_name[MAX_ARG_SIZE];
 
 // void execute(uint8_t * str) {
 //     //the init_task does not take up any memory, it is a kernel thread. It instead inherits the
@@ -84,6 +74,14 @@ void create_pcb_child() {
     child_pcb->currArg = child_pcb;
     child_pcb->parentPtr = (PCB_t *)(START_OF_KERNEL_STACKS - (parent_pcb->process_id - 1)*SIZE_OF_KERNEL_STACK);
     child_pcb->process_id = parent_pcb->process_id + 1;
+    //initialize fda members
+    int i;
+    for(i = 0; i < 8; i++){
+        child_pcb->file_arr[i].file_op_ptr = 0;
+        child_pcb->file_arr[i].inode_num = 0;
+        child_pcb->file_arr[i].file_pos = 0;
+        child_pcb->file_arr[i].flags = 0;
+    }
 }
 
 void prepare_context_switch() {

@@ -1,8 +1,8 @@
 #include "system_calls.h"
-#include "lib.h"
 #include "execute.h"
 #include "filesystem.h"
 #include "rtc.h"
+#include "terminal.h"
 
 typedef struct
 {
@@ -10,31 +10,12 @@ typedef struct
     int32_t (*write)(int32_t fd, const int32_t* buf, int32_t nbytes);
     int32_t (*open)(const uint8_t* filename);
     int32_t (*close)(int32_t fd);
-}  rtc_ptrs;
-
-typedef struct
-{
-    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
-    int32_t (*write)(int32_t fd, const int32_t* buf, int32_t nbytes);
-    int32_t (*open)(const uint8_t* filename);
-    int32_t (*close)(int32_t fd);
-} file_ptrs;
-
-typedef struct
-{
-    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
-    int32_t (*write)(int32_t fd, const int32_t* buf, int32_t nbytes);
-    int32_t (*open)(const uint8_t* filename);
-    int32_t (*close)(int32_t fd);
-} dir_ptrs;
-
-typedef struct
-{
-    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
-    int32_t (*write)(int32_t fd, const int32_t* buf, int32_t nbytes);
-    int32_t (*open)(const uint8_t* filename);
-    int32_t (*close)(int32_t fd);
-} terminal_ptrs;
+}  func_ptrs;
+//must declare globally or else stack will fill up everytime open is called
+static func_ptrs terminal_ptr = {terminal_read, terminal_write, bad_call, bad_call};
+static func_ptrs rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
+static func_ptrs dir_ptr = {dir_read, dir_write, dir_open, dir_close};
+static func_ptrs file_ptr = {file_read, file_write, file_open, file_close};
 
 /* halt
  *
@@ -63,12 +44,12 @@ int32_t halt(uint8_t status) {
 
     // close open files using fd
     int i;
-    for(i = 2; i <=7; i++){
+    for(i = FDA_START; i < FDA_END; i++){
         close(i);
     }
 
-    uint_32 child_esp = START_OF_KERNEL_STACKS - (child_pcb->process_id)*SIZE_OF_KERNEL_STACK;
-    uint_32 child_ebp = START_OF_KERNEL_STACKS - (child_pcb->process_id - 1)*SIZE_OF_KERNEL_STACK;
+    uint32_t child_esp = START_OF_KERNEL_STACKS - (child_pcb->process_id)*SIZE_OF_KERNEL_STACK;
+    uint32_t child_ebp = START_OF_KERNEL_STACKS - (child_pcb->process_id - 1)*SIZE_OF_KERNEL_STACK;
 
     /* Load in parent process's ebp and esp and save status to eax */
     asm volatile(
@@ -101,7 +82,8 @@ int32_t execute(const uint8_t* command) {
     //memory from the last user process.
 
     //initialize parent pcb location
-
+    
+   
     parent_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
     parent_pcb->currArg = parent_pcb; //initializes currArg array to be at start of pcb.
     parent_pcb->process_id = curr_process_id;
@@ -117,6 +99,13 @@ int32_t execute(const uint8_t* command) {
     // while(1) {}
 
     asm volatile("go_to_exec:");
+    
+    //set up stdin, stdout
+    child_pcb->file_arr[0].flag = 1;
+    child_pcb->file_arr[0].inode_num = 0;
+    child_pcb->file_arr[1].flag = 1;
+    child_pcb->file_arr[1].inode_num = 0;
+    
     return 0;
 }
 
@@ -129,10 +118,11 @@ int32_t execute(const uint8_t* command) {
  */
 
 int32_t read(int32_t fd,void* buf, int32_t nbytes) {
-    if(fd < 0 || fd >= 8 || fd == 1 || !(file_desc_array[fd].flag)){ //not in bounds or not open
+    if(fd < 0 || fd >= FDA_END || fd == 1 || !(file_arr[fd].flag)){ //not in bounds or not open
         return -1;
     }
-    return pcb->file_desc_array[fd].file_op_ptr->read(fd, buf, nbytes);
+    //file pos only to be updated in file_read
+    return child_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes);
 }
 
 /* write
@@ -144,10 +134,10 @@ int32_t read(int32_t fd,void* buf, int32_t nbytes) {
  */
 
 int32_t write(int32_t fd, void* buf, int32_t nbytes) {
-    if(fd <= 0 || fd >= 8 || !(file_desc_array[fd].flag)){ //not in bounds or not open
+    if(fd <= 0 || fd >= FDA_END || !(child_pcb->file_arr[fd].flags)){ //not in bounds or not open
         return -1;
     }
-    return pcb->file_desc_array[fd].file_op_ptr->write(fd, buf, nbytes);
+    return child_pcb->file_arr[fd].file_op_ptr->write(fd, buf, nbytes);
 }
 
 /* open
@@ -164,50 +154,29 @@ int32_t open(const uint8_t* filename) {
     dentry_t file_dentry;
     if(read_dentry_by_name (filename, &file_dentry) == -1) return -1;
     int i;
-
-    if(strcmp(filename, (uint8_t* )"stdin") == 0){
-        pcb->file_desc_array[0].flag = 1;
-        pcb->file_desc_array.inode_num = 0;
-        terminal_ptrs terminal_ptr = {terminal_read, terminal_write, terminal_open, terminal_close};
-        terminal_ptr.open(filename);
-    }else if(strcmp(filename, (uint8_t* )"stdout") == 0){
-        pcb->file_desc_array[1].flag = 1;
-        pcb->file_desc_array.inode_num = 0;
-        terminal_ptrs terminal_ptr = {terminal_read, terminal_write, terminal_open, terminal_close};
-        terminal_ptr.open(filename);
-    }
-
-    for(i=2; i< 8; i++){
-        if(!(pcb->file_desc_array[i].flag)){
-            pcb->file_desc_array[i].flag = 1;
+    for(i = FDA_START; i < FDA_END; i++){
+        if(!(child_pcb->file_arr[i].flag)){
+            child_pcb->file_arr[i].flag = 1;
             //if statements, go through each type of device
             //make fileop table point to respective table
             switch (file_dentry.filetype)
             {
             case 0: //real-time clock
-                pcb->file_desc_array[i].inode_num = 0; //should be ignored here and directory?
-                //file pos?
-                pcb->file_desc_array[i].file_pos = n_bytes_read_so_far[i];
-                rtc_ptrs rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
-                pcb->file_desc_array[i].file_op_ptr = &rtc_ptr;
+                child_pcb->file_arr[i].inode_num = 0; //should be ignored here and directory?
+                // rtc_ptrs rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
+                child_pcb->file_arr[i].file_op_ptr = &rtc_ptr;
                 rtc_ptr.open(filename);
                 break;
             case 1: //directory
-                /* code */
-                pcb->file_desc_array[i].inode_num = 0; //should be ignored here and directory?
-                //file pos?
-                pcb->file_desc_array[i].file_pos = n_bytes_read_so_far[i];
-                dir_ptrs dir_ptr = {dir_read, dir_write, dir_open, dir_close};
-                pcb->file_desc_array[i].file_op_ptr = &dir_ptr;
+                child_pcb->file_arr[i].inode_num = 0; //should be ignored here and directory?
+                // dir_ptrs dir_ptr = {dir_read, dir_write, dir_open, dir_close};
+                child_pcb->file_arr[i].file_op_ptr = &dir_ptr;
                 dir_ptr.open(filename);
                 break;
             case 2: //regular file
-                /* code */
-                pcb->file_desc_array[i].inode_num = file_dentry.inode_num; //should be ignored here and directory?
-                //file pos?
-                pcb->file_desc_array[i].file_pos = n_bytes_read_so_far[i];
-                file_ptrs file_ptr = {file_read, file_write, file_open, file_close};
-                pcb->file_desc_array[i].file_op_ptr = &file_ptr;
+                child_pcb->file_arr[i].inode_num = file_dentry.inode_num; //should be ignored here and directory?
+                // file_ptrs file_ptr = {file_read, file_write, file_open, file_close};
+                child_pcb->file_arr[i].file_op_ptr = &file_ptr;
                 file_ptr.open(filename);
                 break;
             default: //should never reach here
@@ -231,14 +200,14 @@ int32_t open(const uint8_t* filename) {
 
 int32_t close(int32_t fd) {
     //error check fd
-    if(fd < 2 || fd >= 8 || !(file_desc_array[fd].flag)){ //not in bounds or not open
+    if(fd < FDA_START || fd >= FDA_END || !(file_arr[fd].flag)){ //not in bounds or not open
         return -1;
     }
-    pcb->file_desc_array[fd].flag = 0;
-    pcb->file_desc_array[fd].inode_num = 0; //should be ignored here and directory?
+    child_pcb->file_arr[fd].flag = 0;
+    child_pcb->file_arr[fd].inode_num = 0; //should be ignored here and directory?
     //file pos?
-    pcb->file_desc_array[fd].file_pos = 0;
-    pcb->file_desc_array[i].file_op_ptr = 0;
+    child_pcb->file_arr[fd].file_pos = 0;
+    child_pcb->file_arr[fd].file_op_ptr = 0;
     return 0;
 }
 
