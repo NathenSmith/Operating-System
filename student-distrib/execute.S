@@ -1,4 +1,4 @@
-#uses C calling convention
+# uses C calling convention
 push_iret_context:
     popl %eax
     popl %ebx

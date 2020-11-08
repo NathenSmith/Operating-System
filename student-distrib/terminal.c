@@ -9,12 +9,15 @@
  * Side Effects: Changes terminal buffer
  * Return value: Number of bytes read
  */ 
-uint32_t terminal_read (uint32_t fd, char* buf, uint32_t nbytes){
+uint32_t terminal_read (uint32_t fd, void* buf, uint32_t nbytes){
 	if(buf == NULL || nbytes <= 0) return 0;
 	//clear the buffer being sent in
+
+	char * buf_ = (char *)buf;
+
 	int i;
 	for(i = 0; i < BUF_SIZE; i++){
-		buf[i] = '\0';
+		buf_[i] = '\0';
 	}
 	terminal_flag = 0;
 	while(!terminal_flag){
@@ -25,8 +28,8 @@ uint32_t terminal_read (uint32_t fd, char* buf, uint32_t nbytes){
 		//copy from keyboard buf to terminal buf the appropriate characters
 		if(j == nbytes) break; //reached the maximum bytes acceptable
 		if(kbd_buf[j] == '\0') continue; //return to beginning of loop		
-		buf[j] = kbd_buf[j];
-		if(buf[j] == '\n'){
+		buf_[j] = kbd_buf[j];
+		if(buf_[j] == '\n'){
 			j++;
 			break;
 		}
@@ -45,13 +48,16 @@ uint32_t terminal_read (uint32_t fd, char* buf, uint32_t nbytes){
  * Side Effects: Writes to screen
  * Return value: number of bytes written
  */ 
-uint32_t terminal_write (uint32_t fd, const char* buf, uint32_t nbytes){
+uint32_t terminal_write (uint32_t fd, const void* buf, uint32_t nbytes){
 	if(buf == NULL || nbytes <= 0) return -1; //no bytes to read
 	uint32_t i, counter = 0;
+
+	char * buf_ = (char *)buf;
+
 	for(i = 0; i < nbytes; i++){
 		if(i == BUF_SIZE) break; //iterates until reaches max size of buffer or the number of bytes
-		if(buf[i] != '\0'){ //will ignore NULL
-			putc(buf[i]); //write to screen
+		if(buf_[i] != '\0'){ //will ignore NULL
+			putc(buf_[i]); //write to screen
 			counter++;
 		} 
 	}

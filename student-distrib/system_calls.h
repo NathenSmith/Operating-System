@@ -1,4 +1,8 @@
 #include "lib.h"
+#include "execute.h"
+#include "filesystem.h"
+#include "rtc.h"
+#include "terminal.h"
 
 extern int32_t halt(uint8_t status); 
 extern int32_t execute(const uint8_t* command);
