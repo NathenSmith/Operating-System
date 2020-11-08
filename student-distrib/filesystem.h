@@ -1,4 +1,5 @@
 #include "lib.h"
+#include "shared_global_variables.h"
 
 #define FILENAME_LEN 32
 #define BLOCK_SIZE 4096

@@ -1,7 +1,4 @@
 #include "system_calls.h"
-#include "pcb.h"
-
-#define PCB_SIZE_B4_ARG 144
 
 //must declare globally or else stack will fill up everytime open is called
 //static func_ptrs terminal_ptr = {terminal_read, terminal_write, terminal_open, terminal_close};
@@ -64,41 +61,7 @@ int32_t halt(uint8_t status) {
  */
 
 int32_t execute(const uint8_t* command) {
-    //the init_task does not take up any memory, it is a kernel thread. It instead inherits the
-    //memory from the last user process.
-
-    //initialize parent pcb location
-
-    // if(curr_process_id == 2){
-    //     parent_pcb = NULL;
-    // }else{
-    //     parent_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
-    //     parent_pcb->currArg = parent_pcb; //initializes currArg array to be at start of pcb.
-    //     parent_pcb->process_id = curr_process_id;
-    // }
-
-    curr_process_id++;
-
-    curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
-    curr_pcb->currArg = curr_pcb + PCB_SIZE_B4_ARG;
-
-    parseString(command);
-    if(checkIfExecutable(curr_pcb->currArg) == -1) return -1;
-    switch_task_memory();
-    load_program_into_memory(task_name);
-    create_pcb_child();
-    prepare_context_switch();
-    push_iret_context();
-
-    asm volatile("go_to_exec:");
-    
-    //set up stdin, stdout
-    curr_pcb->file_arr[0].flags = 1;
-    curr_pcb->file_arr[0].inode_num = 0;
-    curr_pcb->file_arr[1].flags = 1;
-    curr_pcb->file_arr[1].inode_num = 0;
-    
-    return 0;
+    return execute_steps(command);
 }
 
 /* read
@@ -196,8 +159,7 @@ int32_t close(int32_t fd) {
         return -1;
     }
     curr_pcb->file_arr[fd].flags = 0;
-    curr_pcb->file_arr[fd].inode_num = 0; //should be ignored here and directory?
-    //file pos?
+    curr_pcb->file_arr[fd].inode_num = 0; 
     curr_pcb->file_arr[fd].file_pos = 0;
     curr_pcb->file_arr[fd].file_op_ptr = 0;
     return 0;
