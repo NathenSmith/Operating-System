@@ -1,5 +1,6 @@
 #include "filesystem.h"
 
+
 uint32_t filesystem_start_addr;    //starting address of filesystem
 uint32_t datablocks_start_address; //address of first datablock
 
@@ -129,13 +130,13 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
      onto the next block, do a simple copy of length length_to_copy. */
 
     if((offset + length_to_copy)/BLOCK_SIZE == offsetBlocks) { // if it would still be in the same block #
-        memcpy(buf, start_addr_to_copy, length_to_copy);
+        memcpy(buf, (uint8_t *)start_addr_to_copy, length_to_copy);
     }
     /* Otherwise, we have to copy over multiple blocks. */
     else {
         //copy first block data
         uint32_t n_bytes_left_in_block = BLOCK_SIZE - offsetBlocksRemainder;
-        memcpy(buf, start_addr_to_copy, n_bytes_left_in_block);        
+        memcpy(buf, (uint8_t *)start_addr_to_copy, n_bytes_left_in_block);        
         buf += n_bytes_left_in_block;
 
         //now we loop through the other blocks
@@ -147,13 +148,13 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
             uint32_t length_left_to_copy = length_to_copy - nBytesRead;
             //if we're in the final block, copy the remaining data.
             if(length_left_to_copy <= BLOCK_SIZE) { 
-                memcpy(buf, start_addr_to_copy, length_left_to_copy);
+                memcpy(buf, (uint8_t *)start_addr_to_copy, length_left_to_copy);
                 buf += length_left_to_copy;
                 nBytesRead += length_left_to_copy;
             }
             //otherwise, copy a 4kB block of data.
             else {
-                memcpy(buf, start_addr_to_copy, BLOCK_SIZE);
+                memcpy(buf, (uint8_t *)start_addr_to_copy, BLOCK_SIZE);
                 buf += BLOCK_SIZE;
                 nBytesRead += BLOCK_SIZE;
             }
@@ -194,14 +195,14 @@ int32_t min(uint32_t a, uint32_t b) {
     Return Value: returns the number of bytes read. If unable to read, it returns -1.
     Side Effects: none
 */
-int32_t file_read(int32_t fd, uint8_t * buf, int32_t nbytes) {
+int32_t file_read(int32_t fd, void * buf, int32_t nbytes) {
     
-    uint32_t nBytesRead = read_data(curr_file->inode_num, child_pcb->file_arr[fd].file_pos, buf, nbytes);
+    uint32_t nBytesRead = read_data(curr_file->inode_num, curr_pcb->file_arr[fd].file_pos, buf, nbytes);
     if(nBytesRead == -1) {
         return -1;
     }
     else {
-        child_pcb->file_arr[fd].file_pos += nBytesRead; // keep track of number of bytes read
+        curr_pcb->file_arr[fd].file_pos += nBytesRead; // keep track of number of bytes read
         return nBytesRead;
     }
 }
@@ -216,7 +217,7 @@ int32_t file_read(int32_t fd, uint8_t * buf, int32_t nbytes) {
     Return Value: file system is read only so return -1
     Side Effects: none
 */
-int32_t file_write(int32_t fd, uint8_t * buf, int32_t nbytes){
+int32_t file_write(int32_t fd, const void * buf, int32_t nbytes){
     return -1;
 }
 
@@ -252,7 +253,6 @@ int32_t file_close(int32_t fd){
     if(fd == 0 || fd == 1) {
         return -1;
     }
-    file_in_use = 0; // mark file as no longer in use
     return 0;
 }
 
@@ -286,7 +286,7 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
     Return Value: file system is read only so return -1
     Side Effects: none
 */
-int32_t dir_write(int32_t fd, void* buf, int32_t nbytes){
+int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes){
     return -1;
 }
 
@@ -299,19 +299,13 @@ int32_t dir_write(int32_t fd, void* buf, int32_t nbytes){
     Side Effects: none
 */
 int32_t dir_open(const uint8_t* filename) {
-    if(file_in_use) {
-        return -1;
-    }
 
     int status = read_dentry_by_name (filename, curr_file);
 
     if(status == -1) { // directory does not exist
         return -1;
     }
-    else {
-        file_in_use = 1; // mark as in use
-        return 0;
-    }
+    return 0;
 }
 
 /* dir_close
@@ -327,6 +321,5 @@ int32_t dir_close(int32_t fd){
     if(fd == 0 || fd == 1) {
         return -1;
     }
-    file_in_use = 0;
     return 0;
 }

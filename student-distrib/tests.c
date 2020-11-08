@@ -4,8 +4,6 @@
 #include "rtc.h"
 #include "terminal.h"
 
-#include "linkage.h" //REMOVE LATER
-
 #define PASS 1
 #define FAIL 0
 
@@ -157,7 +155,7 @@ int list_files(uint32_t start_addr) {
 
 int read_dir_test(start_addr) {
 	int i;
-	boot_block_t * boot_block = (boot_block_t *) start_addr;
+	//boot_block_t * boot_block = (boot_block_t *) start_addr;
 	uint8_t filename[33];
 	for(i = 0; i < 100; i++) {
 		filename[0] = '\0';
@@ -167,6 +165,7 @@ int read_dir_test(start_addr) {
 			printf("filename: %s\n", filename);
 		}
 	}
+	return 0;
 }
 /* RTC test
  *
@@ -299,6 +298,12 @@ int nbytes_test(){
 	return PASS;
 }
 /* Checkpoint 3 tests */
+
+int execute_test(){
+	return PASS;
+}
+
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 

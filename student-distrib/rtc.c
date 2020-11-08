@@ -70,10 +70,10 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
  * Side Effects: Sets frequency
  * Return value: Zero on success, -1 if an invalid byte being sent, NULL pointer being passed in, or a frequency not a power of 2
  */ 
-int32_t rtc_write(int32_t fd, const int32_t* buf, int32_t nbytes){
+int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
     if(nbytes != EXPECTED_BYTES || buf == NULL) return -1;
 
-    int32_t freq = *buf;
+    int32_t freq = *((int32_t *) buf);
     uint8_t rate = RATE_MAX;
     if(((freq & (freq - 1)) == 0) && (freq <= FREQ_MAX)){  //if freq is a power of 2, https://stackoverflow.com/questions/600293/how-to-check-if-a-number-is-a-power-of-2
         if(freq == 0) rate = 0; //freq 0 just means rate of 0

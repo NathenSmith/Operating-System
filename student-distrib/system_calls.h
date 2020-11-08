@@ -1,4 +1,5 @@
-#include "lib.h"
+#ifndef _SYSTEM_CALLS_H
+#define _SYSTEM_CALLS_H
 
 extern int32_t halt(uint8_t status); 
 extern int32_t execute(const uint8_t* command);
@@ -10,5 +11,8 @@ extern int32_t getargs(uint8_t* buf, int32_t nbytes);
 extern int32_t vidmap(uint8_t** screen_start);
 extern void set_handler();
 extern void sigreturn();
+
+#endif
+
 
 
