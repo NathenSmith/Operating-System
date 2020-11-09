@@ -15,7 +15,7 @@ static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
 /* halt
  *
  * Implements the halt system call.
- * Inputs: None
+ * Inputs: status
  * Outputs: None
  * Side Effects: None
  */
@@ -58,7 +58,7 @@ int32_t halt(uint8_t status) {
 /* execute
  *
  * Implements the execute system call.
- * Inputs: None
+ * Inputs: executes given command following steps
  * Outputs: None
  * Side Effects: None
  */
@@ -97,8 +97,8 @@ int32_t execute(const uint8_t* command) {
 
 /* read
  *
- * Implements the read system call.
- * Inputs: None
+ * Implements the read system call, calls filetype's respective read call
+ * Inputs: fd - file desc array index, buf-buffer to read into, nbytes- num bytes to read
  * Outputs: None
  * Side Effects: None
  */
@@ -114,8 +114,8 @@ int32_t read(int32_t fd, void * buf, int32_t nbytes) {
 
 /* write
  *
- * Implements the write system call.
- * Inputs: None
+ * Implements the write system call, calls filetype's respective write call
+ * Inputs: fd - file desc array index, buf-buffer to write, nbytes- num bytes to write
  * Outputs: None
  * Side Effects: None
  */
@@ -129,8 +129,8 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes) {
 
 /* open
  *
- * Implements the open system call.
- * Inputs: None
+ * Implements the open system call for every file type.
+ * Inputs: filename- checked if valid
  * Outputs: None
  * Side Effects: None
  */
@@ -148,19 +148,19 @@ int32_t open(const uint8_t* filename) {
             //make fileop table point to respective table
             switch (file_dentry.filetype)
             {
-            case 0: //real-time clock
+            case 0: //real-time clock, filetype (0)
                 curr_pcb->file_arr[i].inode_num = 0; //should be ignored here and directory?
                 // rtc_ptrs rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
                 curr_pcb->file_arr[i].file_op_ptr = &rtc_ptr;
                 rtc_ptr.open(filename);
                 break;
-            case 1: //directory
+            case 1: //directory, filetype (1)
                 curr_pcb->file_arr[i].inode_num = 0; //should be ignored here and directory?
                 // dir_ptrs dir_ptr = {dir_read, dir_write, dir_open, dir_close};
                 curr_pcb->file_arr[i].file_op_ptr = &dir_ptr;
                 dir_ptr.open(filename);
                 break;
-            case 2: //regular file
+            case 2: //regular file, filetype (2)
                 curr_pcb->file_arr[i].inode_num = file_dentry.inode_num; //should be ignored here and directory?
                 // file_ptrs file_ptr = {file_read, file_write, file_open, file_close};
                 curr_pcb->file_arr[i].file_op_ptr = &file_ptr;
@@ -180,7 +180,7 @@ int32_t open(const uint8_t* filename) {
 /* close
  *
  * Implements the close system call.
- * Inputs: None
+ * Inputs: fd- file descriptor array index
  * Outputs: None
  * Side Effects: None
  */
