@@ -47,19 +47,11 @@ void setup_idt_entry(void * handler_address, int irq_num, int privilege)
     // 0 size 1 2 3
     // TRAP: 0 D 1 1 1
     // INTERRUPT: 0 D 1 1 0
-    idt[irq_num].reserved3 = 1;
+    idt[irq_num].reserved3 = 0;
     idt[irq_num].reserved2 = 1;
     idt[irq_num].reserved1 = 1;
     idt[irq_num].reserved0 = 0;
 
-    /* for system call or exception use trap config,
-     otherwise for interrupt use interrupt config */
-
-    if(irq_num >= 0x20 && irq_num <= 0x2F) {
-        idt[irq_num].reserved3 = 0;
-    } 
-
-    //FOR EXCEPTIONS
     SET_IDT_ENTRY(idt[irq_num], handler_address);
 }
 
@@ -130,6 +122,7 @@ void setup_idt() { //replace with assembly linkage
 void system_call_handler()
 {
     printf("system call executed");
+    sti();
 }
 
 
@@ -142,10 +135,10 @@ void system_call_handler()
  */
 
 void divide() {
-    cli();
     clear();
     printf("Divide-by-zero Error");
     while(1) ;
+    sti();
 }
 
 /* debug
@@ -157,10 +150,10 @@ void divide() {
  */
 
 void debug() {
-    cli(); 
     clear();
     printf("Debug");
     while(1) ;
+    sti();
 }
 
 /* non-maskable interrupt
@@ -172,10 +165,10 @@ void debug() {
  */
 
 void nmi() {
-    cli(); 
     clear();
     printf("Non-maskable Interrupt");
     while(1) ;
+    sti();
 }
 
 /* breakpoint
@@ -187,10 +180,10 @@ void nmi() {
  */
 
 void breakpoint() {
-    cli(); 
     clear();
     printf("Breakpoint");
     while(1) ;
+    sti();
 }
 
 /* overflow
@@ -202,10 +195,10 @@ void breakpoint() {
  */
 
 void overflow() {
-    cli(); 
     clear();
     printf("Overflow");
     while(1) ;
+    sti();
 }
 
 /* boundexceed
@@ -217,10 +210,10 @@ void overflow() {
  */
 
 void boundexceed() {
-    cli();
     clear();
     printf("Bound Range Exceeded");
     while(1) ;
+    sti();
 }
 
 /* invalidopcode
@@ -231,10 +224,10 @@ void boundexceed() {
  * Side Effects: None
  */
 void invalidopcode() {
-    cli(); 
     clear();
     printf("Invalid Opcode");
     while(1) ;
+    sti();
 }
 
 
@@ -247,10 +240,10 @@ void invalidopcode() {
  */
 
 void decidenot() {
-    cli(); 
     clear();
     printf("Decide Not Available");
     while(1) ;
+    sti();
 }
 
 /* doublefault
@@ -262,10 +255,10 @@ void decidenot() {
  */
 
 void doublefault() {
-    cli(); 
     clear();
     printf("Double Fault");
     while(1) ;
+    sti();
 }
 
 /* invalidtss
@@ -277,10 +270,10 @@ void doublefault() {
  */
 
 void invalidtss() {
-    cli(); 
     clear();
     printf("Invalid TSS");
     while(1) ;
+    sti();
 }
 
 /* segmentnot
@@ -292,10 +285,10 @@ void invalidtss() {
  */
 
 void segmentnot() {
-    cli(); 
     clear();
     printf("Segment Not Present");
     while(1) ;
+    sti();
 }
 
 /* stacksegfault
@@ -307,10 +300,10 @@ void segmentnot() {
  */
 
 void stacksegfault() {
-    cli(); 
     clear();
     printf("Stack-Segment Fault");
     while(1) ;
+    sti();
 }
 
 /* genprotfault
@@ -322,10 +315,10 @@ void stacksegfault() {
  */
 
 void genprotfault() {
-    cli(); 
     clear();
     printf("General Protection Fault");
     while(1) ;
+    sti();
 }
 
 /* pagefault
@@ -337,14 +330,10 @@ void genprotfault() {
  */
 
 void pagefault() {
-    cli(); 
     //clear();
     printf("Page Fault");
-    while (1)
-    {
-        //nothing
-    }
-    
+    while (1) ;
+    sti();
 }
 
 /* floatingfault
@@ -356,10 +345,10 @@ void pagefault() {
  */
 
 void floatingpoint() {
-    cli(); 
     clear();
     printf("x87 Floating-Point-Exception");
     while(1) ;
+    sti();
 }
 
 /* alignment_c
@@ -370,10 +359,10 @@ void floatingpoint() {
  * Side Effects: None
  */
 void alignment_c() {
-    cli(); 
     clear();
     printf("Alignment Check");
     while(1) ;
+    sti();
 }
 
 /* machine_c
@@ -385,10 +374,10 @@ void alignment_c() {
  */
 
 void machine_c() {
-    cli(); 
     clear();
     printf("Machine Check");
     while(1) ;
+    sti();
 }
 
 /* simd
@@ -400,10 +389,10 @@ void machine_c() {
  */
 
 void simd() {
-    cli(); 
     clear();
     printf("SIMD Floating-Point Exception");
     while(1) ;
+    sti();
 }
 
 /* virtual_e
@@ -415,10 +404,10 @@ void simd() {
  */
 
 void virtual_e() {
-    cli(); 
     clear();
     printf("Virtualization Exception");
     while(1) ;
+    sti();
 }
 
 /* security
@@ -430,8 +419,8 @@ void virtual_e() {
  */
 
 void security() {
-    cli(); 
     clear();
     printf("Security Exception");
     while(1) ;
+    sti();
 }

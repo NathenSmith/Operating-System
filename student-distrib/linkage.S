@@ -217,5 +217,3 @@ invalid:
     iret
 
 .end
-
-

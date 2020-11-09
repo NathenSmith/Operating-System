@@ -87,7 +87,7 @@ uint32_t checkIfExecutable(uint8_t * str) {
 void switch_task_memory() {
     
     uint32_t task_memory = START_OF_KERNEL_STACKS + (curr_process_id - 2) * MEMORY_SIZE_PROCESS; // task memory is a 4 MB page, 128MB in virtual memory
-    pageDirectory[VIRTUAL_START] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
+    pageDirectory[VIRTUAL_START] = task_memory | 0x97; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
     //Flush TLB every time page directory is switched.
     flush_tlb();
 }

@@ -15,12 +15,12 @@ void paging_init(void) {
     for(i = 0; i < DIRECTORY_SIZE; i++) pageDirectory[i] = 0x2;
     for(i = 0; i < DIRECTORY_SIZE; i++) pageTable[i] = 0x2;
 
+    //set video memory
     pageDirectory[0] = ((uint32_t)pageTable | 0x3); // 0x3 are bits needed to set present, rw, supervisor
-
-    // kernel memory starts at KERNEL = 4MB
-    pageDirectory[1] = (KERNEL_IDX | 0x83);
-
     pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x3); // 0x3 are bits needed to set present, rw, supervisor
+
+    // set kernel memory at 4MB
+    pageDirectory[1] = (KERNEL_IDX | 0x93);
 
     //cr3 has addr of page directory
     //cr0 is paging enable bit
