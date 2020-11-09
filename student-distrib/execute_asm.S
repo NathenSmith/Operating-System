@@ -3,9 +3,12 @@
 .globl go_to_exec
 
 push_iret_context_asm:
-    popl %ecx
-    popl %eax
-    popl %ebx
+    # popl %ecx
+    # popl %eax
+    #popl %ebx
+    movl 4(%esp), %eax
+    movl 8(%esp), %ebx
+    movl 12(%esp), %ecx
     pushfl 
     orl $0x0200, (%esp)
     pushl %ebx

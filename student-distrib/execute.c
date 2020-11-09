@@ -182,7 +182,7 @@ void create_pcb_child() {
 void prepare_context_switch() {
     //set SS0 and ESP0 in TSS 
     tss.ss0 = KERNEL_DS;
-    tss.esp0 = START_OF_KERNEL_STACKS - (curr_process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK; 
+    tss.esp0 = START_OF_KERNEL_STACKS - (curr_process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK - 4; 
 }
 
 /* push_iret_context
@@ -199,7 +199,7 @@ void push_iret_context() {
     uint32_t cs = USER_CS;
     //set ESP for user stack to bottom of 4MB page holding executable image
     //+1 is for bottom of the page
-    uint32_t esp = TASK_VIRTUAL_LOCATION + (curr_process_id SHELL_PID + 1)*MEMORY_SIZE_PROCESS;
+    uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4;
     uint32_t ss = USER_DS;
     push_iret_context_asm(eip, cs, esp, ss);
 }
