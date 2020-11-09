@@ -52,9 +52,6 @@ int32_t halt(uint8_t status) {
     );
 
     return 0;
-
-    // printf("halt");
-    // while(1) {}
 }
 
 /* execute
@@ -77,7 +74,7 @@ int32_t execute(const uint8_t* command) {
  * Side Effects: None
  */
 
-int32_t read(int32_t fd,void* buf, int32_t nbytes) {
+int32_t read(int32_t fd, void * buf, int32_t nbytes) {
     if(fd < 0 || fd >= FDA_END || fd == 1 || !(curr_pcb->file_arr[fd].flags)){ //not in bounds or not open
         return -1;
     }
@@ -110,7 +107,7 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes) {
  */
 
 int32_t open(const uint8_t* filename) {
-    printf("open");
+    //printf("open");
     //iterate through pcb starting at index 2
     dentry_t file_dentry;
     if(read_dentry_by_name (filename, &file_dentry) == -1) return -1;

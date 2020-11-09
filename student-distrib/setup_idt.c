@@ -45,7 +45,6 @@ void setup_idt_entry(void * handler_address, int irq_num, int privilege)
     idt[irq_num].present = 1;
     idt[irq_num].reserved4 = 0; 
     // 0 size 1 2 3
-    // TRAP: 0 D 1 1 1
     // INTERRUPT: 0 D 1 1 0
     idt[irq_num].reserved3 = 0;
     idt[irq_num].reserved2 = 1;
