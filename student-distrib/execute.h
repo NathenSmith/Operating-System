@@ -7,7 +7,6 @@
 #define SIZE_OF_KERNEL_STACK 0x2000 //8 KB
 #define START_OF_KERNEL_STACKS 0x800000 //8 MB
 #define MEMORY_SIZE_PROCESS 0x400000 //4MB
-#define MAX_ARG_SIZE 128
 #define REALLY_LARGE_NUMBER 0x10000000
 #define FDA_END 8 
 #define FDA_START 2
@@ -17,7 +16,7 @@
 #define FIRST_FEW_BYTES_SIZE 28
 #define BUFFER_LENGTH 7
 #define BUFFER_INDEX 6
-#define SHELL_PID 2
+#define SHELL_PID 1
 #define PAGING_FLAGS 0x097
 
 extern void flush_tlb();

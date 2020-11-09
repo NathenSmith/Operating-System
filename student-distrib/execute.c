@@ -3,10 +3,10 @@
 #include "shared_global_variables.h"
 #include "system_calls.h"
 #include "execute.h"
+#include "lib.h"
 #define PCB_SIZE_B4_ARG 144
 
 PCB_t * curr_pcb;
-uint32_t curr_process_id = 1;
 uint8_t task_name[MAX_ARG_SIZE];
 uint32_t entry_point;
 
@@ -22,32 +22,6 @@ uint32_t entry_point;
  *  SIDE EFFECTS: Passes control of the program to the child process, switches to 
     the child process's user space.
  */
-
-int32_t execute_steps(const uint8_t* command) {
-    //todo: make init task inherit memory from the last user process
-    if(curr_process_id >= MAX_NUMBER_OF_PAGES) {
-        return -1;
-    }
-    curr_process_id++;
-    curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id - 1)*SIZE_OF_KERNEL_STACK);
-
-    //set up stdin, stdout
-    curr_pcb->file_arr[0].flags = 1;
-    curr_pcb->file_arr[0].inode_num = 0;
-    curr_pcb->file_arr[1].flags = 1;
-    curr_pcb->file_arr[1].inode_num = 0;
-
-    //call execute's 7 steps
-    parseString(command);
-    if(checkIfExecutable(task_name) == -1) return -1;
-    switch_task_memory();
-    load_program_into_memory(task_name);
-    create_pcb_child();
-    prepare_context_switch();
-    push_iret_context();
-        
-    return 0;
-}
 
 
 /* parseString
@@ -114,7 +88,7 @@ uint32_t checkIfExecutable(uint8_t * str) {
  void switch_task_memory() {
     //Flush TLB every time page directory is switched.
     flush_tlb();
-    uint32_t task_memory = START_OF_KERNEL_STACKS + (curr_process_id - 2) * MEMORY_SIZE_PROCESS; // task memory is a 4 MB page, 128MB in virtual memory
+    uint32_t task_memory = START_OF_KERNEL_STACKS + (curr_pcb->process_id-1) * MEMORY_SIZE_PROCESS; // task memory is a 4 MB page, 128MB in virtual memory
     pageDirectory[VIRTUAL_START] = task_memory | PAGING_FLAGS; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
 }
 
@@ -149,12 +123,11 @@ void load_program_into_memory(const uint8_t * filename) {
  *  SIDE EFFECTS: None
  */
 void create_pcb_child() {
-    if(curr_process_id == SHELL_PID){
+    if(curr_pcb->process_id == SHELL_PID){
         curr_pcb->parentPtr = NULL;
     } else {
-        curr_pcb->parentPtr = START_OF_KERNEL_STACKS - (curr_process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK;
+        curr_pcb->parentPtr = START_OF_KERNEL_STACKS - (curr_pcb->process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK;
     }
-    curr_pcb->process_id = curr_process_id;
     //initialize fda members
     int i;
     for(i = FDA_START; i < FDA_END; i++){
@@ -182,7 +155,7 @@ void create_pcb_child() {
 void prepare_context_switch() {
     //set SS0 and ESP0 in TSS 
     tss.ss0 = KERNEL_DS;
-    tss.esp0 = START_OF_KERNEL_STACKS - (curr_process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK - 4; 
+    tss.esp0 = START_OF_KERNEL_STACKS - (curr_pcb->process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK - 4; 
 }
 
 /* push_iret_context
@@ -201,5 +174,17 @@ void push_iret_context() {
     //+1 is for bottom of the page
     uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4;
     uint32_t ss = USER_DS;
-    push_iret_context_asm(eip, cs, esp, ss);
+    //push_iret_context_asm(eip, cs, esp, ss);
+    asm volatile(
+        "pushl %3;"
+        "pushl %2;"
+        "pushfl;"
+        "pushl %1;"
+        "pushl %0;"
+        "iret;"
+        :
+        :"r"(eip), "r"(cs), "r"(esp), "r"(ss)
+    );
+
+    //asm volatile("iret");
 }

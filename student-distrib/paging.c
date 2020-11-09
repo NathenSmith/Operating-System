@@ -31,7 +31,7 @@ void paging_init(void) {
         orl $0x00000010, %%eax \n \
         movl %%eax, %%cr4 \n \
         movl %%cr0, %%eax \n \
-        orl $0x80000001, %%eax \n \
+        orl $0x80000000, %%eax \n \
         movl %%eax, %%cr0"
         :
         :"r"(pageDirectory)
