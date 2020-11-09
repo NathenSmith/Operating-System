@@ -12,6 +12,13 @@
 #define FDA_END 8 
 #define FDA_START 2
 #define VIRTUAL_START 32
+#define MAX_NUMBER_OF_PAGES 992
+#define ELF_SIZE 4
+#define FIRST_FEW_BYTES_SIZE 28
+#define BUFFER_LENGTH 7
+#define BUFFER_INDEX 6
+#define SHELL_PID 2
+#define PAGING_FLAGS 0x097
 
 extern void flush_tlb();
 extern void push_iret_context_asm();
