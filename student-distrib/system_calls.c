@@ -1,12 +1,13 @@
-    #include "execute.h"
+#include "execute.h"
 #include "filesystem.h"
 #include "rtc.h"
 #include "terminal.h"
 #include "system_calls.h"
 #include "paging.h"
+#include "lib.h"
 
 //must declare globally or else stack will fill up everytime open is called
-//static func_ptrs terminal_ptr = {terminal_read, terminal_write, terminal_open, terminal_close};
+static func_ptrs_t terminal_ptr = {terminal_read, terminal_write, terminal_open, terminal_close};
 static func_ptrs_t rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
 static func_ptrs_t dir_ptr = {dir_read, dir_write, dir_open, dir_close};
 static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
@@ -21,35 +22,35 @@ static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
 
 int32_t halt(uint8_t status) {
 
-    // if the current process is shell
-    if(curr_process_id != SHELL_ID){
+    // // if the current process is shell
+    // if(curr_process_id != 1){
 
-        curr_process_id--;
-        uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
+    //     curr_process_id--;
+    //     uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
 
-        // setting new child pcb
-        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_process_id*SIZE_OF_KERNEL_STACK));
-        pageDirectory[curr_process_id] = task_memory | PAGE_MASK; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB
-        // flush TLB every time page directory is switched.
-        flush_tlb();
+    //     // setting new child pcb
+    //     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - ((curr_process_id -1)*SIZE_OF_KERNEL_STACK));
+    //     pageDirectory[curr_process_id - 1] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB
+    //     // flush TLB every time page directory is switched.
+    //     flush_tlb();
 
-        // close open files using fd
-        int i;
-        for(i = FDA_START; i < FDA_END; i++){
-            close(i);
-        }
-    }
-    /* Load in current process's ebp and esp and save status to eax */
-    asm volatile(
-        "movl %0, %%esp;"
-        "movl %1, %%ebp;"
-        "movl %2, %%eax;"
-        "jmp go_to_exec;"
+    //     // close open files using fd
+    //     int i;
+    //     for(i = FDA_START; i < FDA_END; i++){
+    //         close(i);
+    //     }
+    // }
+    // /* Load in current process's ebp and esp and save status to eax */
+    // asm volatile(
+    //     "movl %0, %%esp;"
+    //     "movl %1, %%ebp;"
+    //     "movl %2, %%eax;"
+    //     "jmp go_to_exec;"
 
-        :
-        :"r"(curr_pcb->esp), "r"(curr_pcb->ebp), "r"((uint32_t) status)
-        :"%eax"
-    );
+    //     :
+    //     :"r"(curr_pcb->esp), "r"(curr_pcb->ebp), "r"((uint32_t) status)
+    //     :"%eax"
+    // );
 
     return 0;
 }
@@ -63,7 +64,35 @@ int32_t halt(uint8_t status) {
  */
 
 int32_t execute(const uint8_t* command) {
-    return execute_steps(command);
+    parseString(command);
+
+    if(strncmp(task_name, (int8_t *) "shell", 5) == 0){
+        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
+        curr_pcb->process_id = 1;
+    }else{
+        uint32_t newProcessId = curr_pcb->process_id + 1;
+        if(newProcessId >= MAX_NUMBER_OF_PAGES) return -1;
+        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
+        curr_pcb->process_id = newProcessId;
+    }
+
+    //set up stdin, stdout
+    curr_pcb->file_arr[0].flags = 1;
+    curr_pcb->file_arr[0].inode_num = 0;
+    curr_pcb->file_arr[0].file_op_ptr = &terminal_ptr;
+    curr_pcb->file_arr[1].flags = 1;
+    curr_pcb->file_arr[1].inode_num = 0;
+    curr_pcb->file_arr[1].file_op_ptr = &terminal_ptr;
+
+    //call execute's 6 steps
+    if(checkIfExecutable(task_name) == -1) return -1;
+    switch_task_memory();
+    load_program_into_memory(task_name);
+    create_pcb_child();
+    prepare_context_switch();
+    push_iret_context();
+        
+    return 0;
 }
 
 /* read

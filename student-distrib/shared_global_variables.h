@@ -1,6 +1,8 @@
 #ifndef _SHARED_GLOBAL_VARIABLE_H
 #define _SHARED_GLOBAL_VARIABLE_H
 
+#define MAX_ARG_SIZE 128
+
 typedef struct func_ptrs
 {
     int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
@@ -26,5 +28,6 @@ typedef struct PCB {
 } PCB_t;
 
 extern PCB_t * curr_pcb;
-extern uint32_t curr_process_id;
+extern uint8_t task_name[MAX_ARG_SIZE];
+extern uint32_t entry_point;
 #endif
