@@ -66,7 +66,7 @@ int32_t halt(uint8_t status) {
 int32_t execute(const uint8_t* command) {
     parseString(command);
 
-    if(strncmp(task_name, (int8_t *) "shell", 5) == 0){
+    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0){
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = 1;
     }else{
