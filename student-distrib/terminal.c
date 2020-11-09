@@ -9,7 +9,7 @@
  * Side Effects: Changes terminal buffer
  * Return value: Number of bytes read
  */ 
-uint32_t terminal_read (uint32_t fd, void* buf, uint32_t nbytes){
+int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
 	if(buf == NULL || nbytes <= 0) return 0;
 	//clear the buffer being sent in
 
@@ -23,7 +23,7 @@ uint32_t terminal_read (uint32_t fd, void* buf, uint32_t nbytes){
 	while(!terminal_flag){
 		//wait for newline to be entered
 	}
-	uint32_t j = 0;
+	int32_t j = 0;
 	while(j != BUF_SIZE){
 		//copy from keyboard buf to terminal buf the appropriate characters
 		if(j == nbytes) break; //reached the maximum bytes acceptable
@@ -48,7 +48,7 @@ uint32_t terminal_read (uint32_t fd, void* buf, uint32_t nbytes){
  * Side Effects: Writes to screen
  * Return value: number of bytes written
  */ 
-uint32_t terminal_write (uint32_t fd, const void* buf, uint32_t nbytes){
+int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	if(buf == NULL || nbytes <= 0) return -1; //no bytes to read
 	uint32_t i, counter = 0;
 
@@ -75,7 +75,7 @@ uint32_t terminal_write (uint32_t fd, const void* buf, uint32_t nbytes){
  * Side Effects: none
  * Return value: Zero on success
  */ 
-uint32_t terminal_open (const uint8_t* filename){
+int32_t terminal_open (const uint8_t* filename){
     return 0;
 }
 /* terminal_close
@@ -86,6 +86,6 @@ uint32_t terminal_open (const uint8_t* filename){
  * Side Effects: None
  * Return value: Zero on success
  */ 
-uint32_t terminal_close (uint32_t fd){
+int32_t terminal_close (int32_t fd){
     return -1;
 }
