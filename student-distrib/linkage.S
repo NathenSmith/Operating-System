@@ -184,16 +184,21 @@ sys_call:
     jg invalid
     addl $-1, %eax
     
-    
+    pushl %edi
+    pushl %esi
+
     pushl %edx
     pushl %ecx
     pushl %ebx
     pushl %esp
     jmp *jump_table(, %eax, 4) #jump table access
-    popl %esp #might add instead
+    addl $4, %esp
     popl %ebx
     popl %ecx
     popl %edx
+
+    popl %esi 
+    popl %edi
    
     
 

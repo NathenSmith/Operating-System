@@ -124,7 +124,9 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes) {
     if(fd <= 0 || fd >= FDA_END || !(curr_pcb->file_arr[fd].flags)){ //not in bounds or not open
         return -1;
     }
-    return curr_pcb->file_arr[fd].file_op_ptr->write(fd, buf, nbytes);
+    //PCB_t * ptr = &curr_pcb;
+    int32_t retval = curr_pcb->file_arr[fd].file_op_ptr->write(fd, buf, nbytes);
+    return retval;
 }
 
 /* open
