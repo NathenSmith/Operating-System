@@ -86,10 +86,9 @@ uint32_t checkIfExecutable(uint8_t * str) {
  *  SIDE EFFECTS: Flushes the TLB.
  */
  void switch_task_memory() {
-    //Flush TLB every time page directory is switched.
-    flush_tlb();
     uint32_t task_memory = START_OF_KERNEL_STACKS + (curr_pcb->process_id-1) * MEMORY_SIZE_PROCESS; // task memory is a 4 MB page, 128MB in virtual memory
     pageDirectory[VIRTUAL_START] = task_memory | PAGING_FLAGS; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
+    flush_tlb(); //Flush TLB every time page directory is switched.
 }
 
 /* load_program_into_memory
@@ -172,19 +171,28 @@ void push_iret_context() {
     uint32_t cs = USER_CS;
     //set ESP for user stack to bottom of 4MB page holding executable image
     //+1 is for bottom of the page
-    uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4;
+    uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC
+
+    /*eax 0x2b
+     *ecx 0x23
+     *edx 0x83ffffc
+     *eflags 0x202   
+     *ebx 0x80482e8
+     */
     uint32_t ss = USER_DS;
     //push_iret_context_asm(eip, cs, esp, ss);
+    sti();
     asm volatile(
         "pushl %3;"
-        "pushl %2;"
+        "pushl $0x083FFFFC;"
         "pushfl;"
         "pushl %1;"
         "pushl %0;"
-        "iret;"
         :
         :"r"(eip), "r"(cs), "r"(esp), "r"(ss)
     );
+
+    asm volatile("iret");
 
     //asm volatile("iret");
 }

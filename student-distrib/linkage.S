@@ -177,35 +177,26 @@ isr_wrapper2F:
 # side effects: none
 
 sys_call:
-    #stack setup
-    pushl %ebp
-    movl %esp, %ebp
-
     #checks if index is between 1 and 10
     cmpl $1, %eax
     jb invalid
     cmpl $10, %eax
     jg invalid
-
     addl $-1, %eax
     
-    pushl %ecx
+    
     pushl %edx
+    pushl %ecx
     pushl %ebx
     pushl %esp
-    pushl %ebp
-    pushl %esi
-    pushl %edi
     jmp *jump_table(, %eax, 4) #jump table access
-    popl %edi
-    popl %esi
-    popl %ebp
-    popl %esp
+    popl %esp #might add instead
     popl %ebx
-    popl %edx
     popl %ecx
+    popl %edx
+   
+    
 
-    leave
     iret
     
 jump_table:
@@ -213,7 +204,6 @@ jump_table:
 
 invalid:
     movl $-1, %eax
-    leave
     iret
 
 .end

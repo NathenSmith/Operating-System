@@ -17,7 +17,7 @@
 #define BUFFER_LENGTH 7
 #define BUFFER_INDEX 6
 #define SHELL_PID 1
-#define PAGING_FLAGS 0x097
+#define PAGING_FLAGS 0x087
 
 extern void flush_tlb();
 extern void push_iret_context_asm();
