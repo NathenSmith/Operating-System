@@ -180,11 +180,15 @@ void push_iret_context() {
      *ebx 0x80482e8
      */
     uint32_t ss = USER_DS;
-    sti();
+    
+    //need to enable interrupt flag in lines 189-191 to allow kbd input after booting shell
     asm volatile(
         "pushl %3;"
         "pushl %2;"
         "pushfl;"
+        "popl %%eax;" 
+        "orl $0x200, %%eax;"
+        "pushl %%eax;"
         "pushl %1;"
         "pushl %0;"
         :
