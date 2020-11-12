@@ -11,6 +11,8 @@
 
 static int screen_x;
 static int screen_y;
+static int boundary_x;
+static int boundary_y;
 static char* video_mem = (char *)VIDEO;
 
 /* void clear(void);
@@ -26,6 +28,8 @@ void clear(void) {
     }
     screen_x = 0;
     screen_y = 0;
+    boundary_x = 0;
+    boundary_y = 0;
 }
 
 /* Standard printf().
@@ -154,6 +158,11 @@ format_char_switch:
     return (buf - format);
 }
 
+void set_boundary(){
+    boundary_x = screen_x;
+    boundary_y = screen_y;
+}
+
 /* int32_t puts(int8_t* s);
  *   Inputs: int_8* s = pointer to a string of characters
  *   Return Value: Number of bytes written
@@ -210,12 +219,12 @@ void putc(uint8_t c) {
  *  Function: Delete most recently written char */
 void backspace() {
     if(!(screen_x == 0 && screen_y == 0)){
-        if(screen_x == 0){
+        if(screen_x == 0){            
             screen_x = NUM_COLS - 1;
-            screen_y--;
+            screen_y--;            
         }
         else{
-            screen_x--;
+            if((screen_x - 1) >= boundary_x || screen_y > boundary_y) screen_x--;
         }
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;        

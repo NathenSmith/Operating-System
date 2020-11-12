@@ -64,7 +64,7 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	for(i = 0; i < BUF_SIZE; i++){
 		kbd_buf[i] = '\0'; //reset keyboard buf
 	}
-	
+	set_boundary();
     return counter; //number of bytes read
 }
 /* terminal_open

@@ -11,6 +11,7 @@ void test_interrupts(void);
 
 void backspace();
 void scroll_up();
+void set_boundary();
 int get_x();
 int get_y();
 
