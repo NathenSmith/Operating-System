@@ -32,11 +32,9 @@ isr_wrapper20:
 # side effects: disables interrupts during call.
 
 isr_wrapper21:
-    cli
     pushal
     call key_board_handler
     popal
-    sti
     iret
 
 # isr_wrapper22
@@ -100,11 +98,9 @@ isr_wrapper27:
 # side effects: disables interrupts during call.
 
 isr_wrapper28:
-    cli
     pushal
     call rtc_handler
     popal
-    sti
     iret
 
 # isr_wrapper29
@@ -190,22 +186,22 @@ sys_call:
     pushl %edx
     pushl %ecx
     pushl %ebx
-    pushl %esp
-    jmp *jump_table(, %eax, 4) #jump table access
-    addl $4, %esp
+    
+    call *jump_table(, %eax, 4) #jump table access
+
     popl %ebx
     popl %ecx
     popl %edx
 
     popl %esi 
     popl %edi
-   
-    
 
     iret
     
 jump_table:
     .long halt, execute, read, write, open, close, getargs, vidmap, set_handler, sigreturn
+
+
 
 invalid:
     movl $-1, %eax

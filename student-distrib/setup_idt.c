@@ -118,11 +118,11 @@ void setup_idt() { //replace with assembly linkage
  * Side Effects: None
  */
 
-void system_call_handler()
-{
-    printf("system call executed");
-    sti();
-}
+// void system_call_handler()
+// {
+//     printf("system call executed");
+//     sti();
+// }
 
 
 /* divide

@@ -109,7 +109,11 @@ int32_t read(int32_t fd, void * buf, int32_t nbytes) {
     }
     //file pos only to be updated in file_read
     //printf("\nFILE OP PTR: %d\n", curr_pcb->file_arr[fd].file_op_ptr);
-    return curr_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes); //page faults
+    int retval = curr_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes); //page faults
+    if(retval == -1) {
+        return retval;
+    }
+    return 0;
 }
 
 /* write
@@ -126,7 +130,10 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes) {
     }
     //PCB_t * ptr = &curr_pcb;
     int32_t retval = curr_pcb->file_arr[fd].file_op_ptr->write(fd, buf, nbytes);
-    return retval;
+    if(retval == -1) {
+        return retval;
+    }
+    return 0;
 }
 
 /* open

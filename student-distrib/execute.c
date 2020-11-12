@@ -180,19 +180,15 @@ void push_iret_context() {
      *ebx 0x80482e8
      */
     uint32_t ss = USER_DS;
-    //push_iret_context_asm(eip, cs, esp, ss);
     sti();
     asm volatile(
         "pushl %3;"
-        "pushl $0x083FFFFC;"
+        "pushl %2;"
         "pushfl;"
         "pushl %1;"
         "pushl %0;"
         :
         :"r"(eip), "r"(cs), "r"(esp), "r"(ss)
     );
-
     asm volatile("iret");
-
-    //asm volatile("iret");
 }

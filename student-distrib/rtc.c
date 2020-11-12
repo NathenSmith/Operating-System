@@ -36,10 +36,10 @@ void initialize_rtc(){
  * Return value: None
  */ 
 void rtc_handler(){ 
-    send_eoi(RTC_IRQ);   //to stop interrupt that was recieved 
-    rtc_interrupt_flag = 1;
     outb(REGISTER_C, RTC_PORT);	// select register C
     inb(CMOS_PORT);		// just throw away contents
+    send_eoi(RTC_IRQ);   //to stop interrupt that was recieved 
+    rtc_interrupt_flag = 1;
 }
 
 /* rtc_read
