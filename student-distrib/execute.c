@@ -195,4 +195,5 @@ void push_iret_context() {
         :"r"(eip), "r"(cs), "r"(esp), "r"(ss)
     );
     asm volatile("iret");
+
 }

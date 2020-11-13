@@ -22,35 +22,35 @@ static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
 
 int32_t halt(uint8_t status) {
 
-    // // if the current process is shell
-    // if(curr_process_id != 1){
+    // if the current process is shell
+    if(curr_pcb->process_id != 1) {
 
-    //     curr_process_id--;
-    //     uint32_t task_memory = TASK_VIRTUAL_LOCATION; // task memory is a 4 MB page, 128MB in virtual memory
+        curr_pcb->process_id--;
+        uint32_t task_memory = TASK_VIRTUAL_LOCATION; //task memory is a 4 MB page, 128MB in virtual memory
 
-    //     // setting new child pcb
-    //     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - ((curr_process_id -1)*SIZE_OF_KERNEL_STACK));
-    //     pageDirectory[curr_process_id - 1] = task_memory | 0x83; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB
-    //     // flush TLB every time page directory is switched.
-    //     flush_tlb();
+        // setting new child pcb
+        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_pcb->process_id)*SIZE_OF_KERNEL_STACK);
+        pageDirectory[curr_pcb->process_id] = task_memory | PAGING_FLAGS; 
+        // flush TLB every time page directory is switched.
+        flush_tlb();
 
-    //     // close open files using fd
-    //     int i;
-    //     for(i = FDA_START; i < FDA_END; i++){
-    //         close(i);
-    //     }
-    // }
-    // /* Load in current process's ebp and esp and save status to eax */
-    // asm volatile(
-    //     "movl %0, %%esp;"
-    //     "movl %1, %%ebp;"
-    //     "movl %2, %%eax;"
-    //     "jmp go_to_exec;"
+        // close open files using fd
+        int i;
+        for(i = FDA_START; i < FDA_END; i++){
+            close(i);
+        }
+    }
+    /* Load in current process's ebp and esp and save status to eax */
+    asm volatile(
+        "movl %0, %%esp;"
+        "movl %1, %%ebp;"
+        "movl %2, %%eax;"
+        "jmp go_to_exec;"
 
-    //     :
-    //     :"r"(curr_pcb->esp), "r"(curr_pcb->ebp), "r"((uint32_t) status)
-    //     :"%eax"
-    // );
+        :
+        :"r"(curr_pcb->esp), "r"(curr_pcb->ebp), "r"((uint32_t) status)
+        :"%eax"
+    );
 
     return 0;
 }
@@ -110,10 +110,7 @@ int32_t read(int32_t fd, void * buf, int32_t nbytes) {
     //file pos only to be updated in file_read
     //printf("\nFILE OP PTR: %d\n", curr_pcb->file_arr[fd].file_op_ptr);
     int retval = curr_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes); //page faults
-    if(retval == -1) {
-        return retval;
-    }
-    return 0;
+    return retval;
 }
 
 /* write
@@ -128,12 +125,8 @@ int32_t write(int32_t fd, void* buf, int32_t nbytes) {
     if(fd <= 0 || fd >= FDA_END || !(curr_pcb->file_arr[fd].flags)){ //not in bounds or not open
         return -1;
     }
-    //PCB_t * ptr = &curr_pcb;
     int32_t retval = curr_pcb->file_arr[fd].file_op_ptr->write(fd, buf, nbytes);
-    if(retval == -1) {
-        return retval;
-    }
-    return 0;
+    return retval;
 }
 
 /* open
