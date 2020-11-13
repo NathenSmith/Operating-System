@@ -30,9 +30,14 @@ int32_t halt(uint8_t status) {
 
         // setting new child pcb
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_pcb->process_id)*SIZE_OF_KERNEL_STACK);
-        pageDirectory[curr_pcb->process_id] = task_memory | PAGING_FLAGS; 
+        pageDirectory[curr_pcb->process_id + 1] = task_memory | PAGING_FLAGS; 
+
         // flush TLB every time page directory is switched.
-        flush_tlb();
+        // flush_tlb();
+        asm volatile (
+            "movl %cr3, %eax;"
+            "movl %eax, %cr3;"
+        );
 
         // close open files using fd
         int i;

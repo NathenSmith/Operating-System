@@ -135,13 +135,6 @@ void create_pcb_child() {
         curr_pcb->file_arr[i].file_pos = 0;
         curr_pcb->file_arr[i].flags = 0;
     }
-
-    //save esp and ebp for future use
-    asm volatile (
-        "movl %%esp, %0;"
-        "movl %%ebp, %1;"
-        :"=r"(curr_pcb->esp), "=r"(curr_pcb->ebp)
-    );
 }
 
 /* prepare_context_switch
@@ -170,7 +163,6 @@ void push_iret_context() {
     uint32_t eip = entry_point;
     uint32_t cs = USER_CS;
     //set ESP for user stack to bottom of 4MB page holding executable image
-    //+1 is for bottom of the page
     uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC
 
     /*eax 0x2b
@@ -180,6 +172,13 @@ void push_iret_context() {
      *ebx 0x80482e8
      */
     uint32_t ss = USER_DS;
+
+    //save esp and ebp for future use
+    asm volatile (
+        "movl %%esp, %0;"
+        "movl %%ebp, %1;"
+        :"=r"(curr_pcb->esp), "=r"(curr_pcb->ebp)
+    );
     
     //need to enable interrupt flag in lines 189-191 to allow kbd input after booting shell
     asm volatile(
@@ -195,5 +194,4 @@ void push_iret_context() {
         :"r"(eip), "r"(cs), "r"(esp), "r"(ss)
     );
     asm volatile("iret");
-
 }

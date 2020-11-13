@@ -3,7 +3,7 @@
 .globl go_to_exec
 
 go_to_exec:
-    addl $36, %esp #pop 5 arguments and 4 local variables
+    leave
     ret
 
 flush_tlb:
