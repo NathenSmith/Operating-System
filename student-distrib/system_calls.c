@@ -99,7 +99,7 @@ int32_t read(int32_t fd, void * buf, int32_t nbytes) {
     }
     //file pos only to be updated in file_read
     //printf("\nFILE OP PTR: %d\n", curr_pcb->file_arr[fd].file_op_ptr);
-    int retval = curr_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes); //page faults
+    int retval = curr_pcb->file_arr[fd].file_op_ptr->read(fd, buf, nbytes); 
     return retval;
 }
 

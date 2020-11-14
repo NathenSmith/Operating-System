@@ -41,7 +41,7 @@ void initialize_keyboard(){
  * Side Effects: None
  * Return value: None
  */ 
-void key_board_handler(){ 
+void key_board_handler(){ //changing kernel stack must fix
     //0x3A, keycode for capslock  
     if(inb(KEYBOARD_PORT) == 0x3A){
         states[CAPS_STATE] = ~(states[1]);
