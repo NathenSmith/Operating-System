@@ -20,7 +20,7 @@ typedef struct file_entry {
 
 typedef struct PCB {
     uint32_t parentPtr;
-    uint32_t process_id; //process_id is 1 for init_task
+    uint32_t process_id; //process_id is 1 for shell
     uint32_t esp;
     uint32_t ebp;
     file_entry_t file_arr[8];

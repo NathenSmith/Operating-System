@@ -42,8 +42,11 @@ void initialize_keyboard(){
  * Return value: None
  */ 
 void key_board_handler(){ //changing kernel stack must fix
+    uint8_t read;
+    read = inb(KEYBOARD_PORT);    
+
     //0x3A, keycode for capslock  
-    if(inb(KEYBOARD_PORT) == 0x3A){
+    if(read == 0x3A){
         states[CAPS_STATE] = ~(states[1]);
         send_eoi(KEYBOARD_IRQ);  
         return;
@@ -51,25 +54,25 @@ void key_board_handler(){ //changing kernel stack must fix
     //---------shift checks---------
     if(states[SHIFT_STATE]){  //states[0] is shift state        
         //conversion to uppercase
-        if(check_if_letter(inb(KEYBOARD_PORT))){
+        if(check_if_letter(read)){
             //clears for Ctrl-L (l is scancode 0x26)
-            if(states[CTRL_STATE] && inb(KEYBOARD_PORT) == 0x26){
+            if(states[CTRL_STATE] && read == 0x26){
                 clear();
                 send_eoi(KEYBOARD_IRQ);
                 return;                
             }
-            add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION);
+            add_to_kdb_buf(scan_codes[read] - CASE_CONVERSION);
             send_eoi(KEYBOARD_IRQ);  
             return;
         }
         //shift symbols as well
-        else if(check_if_symbol(inb(KEYBOARD_PORT))){
-            add_to_kdb_buf(check_if_symbol(inb(KEYBOARD_PORT)));
+        else if(check_if_symbol(read)){
+            add_to_kdb_buf(check_if_symbol(read));
             send_eoi(KEYBOARD_IRQ);
             return;
         }
         //0xAA and 0xB6, release scan codes for l and r shift respectively
-        else if(inb(KEYBOARD_PORT) != 0xAA || inb(KEYBOARD_PORT) != 0xB6){
+        else if(read != 0xAA || read != 0xB6){
             states[SHIFT_STATE] = 0;
             send_eoi(KEYBOARD_IRQ); 
             return;
@@ -77,14 +80,14 @@ void key_board_handler(){ //changing kernel stack must fix
     }
     //-----caps lock checks------------
     if(states[CAPS_STATE]){  //state[1] is capslock state
-        if(check_if_letter(inb(KEYBOARD_PORT))){
+        if(check_if_letter(read)){
             //clears for Ctrl-L (L scancode is 0x26)
-            if(states[CTRL_STATE] && inb(KEYBOARD_PORT) == 0x26){
+            if(states[CTRL_STATE] && read == 0x26){
                 clear();
                 send_eoi(KEYBOARD_IRQ);
                 return;                
             }
-            add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)] - CASE_CONVERSION);
+            add_to_kdb_buf(scan_codes[read] - CASE_CONVERSION);
             send_eoi(KEYBOARD_IRQ); 
             return; 
         }   
@@ -92,13 +95,13 @@ void key_board_handler(){ //changing kernel stack must fix
     //-----control check---------
     if(states[CTRL_STATE]){   //state[2] is ctrl state
         //0x26 is scancode for l
-        if(inb(KEYBOARD_PORT) == 0x26){
+        if(read == 0x26){
             clear();
             send_eoi(KEYBOARD_IRQ);
             return;
         }
         //0xE0, 0x9D, release scan codes for l,r ctrl respectively
-        else if(inb(KEYBOARD_PORT) == 0xE0 || inb(KEYBOARD_PORT) ==0x9D){
+        else if(read == 0xE0 || read ==0x9D){
             states[CTRL_STATE] = 0;
             send_eoi(KEYBOARD_IRQ);
             return;
@@ -107,19 +110,19 @@ void key_board_handler(){ //changing kernel stack must fix
     //----set states and generic output-----
                     
     //0x2A and 0x36 scan codes for l,r shifts respecitvely
-    if(inb(KEYBOARD_PORT) == 0x2A || inb(KEYBOARD_PORT) == 0x36){
+    if(read == 0x2A || read == 0x36){
         states[SHIFT_STATE] = 1;
         send_eoi(KEYBOARD_IRQ); 
         return;
     }
     //0x1D, 0xE0, scan codes for l,r ctrl respectively
-    else if(inb(KEYBOARD_PORT) == 0xE0 || inb(KEYBOARD_PORT) == 0x1D){
+    else if((read) == 0xE0 || read == 0x1D){
         states[CTRL_STATE] = 1;
         send_eoi(KEYBOARD_IRQ);
         return;            
     }
     //0x0F, scan code for tab
-    else if(inb(KEYBOARD_PORT) == 0x0F){
+    else if(read == 0x0F){
         add_to_kdb_buf(' ');
         add_to_kdb_buf(' ');
         add_to_kdb_buf(' ');
@@ -128,19 +131,19 @@ void key_board_handler(){ //changing kernel stack must fix
         return;             
     }
     //0x0E, scancode for backspace
-    else if(inb(KEYBOARD_PORT) == 0X0E){
+    else if(read == 0X0E){
         backspace_buffer();
         send_eoi(KEYBOARD_IRQ);
         return;
     }
     //null character, don't do anything
-    else if(scan_codes[inb(KEYBOARD_PORT)] == '\0'){
+    else if(scan_codes[read] == '\0'){
         send_eoi(KEYBOARD_IRQ);
         return;
     } 
     //check if scan code is in bounds of scan code array
-    else if(inb(KEYBOARD_PORT) < NUM_KEYS && inb(KEYBOARD_PORT) >= 0){   
-        add_to_kdb_buf(scan_codes[inb(KEYBOARD_PORT)]);
+    else if(read < NUM_KEYS && read >= 0){   
+        add_to_kdb_buf(scan_codes[read]);
         send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
         return;
     }

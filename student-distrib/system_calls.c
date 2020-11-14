@@ -34,15 +34,20 @@ int32_t halt(uint8_t status) {
         curr_pcb->process_id--;
         uint32_t task_memory = TASK_VIRTUAL_LOCATION; //task memory is a 4 MB page, 128MB in virtual memory
 
-        // setting new child pcb
+        // reverting curr_pcb to parent pcb
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_pcb->process_id)*SIZE_OF_KERNEL_STACK);
         pageDirectory[curr_pcb->process_id + 1] = task_memory | PAGING_FLAGS; 
         flush_tlb();
 
+        //set SS0 and ESP0 in TSS 
+        tss.ss0 = KERNEL_DS;
+        tss.esp0 = START_OF_KERNEL_STACKS - (curr_pcb->process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK - 4; 
+        
+        restore_parent_data(curr_pcb, (uint32_t)status);
     }
-    restore_parent_data(curr_pcb, (uint32_t)status);
 
-    return 0;
+
+    return -1;
 }
 
 /* execute
