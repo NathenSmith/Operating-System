@@ -5,6 +5,7 @@
 #include "system_calls.h"
 #include "paging.h"
 #include "lib.h"
+extern void push_iret_context(uint32_t entry, PCB_t * ptr);
 
 //must declare globally or else stack will fill up everytime open is called
 static func_ptrs_t terminal_ptr = {terminal_read, terminal_write, terminal_open, terminal_close};
@@ -24,13 +25,20 @@ int32_t halt(uint8_t status) {
 
     // if the current process is shell
     if(curr_pcb->process_id != 1) {
+        // close open files using fd
+        // close any relevant fd's
+        int i;
+        for(i = FDA_START; i < FDA_END; i++){
+            close(i);
+        }
 
         curr_pcb->process_id--;
-        uint32_t task_memory = TASK_VIRTUAL_LOCATION; //task memory is a 4 MB page, 128MB in virtual memory
-
+        
         // setting new child pcb
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_pcb->process_id)*SIZE_OF_KERNEL_STACK);
-        pageDirectory[curr_pcb->process_id + 1] = task_memory | PAGING_FLAGS; 
+        //task memory is a 4 MB page, 128MB in virtual memory
+        uint32_t task_memory = START_OF_KERNEL_STACKS + (curr_pcb->process_id - 1) * MEMORY_SIZE_PROCESS;
+        pageDirectory[VIRTUAL_START] = task_memory | PAGING_FLAGS; 
 
         // flush TLB every time page directory is switched.
         // flush_tlb();
@@ -38,12 +46,7 @@ int32_t halt(uint8_t status) {
             "movl %cr3, %eax;"
             "movl %eax, %cr3;"
         );
-
-        // close open files using fd
-        int i;
-        for(i = FDA_START; i < FDA_END; i++){
-            close(i);
-        }
+  
     }
     /* Load in current process's ebp and esp and save status to eax */
     asm volatile(
@@ -95,7 +98,7 @@ int32_t execute(const uint8_t* command) {
     load_program_into_memory(task_name);
     create_pcb_child();
     prepare_context_switch();
-    push_iret_context();
+    push_iret_context(entry_point, curr_pcb);
         
     return 0;
 }
