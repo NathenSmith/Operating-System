@@ -21,8 +21,9 @@
 
 extern void flush_tlb();
 extern void go_to_exec();
-extern void push_iret_context_test();
 extern void restore_parent_data();
+extern void save_frame(uint32_t esp_, uint32_t ebp_);
+extern void push_iret_context(uint32_t entrypt);
 
 //function prototypes
 void parseString(const uint8_t * str);
@@ -31,7 +32,6 @@ void switch_task_memory();
 void load_program_into_memory(const uint8_t * filename);
 void create_pcb_child();
 void prepare_context_switch();
-void push_iret_context();
 int32_t execute_steps(const uint8_t* command);
 #endif
 

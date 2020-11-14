@@ -158,15 +158,20 @@ void prepare_context_switch() {
  *  RETURN VALUE: None
  *  SIDE EFFECTS: None
  */
-void push_iret_context() {
-    //set EIP(bytes 24-27 of executable loaded)
-    uint32_t eip = entry_point;
-    uint32_t cs = USER_CS;
-    //set ESP for user stack to bottom of 4MB page holding executable image
-    uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC
-    uint32_t ss = USER_DS;
+// void push_iret_context() {
+//     //set EIP(bytes 24-27 of executable loaded)
+//     uint32_t eip = entry_point;
+//     uint32_t cs = USER_CS;
+//     //set ESP for user stack to bottom of 4MB page holding executable image
+//     uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC
+//     uint32_t ss = USER_DS;
 
-    push_iret_context_test(curr_pcb, eip, cs, esp, ss);    
+//     push_iret_context_test(curr_pcb, eip, cs, esp, ss);    
+//     return;
+// }
+
+void save_frame(uint32_t esp_, uint32_t ebp_){
+    curr_pcb->esp = esp_;
+    curr_pcb->ebp = ebp_;
     return;
 }
-

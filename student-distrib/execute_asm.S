@@ -1,6 +1,6 @@
 .globl flush_tlb
 .globl go_to_exec
-.globl push_iret_context_test
+.globl push_iret_context
 .globl restore_parent_data
 
 restore_parent_data:
@@ -39,28 +39,16 @@ flush_tlb:
     leave
     ret
 
-push_iret_context_test:
+push_iret_context:
     #stack setup
     pushl %ebp
     movl %esp, %ebp
 
     #push callee saved registers to stack
-    pushl %esi
-    pushl %edi
-    pushl %ebx
-
-    #get curr_pcb
-    movl 8(%ebp), %ebx #curr_pcb
-
-    #save esp and ebp
-    movl %esp, 8(%ebx)
-    movl %ebp, 12(%ebx)
 
     #get ss and esp and push to stack
-    movl 24(%ebp), %ebx #ss
-    movl 20(%ebp), %ecx #esp
-    pushl %ebx
-    pushl %ecx
+    pushl $0x002B
+    pushl $0x083FFFFC
 
     #push and modify flags
     pushfl
@@ -69,19 +57,20 @@ push_iret_context_test:
     pushl %eax
 
     #get eip and cs and push to stack
-    movl 16(%ebp), %ebx #cs
-    movl 12(%ebp), %ecx #eip
-    pushl %ebx
+    pushl $0x0023
+    movl 8(%ebp), %ecx #second arg
     pushl %ecx
+
+    pushl %ebp
+    pushl %esp
+    call save_frame
+    addl $8, %esp
 
     iret
 
 go_to_exec:
     #restore callee saved registers
-    popl %ebx
-    popl %edi
-    popl %esi
-
+   
     leave
     ret
 

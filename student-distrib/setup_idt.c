@@ -349,7 +349,6 @@ void pagefault() {
  */
 
 void floatingpoint() {
-    clear();
     printf("x87 Floating-Point-Exception");
     while(1) ;
     sti();
@@ -363,7 +362,6 @@ void floatingpoint() {
  * Side Effects: None
  */
 void alignment_c() {
-    clear();
     printf("Alignment Check");
     while(1) ;
     sti();
@@ -378,7 +376,6 @@ void alignment_c() {
  */
 
 void machine_c() {
-    clear();
     printf("Machine Check");
     while(1) ;
     sti();
@@ -393,7 +390,6 @@ void machine_c() {
  */
 
 void simd() {
-    clear();
     printf("SIMD Floating-Point Exception");
     while(1) ;
     sti();
