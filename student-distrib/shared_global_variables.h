@@ -24,10 +24,11 @@ typedef struct PCB {
     uint32_t esp;
     uint32_t ebp;
     file_entry_t file_arr[8];
-    uint8_t  currArg[128];
+    uint8_t currArg[128];
 } PCB_t;
 
 extern PCB_t * curr_pcb;
 extern uint8_t task_name[MAX_ARG_SIZE];
 extern uint32_t entry_point;
 #endif
+

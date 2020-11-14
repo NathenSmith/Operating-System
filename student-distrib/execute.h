@@ -2,7 +2,6 @@
 #define _EXECUTE_H
 #include "lib.h"
 
-
 #define TASK_VIRTUAL_LOCATION 0x8000000 //128 MB
 #define START_OF_USER_PROGRAM 0x08048000
 #define SIZE_OF_KERNEL_STACK 0x2000 //8 KB
@@ -22,7 +21,8 @@
 
 extern void flush_tlb();
 extern void go_to_exec();
-
+extern void push_iret_context_test();
+extern void restore_parent_data();
 
 //function prototypes
 void parseString(const uint8_t * str);
@@ -31,5 +31,7 @@ void switch_task_memory();
 void load_program_into_memory(const uint8_t * filename);
 void create_pcb_child();
 void prepare_context_switch();
+void push_iret_context();
 int32_t execute_steps(const uint8_t* command);
 #endif
+

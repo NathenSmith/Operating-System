@@ -158,40 +158,15 @@ void prepare_context_switch() {
  *  RETURN VALUE: None
  *  SIDE EFFECTS: None
  */
-// void push_iret_context() { //should make asm file
-//     //set EIP(bytes 24-27 of executable loaded)
-//     uint32_t eip = entry_point;
-//     uint32_t cs = USER_CS;
-//     //set ESP for user stack to bottom of 4MB page holding executable image
-//     uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC
+void push_iret_context() {
+    //set EIP(bytes 24-27 of executable loaded)
+    uint32_t eip = entry_point;
+    uint32_t cs = USER_CS;
+    //set ESP for user stack to bottom of 4MB page holding executable image
+    uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC
+    uint32_t ss = USER_DS;
 
-//     /*eax 0x2b
-//      *ecx 0x23
-//      *edx 0x83ffffc
-//      *eflags 0x202   
-//      *ebx 0x80482e8
-//      */
-//     uint32_t ss = USER_DS;
+    push_iret_context_test(curr_pcb, eip, cs, esp, ss);    
+    return;
+}
 
-//     //save esp and ebp for future use
-//     asm volatile (
-//         "movl %%esp, %0;"
-//         "movl %%ebp, %1;"
-//         :"=r"(curr_pcb->esp), "=r"(curr_pcb->ebp)
-//     );
-    
-//     //need to enable interrupt flag in lines 189-191 to allow kbd input after booting shell
-//     asm volatile(
-//         "pushl %3;"
-//         "pushl %2;"
-//         "pushfl;"
-//         "popl %%eax;" 
-//         "orl $0x200, %%eax;"
-//         "pushl %%eax;"
-//         "pushl %1;"
-//         "pushl %0;"
-//         :
-//         :"r"(eip), "r"(cs), "r"(esp), "r"(ss)
-//     );
-//     asm volatile("iret");
-// }
