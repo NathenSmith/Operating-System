@@ -24,29 +24,18 @@ int32_t halt(uint8_t status) {
 
     // if the current process is shell
     if(curr_pcb->process_id != 1) {
-
         // close open files using fd
         int i;
         for(i = FDA_START; i < FDA_END; i++){
             close(i);
         }
 
-        curr_pcb->process_id--;
-        uint32_t task_memory = TASK_VIRTUAL_LOCATION; //task memory is a 4 MB page, 128MB in virtual memory
+        curr_pcb = (PCB_t *)curr_pcb->parentPtr;
 
-        // reverting curr_pcb to parent pcb
-        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_pcb->process_id)*SIZE_OF_KERNEL_STACK);
-        pageDirectory[curr_pcb->process_id + 1] = task_memory | PAGING_FLAGS; 
-        flush_tlb();
-
-        //set SS0 and ESP0 in TSS 
-        tss.ss0 = KERNEL_DS;
-        tss.esp0 = START_OF_KERNEL_STACKS - (curr_pcb->process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK - 4; 
-        
-        restore_parent_data(curr_pcb, (uint32_t)status);
+        switch_task_memory();
+        prepare_context_switch();
+        restore_parent_data(curr_pcb->esp, curr_pcb->ebp, (uint32_t)status);
     }
-
-
     return -1;
 }
 
@@ -146,20 +135,17 @@ int32_t open(const uint8_t* filename) {
             switch (file_dentry.filetype)
             {
             case 0: //real-time clock, filetype (0)
-                curr_pcb->file_arr[i].inode_num = 0; //should be ignored here and directory?
-                // rtc_ptrs rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
+                curr_pcb->file_arr[i].inode_num = 0; 
                 curr_pcb->file_arr[i].file_op_ptr = &rtc_ptr;
                 rtc_ptr.open(filename);
                 break;
             case 1: //directory, filetype (1)
-                curr_pcb->file_arr[i].inode_num = 0; //should be ignored here and directory?
-                // dir_ptrs dir_ptr = {dir_read, dir_write, dir_open, dir_close};
+                curr_pcb->file_arr[i].inode_num = 0; 
                 curr_pcb->file_arr[i].file_op_ptr = &dir_ptr;
                 dir_ptr.open(filename);
                 break;
             case 2: //regular file, filetype (2)
-                curr_pcb->file_arr[i].inode_num = file_dentry.inode_num; //should be ignored here and directory?
-                // file_ptrs file_ptr = {file_read, file_write, file_open, file_close};
+                curr_pcb->file_arr[i].inode_num = file_dentry.inode_num; 
                 curr_pcb->file_arr[i].file_op_ptr = &file_ptr;
                 file_ptr.open(filename);
                 break;

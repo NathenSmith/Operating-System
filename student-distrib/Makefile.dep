@@ -3,7 +3,7 @@ execute_asm.o: execute_asm.S
 linkage.o: linkage.S
 x86_desc.o: x86_desc.S x86_desc.h types.h
 execute.o: execute.c paging.h x86_desc.h types.h lib.h i8259.h \
-  shared_global_variables.h system_calls.h execute.h
+  shared_global_variables.h system_calls.h execute.h filesystem.h
 filesystem.o: filesystem.c filesystem.h lib.h types.h \
   shared_global_variables.h
 i8259.o: i8259.c i8259.h types.h lib.h

@@ -9,12 +9,13 @@ restore_parent_data:
     movl %esp, %ebp    
 
     #get args
-    movl 8(%ebp), %ebx # curr_pcb
-    movl 12(%ebp), %eax # status
+    movl 8(%ebp), %ecx # curr_pcb->esp
+    movl 12(%ebp), %ebx # curr_pcb->ebp
+    movl 16(%ebp), %eax # status
 
     #restore esp and ebp
-    movl 8(%ebx), %esp
-    movl 12(%ebx), %ebp
+    movl %ecx, %esp
+    movl %ebx, %ebp
 
     jmp go_to_exec
 
@@ -49,8 +50,8 @@ push_iret_context_test:
     pushl %edi
     pushl %ebx
 
-    #get curr_pcb
-    movl 8(%ebp), %ebx #curr_pcb
+    # get curr_pcb
+    movl 8(%ebp), %ebx # curr_pcb
 
     #save esp and ebp
     movl %esp, 8(%ebx)
