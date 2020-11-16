@@ -55,7 +55,7 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	char * buf_ = (char *)buf;
 
 	for(i = 0; i < nbytes; i++){
-		if(i == BUF_SIZE) break; //iterates until reaches max size of buffer or the number of bytes
+		//if(i == BUF_SIZE) break; //iterates until reaches max size of buffer or the number of bytes
 		if(buf_[i] != '\0'){ //will ignore NULL
 			putc(buf_[i]); //write to screen
 			counter++;

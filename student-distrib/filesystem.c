@@ -10,9 +10,6 @@ boot_block_t * boot_block = &boot_block_original;
 inode_t inodes_original; //inodes variable and pointer
 inode_t * inodes = &inodes_original;
 
-dentry_t curr_file_original;
-dentry_t * curr_file = &curr_file_original; //contains the current file
-
 uint32_t currentDirectoryEntry;
 
 /*  init_filesystem
@@ -23,11 +20,10 @@ uint32_t currentDirectoryEntry;
 */
 
 void init_filesystem(uint32_t start_addr){
-  filesystem_start_addr = start_addr; //
-  boot_block = (boot_block_t *)filesystem_start_addr;
-  inodes = (inode_t *)(filesystem_start_addr + BLOCK_SIZE);
+  boot_block = (boot_block_t *)start_addr;
+  inodes = (inode_t *)(start_addr + BLOCK_SIZE);
   uint32_t n_inodes = boot_block->inode_count;
-  datablocks_start_address = filesystem_start_addr + BLOCK_SIZE + BLOCK_SIZE*n_inodes;
+  datablocks_start_address = start_addr + BLOCK_SIZE + BLOCK_SIZE*n_inodes;
   currentDirectoryEntry = 0;
 }
 
@@ -109,7 +105,6 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
 
     //validate inode
     if(inode_number < 0 || inode_number > boot_block->inode_count) return -1;
-    inode_t currentInode = inodes[inode_number];
 
     uint32_t offsetBlocks = offset / BLOCK_SIZE; //calculate which block to start at
     uint32_t offsetBlocksRemainder = offset % BLOCK_SIZE; //calculate where in block to start
@@ -118,19 +113,19 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
     if(offsetBlocks < 0 || offsetBlocks > boot_block->data_count) return -1;
 
     uint32_t start_addr_to_copy = datablocks_start_address +
-     (currentInode.data_block_num[offsetBlocks])*BLOCK_SIZE +
+     (inodes[inode_number].data_block_num[offsetBlocks])*BLOCK_SIZE +
      offsetBlocksRemainder;
 
     //find length of data to copy
     //min() is to make sure it only reads up to the length of the file.
-    uint32_t position_after_copy = min(currentInode.length, offset + length);
+    uint32_t position_after_copy = min(inodes[inode_number].length, offset + length);
     uint32_t length_to_copy = position_after_copy - offset;
 
     /* If length to copy is small enough that it does not require going
      onto the next block, do a simple copy of length length_to_copy. */
 
     if((offset + length_to_copy)/BLOCK_SIZE == offsetBlocks) { // if it would still be in the same block #
-        memcpy(buf, (uint8_t *)start_addr_to_copy, length_to_copy); //PAGE FAULTS HERE
+        memcpy(buf, (uint8_t *)start_addr_to_copy, length_to_copy);
     }
     /* Otherwise, we have to copy over multiple blocks. */
     else {
@@ -144,7 +139,7 @@ int32_t read_data (uint32_t inode_number, uint32_t offset, uint8_t * buf, uint32
         int nBytesRead = n_bytes_left_in_block;
 
         while(nBytesRead < length_to_copy) {
-            start_addr_to_copy = datablocks_start_address + (currentInode.data_block_num[i])*BLOCK_SIZE;
+            start_addr_to_copy = datablocks_start_address + (inodes[inode_number].data_block_num[i])*BLOCK_SIZE;
             uint32_t length_left_to_copy = length_to_copy - nBytesRead;
             //if we're in the final block, copy the remaining data.
             if(length_left_to_copy <= BLOCK_SIZE) { 
@@ -196,14 +191,14 @@ int32_t min(uint32_t a, uint32_t b) {
     Side Effects: none
 */
 int32_t file_read(int32_t fd, void * buf, int32_t nbytes) {
-    
-    uint32_t nBytesRead = read_data(curr_file->inode_num, curr_pcb->file_arr[fd].file_pos, buf, nbytes);
+    uint8_t * new_buf = (uint8_t *)buf;
+    uint32_t nBytesRead = read_data(curr_pcb->file_arr[fd].inode_num, curr_pcb->file_arr[fd].file_pos, new_buf, nbytes);
     if(nBytesRead == -1) {
         return -1;
     }
     else {
         curr_pcb->file_arr[fd].file_pos += nBytesRead; // keep track of number of bytes read
-        printf("file nbytes: %d \n", nBytesRead);
+        //printf("file nbytes: %d \n", nBytesRead);
         return nBytesRead;
     }
 }
@@ -231,7 +226,8 @@ int32_t file_write(int32_t fd, const void * buf, int32_t nbytes){
     Side Effects: none
 */
 int32_t file_open(const uint8_t* filename) {
-    int status = read_dentry_by_name (filename, curr_file);
+    dentry_t file;
+    int status = read_dentry_by_name (filename, &file);
 
     if(status == -1) { // file does not exist
         return -1;
@@ -275,7 +271,6 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
         strncpy(var, boot_block->direntries[currentDirectoryEntry].filename, nbytes);          
         var[32] ='\0';  
         int32_t length =  (int32_t)strlen((int8_t *)boot_block->direntries[currentDirectoryEntry].filename);    
-        //printf("%d \n", strlen((int8_t *)boot_block->direntries[currentDirectoryEntry].filename));
         currentDirectoryEntry++;
         if(length < nbytes) return length;
         return nbytes;
@@ -307,7 +302,8 @@ int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes){
 */
 int32_t dir_open(const uint8_t* filename) {
     currentDirectoryEntry = 0;
-    int status = read_dentry_by_name (filename, curr_file);
+    dentry_t file;
+    int status = read_dentry_by_name (filename, &file);
 
     if(status == -1) { // directory does not exist
         return -1;
