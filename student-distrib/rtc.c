@@ -102,6 +102,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
  * Return value: Zero
  */ 
 int32_t rtc_open(const uint8_t* filename){
+    rtc_interrupt_flag = 0;
     //reset frequency to 2 hz
     int32_t f = 2;
     int32_t *f_ptr = &f;
