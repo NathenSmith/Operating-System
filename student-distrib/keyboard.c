@@ -142,7 +142,7 @@ void key_board_handler(){ //changing kernel stack must fix
         return;
     } 
     //check if scan code is in bounds of scan code array
-    else if(read < NUM_KEYS && read >= 0){   
+    else if(read < NUM_KEYS){   
         add_to_kdb_buf(scan_codes[read]);
         send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
         return;

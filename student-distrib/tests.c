@@ -240,10 +240,10 @@ int rtc_open_test(){
 int read_data_from_file(uint32_t start_addr, uint8_t * filename) {
 	clear();
 	int i;
-	uint8_t buf[1000000]; 
+	uint8_t buf[1024]; 
 
 	file_open(filename); //call file_open to retrieve necessary file info
-	int n_bytes_read = file_read(0, buf, 1000000); //write the file contents into the buffer
+	int n_bytes_read = file_read(0, buf, 1024); //write the file contents into the buffer
 	printf("nbytesread: %d\n", n_bytes_read);
 
 	for(i = 0; i < n_bytes_read; i++) {
@@ -309,10 +309,10 @@ int execute_test(){
 
 /* Test suite entry point */
 void launch_tests(uint32_t input_start_addr){
-	uint32_t start_addr = input_start_addr;
-	//TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"verylargetextwithverylongname.tx"))
+	//uint32_t start_addr = input_start_addr;
+	//TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"frame0.txt"))
 	//TEST_OUTPUT("List Files", list_files(start_addr));
-	TEST_OUTPUT("Read Dir Test", read_dir_test(start_addr));
+	//TEST_OUTPUT("Read Dir Test", read_dir_test(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("Dereference NULL test", exception_test());
 	//TEST_OUTPUT("divide-by-zero test", divide_test());

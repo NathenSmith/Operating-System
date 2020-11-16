@@ -13,6 +13,8 @@
 
 uint32_t pageDirectory[DIRECTORY_SIZE] __attribute__((aligned (4096)));
 uint32_t pageTable[DIRECTORY_SIZE] __attribute__((aligned (4096)));
+uint32_t videoMemTable[DIRECTORY_SIZE] __attribute__((aligned (4096)));
+
 
 extern void paging_init(void);
 

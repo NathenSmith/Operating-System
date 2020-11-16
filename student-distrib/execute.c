@@ -1,13 +1,11 @@
 #include "paging.h"
 #include "x86_desc.h"
-#include "shared_global_variables.h"
 #include "system_calls.h"
 #include "execute.h"
-#include "lib.h"
+#include "filesystem.h"
 #define PCB_SIZE_B4_ARG 144
 
 PCB_t * curr_pcb;
-uint8_t task_name[MAX_ARG_SIZE];
 uint32_t entry_point;
 
 /* execute_steps
@@ -33,25 +31,35 @@ uint32_t entry_point;
  *  SIDE EFFECTS: None
  */
 void parseString(const uint8_t * str) {
-    // printf("str: %s", str);
-    // int i = 0;
-    // int j = 0;
-    // while(str[i] == ' '){
-    //         i++;
-    // }
-    // while(str[i] != ' ') {
-    //     task_name[i] = str[i];
-    //     i++;
-    // }
-    // printf("TASKNAME: %s\n", task_name);
-    // while(str[i] == ' '){
-    //         i++;
-    // } //counting remaining spaces
-    // while(str[i + j] != '\0') {
-    //     curr_pcb->currArg[j] = str[i + j];
-    //     j++;
-    // }
-    strcpy((int8_t *)task_name, (int8_t *)str);
+    //printf("str: %s", str);
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while(str[i] == ' '){
+            i++;
+    }
+    while(str[i] != ' ' && str[i] != '\0') {
+        task_name[k] = str[i];
+        i++;
+        k++;
+    }
+    if(str[i] == '\0'){
+       task_name[k] = str[i];
+       return; 
+    }
+    //printf("TASKNAME: %s\n", task_name);
+    while(str[i] == ' '){
+            i++;
+    } //counting remaining spaces
+    while(str[i + j] != '\0') {
+        curr_arg[j] = str[i + j];
+        j++;
+    }
+    argSize = j;
+    // printf("curr arg %s \n", curr_arg);
+    // printf("length: %d\n", strlen(curr_arg));
+    // printf("arg size: %d", curr_pcb->argSize);
+    //strcpy((int8_t *)task_name, (int8_t *)str);
     //printf("CURR_ARG: \n");
 }
 
@@ -65,12 +73,12 @@ void parseString(const uint8_t * str) {
  */
 uint32_t checkIfExecutable(uint8_t * str) {
     uint8_t buf[ELF_SIZE];
-    int fd = open(str);
-    if(read(fd, buf, 4) == -1) {
+    dentry_t dentry;
+    read_dentry_by_name (str, &dentry);
+    uint32_t inode_number = dentry.inode_num;
+    if(read_data (inode_number, 0, buf, ELF_SIZE) == -1) {
         return -1;
-        close(fd);
     }
-    close(fd);
     if(strncmp((int8_t *)buf + 1, "ELF", 3) != 0) { //not exectuable file
         return -1;        
     }
@@ -87,7 +95,7 @@ uint32_t checkIfExecutable(uint8_t * str) {
  */
  void switch_task_memory() {
     uint32_t task_memory = START_OF_KERNEL_STACKS + (curr_pcb->process_id-1) * MEMORY_SIZE_PROCESS; // task memory is a 4 MB page, 128MB in virtual memory
-    pageDirectory[VIRTUAL_START] = task_memory | PAGING_FLAGS; //for pid = 2(first task after init_task), page directory will be at 2*4MB = 8MB   
+    pageDirectory[VIRTUAL_START] = task_memory | PAGING_FLAGS; //for pid = 1, page directory will be at 8MB   
     flush_tlb(); //Flush TLB every time page directory is switched.
 }
 
@@ -100,18 +108,19 @@ uint32_t checkIfExecutable(uint8_t * str) {
  *  SIDE EFFECTS: None
  */
 void load_program_into_memory(const uint8_t * filename) {
+    dentry_t dentry;
+    uint32_t inode_number;
+
     //make note of the entry point(contained in bytes 24-27)
-    uint32_t buf[BUFFER_LENGTH];
-    int fd = open(filename);
-    read(fd, buf, FIRST_FEW_BYTES_SIZE);
-    entry_point = buf[BUFFER_INDEX];
-    close(fd);
+    read_dentry_by_name (filename, &dentry);
+    inode_number = dentry.inode_num;
+    read_data (inode_number, EIP_START, (uint8_t *)(&entry_point), EIP_SIZE); 
 
     //copy the entire file to memory starting at virtual address 0x08048000
     uint8_t * task_ptr = (uint8_t *)START_OF_USER_PROGRAM; 
-    fd = open(filename); //assuming initial position is reset to 0
-    read(fd, task_ptr, REALLY_LARGE_NUMBER); //nbytes is a really large number because we want to read the whole file.
-    close(fd);
+    read_dentry_by_name (filename, &dentry);
+    inode_number = dentry.inode_num;
+    read_data (inode_number, 0, task_ptr, REALLY_LARGE_NUMBER);
 }
 
 /* create_pcb_child
@@ -135,6 +144,7 @@ void create_pcb_child() {
         curr_pcb->file_arr[i].file_pos = 0;
         curr_pcb->file_arr[i].flags = 0;
     }
+
 }
 
 /* prepare_context_switch
@@ -164,9 +174,8 @@ void push_iret_context() {
     uint32_t cs = USER_CS;
     //set ESP for user stack to bottom of 4MB page holding executable image
     uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC
-    uint32_t ss = USER_DS;
+    uint32_t ss = USER_DS;    
 
-    push_iret_context_test(curr_pcb, eip, cs, esp, ss);    
-    return;
+    push_iret_context_test(curr_pcb->parentPtr + ESP_LOCATION, curr_pcb->parentPtr + EBP_LOCATION, eip, cs, esp, ss);    
 }
 

@@ -21,32 +21,21 @@ static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
  */
 
 int32_t halt(uint8_t status) {
-
+    if(EXCEPTION) return EXCEPTION_NUM;
     // if the current process is shell
     if(curr_pcb->process_id != 1) {
-
         // close open files using fd
         int i;
         for(i = FDA_START; i < FDA_END; i++){
             close(i);
         }
 
-        curr_pcb->process_id--;
-        uint32_t task_memory = TASK_VIRTUAL_LOCATION; //task memory is a 4 MB page, 128MB in virtual memory
+        curr_pcb = (PCB_t *)curr_pcb->parentPtr;
 
-        // reverting curr_pcb to parent pcb
-        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (curr_pcb->process_id)*SIZE_OF_KERNEL_STACK);
-        pageDirectory[curr_pcb->process_id + 1] = task_memory | PAGING_FLAGS; 
-        flush_tlb();
-
-        //set SS0 and ESP0 in TSS 
-        tss.ss0 = KERNEL_DS;
-        tss.esp0 = START_OF_KERNEL_STACKS - (curr_pcb->process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK - 4; 
-        
-        restore_parent_data(curr_pcb, (uint32_t)status);
+        switch_task_memory();
+        prepare_context_switch();
+        restore_parent_data(curr_pcb->esp, curr_pcb->ebp, (uint32_t)status);
     }
-
-
     return -1;
 }
 
@@ -59,6 +48,10 @@ int32_t halt(uint8_t status) {
  */
 
 int32_t execute(const uint8_t* command) {
+    EXCEPTION = 0;
+    memset(task_name, '\0', MAX_ARG_SIZE);
+    memset(curr_arg, '\0', MAX_ARG_SIZE);
+    argSize = 0;
     parseString(command);
 
     if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0){
@@ -79,7 +72,7 @@ int32_t execute(const uint8_t* command) {
     curr_pcb->file_arr[1].inode_num = 0;
     curr_pcb->file_arr[1].file_op_ptr = &terminal_ptr;
 
-    //call execute's 6 steps
+    //call execute's other 6 steps
     if(checkIfExecutable(task_name) == -1) return -1;
     switch_task_memory();
     load_program_into_memory(task_name);
@@ -146,20 +139,15 @@ int32_t open(const uint8_t* filename) {
             switch (file_dentry.filetype)
             {
             case 0: //real-time clock, filetype (0)
-                curr_pcb->file_arr[i].inode_num = 0; //should be ignored here and directory?
-                // rtc_ptrs rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
                 curr_pcb->file_arr[i].file_op_ptr = &rtc_ptr;
                 rtc_ptr.open(filename);
                 break;
             case 1: //directory, filetype (1)
-                curr_pcb->file_arr[i].inode_num = 0; //should be ignored here and directory?
-                // dir_ptrs dir_ptr = {dir_read, dir_write, dir_open, dir_close};
                 curr_pcb->file_arr[i].file_op_ptr = &dir_ptr;
                 dir_ptr.open(filename);
                 break;
             case 2: //regular file, filetype (2)
-                curr_pcb->file_arr[i].inode_num = file_dentry.inode_num; //should be ignored here and directory?
-                // file_ptrs file_ptr = {file_read, file_write, file_open, file_close};
+                curr_pcb->file_arr[i].inode_num = file_dentry.inode_num; 
                 curr_pcb->file_arr[i].file_op_ptr = &file_ptr;
                 file_ptr.open(filename);
                 break;
@@ -203,8 +191,22 @@ int32_t close(int32_t fd) {
  */
 
 int32_t getargs(uint8_t* buf, int32_t nbytes) {
-    printf("getargs");
-    while(1) {}
+    //clear buffer
+    memset(buf, '\0', nbytes);
+
+    if(nbytes == 0 || argSize == 0){
+        // printf("curr arg %s \n", curr_arg);
+        // printf("arg size: %d", argSize);
+        return -1; //no argument
+    }
+    //printf("nbytes: %d \n", nbytes);
+    // printf("curr arg %s \n", curr_arg);
+    // printf("arg size: %d", argSize);
+    int numBytesToCopy = nbytes;
+    if(argSize < nbytes) numBytesToCopy = argSize;
+    strncpy((int8_t *)buf, (int8_t *)curr_arg, numBytesToCopy);
+    //printf("buf: %s\n", buf);
+    return 0;
 }
 
 /* vidmap
@@ -216,8 +218,25 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
  */
 
 int32_t vidmap(uint8_t** screen_start) {
-    printf("vidmap");
-    while(1) {}
+    // check if screen start is between 128 and 132 MB
+    if(screen_start == NULL) return -1;
+    uint32_t address = (uint32_t) screen_start;
+    if(address < USER_PAGE_START || address >= USER_PAGE_END) return -1;
+
+    // 33 -> 128 MB in virtual mem
+    pageDirectory[33] = *videoMemTable | 0x07; //set user, r/w, present
+    videoMemTable[0] = (uint32_t) VIDEO_MEMORY_IDX | 0x07;
+
+    // flush_tlb();
+    asm volatile (
+        "movl %cr3, %eax;"
+        "movl %eax, %cr3;"
+    );
+
+    *screen_start = (uint8_t*) USER_PAGE_START;
+
+    return 0;
+
 }
 
 /* set_handler

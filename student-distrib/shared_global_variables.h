@@ -3,6 +3,11 @@
 
 #define MAX_ARG_SIZE 128
 
+int EXCEPTION;
+uint8_t curr_arg[MAX_ARG_SIZE];
+uint8_t task_name[MAX_ARG_SIZE];
+uint32_t argSize;
+
 typedef struct func_ptrs
 {
     int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
@@ -24,7 +29,6 @@ typedef struct PCB {
     uint32_t esp;
     uint32_t ebp;
     file_entry_t file_arr[8];
-    uint8_t currArg[128];
 } PCB_t;
 
 extern PCB_t * curr_pcb;
