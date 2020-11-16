@@ -4,6 +4,7 @@
 #include "lib.h"
 #include "system_calls.h"
 
+extern void page_fault_error();
 extern void divide();
 
 extern void test_func();

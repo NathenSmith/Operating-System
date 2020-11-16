@@ -103,6 +103,7 @@ uint32_t checkIfExecutable(uint8_t * str) {
 void load_program_into_memory(const uint8_t * filename) {
     dentry_t dentry;
     uint32_t inode_number;
+    int i;
 
     //make note of the entry point(contained in bytes 24-27)
     read_dentry_by_name (filename, &dentry);
@@ -150,6 +151,7 @@ void prepare_context_switch() {
     //set SS0 and ESP0 in TSS 
     tss.ss0 = KERNEL_DS;
     tss.esp0 = START_OF_KERNEL_STACKS - (curr_pcb->process_id - SHELL_PID)*SIZE_OF_KERNEL_STACK - 4; 
+    //tss.esp0 = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4;
 }
 
 /* push_iret_context
@@ -162,6 +164,7 @@ void prepare_context_switch() {
  */
 void push_iret_context() {
     //set EIP(bytes 24-27 of executable loaded)
+    //uint32_t eip = entry_point;
     uint32_t eip = entry_point;
     uint32_t cs = USER_CS;
     //set ESP for user stack to bottom of 4MB page holding executable image

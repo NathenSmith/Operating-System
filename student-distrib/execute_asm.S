@@ -41,25 +41,16 @@ flush_tlb:
     ret
 
 push_iret_context_test:
-    #stack setup
-    pushl %ebp
-    movl %esp, %ebp
-
-    #push callee saved registers to stack
-    pushl %esi
-    pushl %edi
-    pushl %ebx
-
     # get curr_pcb
-    movl 8(%ebp), %ebx # curr_pcb
+    movl 4(%esp), %ebx # curr_pcb
 
     #save esp and ebp
     movl %esp, 8(%ebx)
     movl %ebp, 12(%ebx)
 
     #get ss and esp and push to stack
-    movl 24(%ebp), %ebx #ss
-    movl 20(%ebp), %ecx #esp
+    movl 20(%esp), %ebx #ss
+    movl 16(%esp), %ecx #esp
     pushl %ebx
     pushl %ecx
 
@@ -70,19 +61,14 @@ push_iret_context_test:
     pushl %eax
 
     #get eip and cs and push to stack
-    movl 16(%ebp), %ebx #cs
-    movl 12(%ebp), %ecx #eip
+    movl 24(%esp), %ebx #cs
+    movl 20(%esp), %ecx #eip
     pushl %ebx
     pushl %ecx
 
     iret
 
 go_to_exec:
-    #restore callee saved registers
-    popl %ebx
-    popl %edi
-    popl %esi
-
     leave
     ret
 

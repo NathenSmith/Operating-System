@@ -15,6 +15,11 @@
 .globl   isr_wrapper2E
 .globl   isr_wrapper2F
 .globl   sys_call
+.globl   page_fault_error
+
+
+page_fault_error:
+    call pagefault
 
 # isr_wrapper20
 # Contains the assembly linkage for interrupt 0(not filled in yet).
@@ -179,7 +184,7 @@ sys_call:
     cmpl $10, %eax
     jg invalid
     addl $-1, %eax
-    
+    pushl %ebp
     pushl %edi
     pushl %esi
 
@@ -195,7 +200,7 @@ sys_call:
 
     popl %esi 
     popl %edi
-
+    popl %ebp
     iret
     
 jump_table:

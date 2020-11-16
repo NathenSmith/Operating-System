@@ -106,7 +106,7 @@ void setup_idt() { //replace with assembly linkage
     setup_idt_entry(segmentnot, 0x0B, 0);
     setup_idt_entry(stacksegfault, 0x0C, 0);
     setup_idt_entry(genprotfault, 0x0D, 0);
-    setup_idt_entry(pagefault, 0x0E, 0);
+    setup_idt_entry(page_fault_error, 0x0E, 0);
     setup_idt_entry(floatingpoint, 0x10, 0);
     setup_idt_entry(alignment_c, 0x11, 0);
     setup_idt_entry(machine_c, 0x12, 0);
@@ -333,9 +333,15 @@ void genprotfault() {
  * Side Effects: None
  */
 
-void pagefault() {
+void pagefault(int32_t error_code) {
     //clear();
     printf("Page Fault");
+    uint32_t addr;
+    asm volatile(
+        "movl %%cr2, %%eax"
+        :"=a" (addr)
+    );
+    printf("error code %x at %x", error_code, addr);
     while (1) ;
     sti();
 }
