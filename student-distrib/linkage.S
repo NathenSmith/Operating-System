@@ -173,15 +173,17 @@ isr_wrapper2F:
 # side effects: none
 
 sys_call:
+    
     #checks if index is between 1 and 10
     cmpl $1, %eax
     jb invalid
     cmpl $10, %eax
     jg invalid
     addl $-1, %eax
-    
-    pushl %edi
+
+    pushl %ebp
     pushl %esi
+    pushl %edi
 
     pushl %edx
     pushl %ecx
@@ -193,8 +195,9 @@ sys_call:
     popl %ecx
     popl %edx
 
-    popl %esi 
     popl %edi
+    popl %esi
+    popl %ebp
 
     iret
     

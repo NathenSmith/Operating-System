@@ -50,16 +50,23 @@ push_iret_context_test:
     pushl %edi
     pushl %ebx
 
-    # get curr_pcb
-    movl 8(%ebp), %ebx # curr_pcb
+    movl 8(%ebp), %ebx # address of curr_pcb->parent_ptr->esp
+    movl 12(%ebp), %ecx # address of curr_pcb->parent_ptr->ebp    
 
-    #save esp and ebp
-    movl %esp, 8(%ebx)
-    movl %ebp, 12(%ebx)
+    addl $-8, %ebx
+    cmpl $0, %ebx
+    je after_save
+    addl $8, %ebx
+
+    # save esp and ebp into parent pcb
+    movl %esp, 0(%ebx)
+    movl %ebp, 0(%ecx)
+
+after_save:
 
     #get ss and esp and push to stack
-    movl 24(%ebp), %ebx #ss
-    movl 20(%ebp), %ecx #esp
+    movl 28(%ebp), %ebx #ss
+    movl 24(%ebp), %ecx #esp
     pushl %ebx
     pushl %ecx
 
@@ -70,8 +77,8 @@ push_iret_context_test:
     pushl %eax
 
     #get eip and cs and push to stack
-    movl 16(%ebp), %ebx #cs
-    movl 12(%ebp), %ecx #eip
+    movl 20(%ebp), %ebx #cs
+    movl 16(%ebp), %ecx #eip
     pushl %ebx
     pushl %ecx
 

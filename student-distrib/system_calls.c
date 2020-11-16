@@ -68,7 +68,7 @@ int32_t execute(const uint8_t* command) {
     curr_pcb->file_arr[1].inode_num = 0;
     curr_pcb->file_arr[1].file_op_ptr = &terminal_ptr;
 
-    //call execute's 6 steps
+    //call execute's other 6 steps
     if(checkIfExecutable(task_name) == -1) return -1;
     switch_task_memory();
     load_program_into_memory(task_name);
