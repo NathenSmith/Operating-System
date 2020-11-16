@@ -20,11 +20,11 @@ int main ()
 
     while (0 != (cnt = ece391_read (fd, buf, 1024))) {
         if (-1 == cnt) {
-	    ece391_fdputs (1, (uint8_t*)"file read failed\n");
-	    return 3;
-	}
-	if (-1 == ece391_write (1, buf, cnt))
-	    return 3;
+	        ece391_fdputs (1, (uint8_t*)"file read failed\n");
+	        return 3;
+	    }
+	    if (-1 == ece391_write (1, buf, cnt))
+	        return 3;
     }
 
     return 0;

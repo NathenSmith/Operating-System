@@ -1,14 +1,11 @@
 #include "paging.h"
 #include "x86_desc.h"
-#include "shared_global_variables.h"
 #include "system_calls.h"
 #include "execute.h"
-#include "lib.h"
 #include "filesystem.h"
 #define PCB_SIZE_B4_ARG 144
 
 PCB_t * curr_pcb;
-uint8_t task_name[MAX_ARG_SIZE];
 uint32_t entry_point;
 
 /* execute_steps
@@ -34,25 +31,32 @@ uint32_t entry_point;
  *  SIDE EFFECTS: None
  */
 void parseString(const uint8_t * str) {
-    // printf("str: %s", str);
-    // int i = 0;
-    // int j = 0;
-    // while(str[i] == ' '){
-    //         i++;
-    // }
-    // while(str[i] != ' ') {
-    //     task_name[i] = str[i];
-    //     i++;
-    // }
-    // printf("TASKNAME: %s\n", task_name);
-    // while(str[i] == ' '){
-    //         i++;
-    // } //counting remaining spaces
-    // while(str[i + j] != '\0') {
-    //     curr_pcb->currArg[j] = str[i + j];
-    //     j++;
-    // }
-    strcpy((int8_t *)task_name, (int8_t *)str);
+    printf("str: %s", str);
+    int i = 0;
+    int j = 0;
+    while(str[i] == ' '){
+            i++;
+    }
+    while(str[i] != ' ' && str[i] != '\0') {
+        task_name[i] = str[i];
+        i++;
+    }
+    if(str[i] == '\0'){
+       task_name[i] = str[i];
+       return; 
+    }
+    printf("TASKNAME: %s\n", task_name);
+    while(str[i] == ' '){
+            i++;
+    } //counting remaining spaces
+    while(str[i + j] != '\0') {
+        curr_arg[j] = str[i + j];
+        j++;
+    }
+    argSize = j;
+    // printf("curr arg %s \n", curr_arg);
+    // printf("arg size: %d", curr_pcb->argSize);
+    //strcpy((int8_t *)task_name, (int8_t *)str);
     //printf("CURR_ARG: \n");
 }
 
@@ -137,6 +141,7 @@ void create_pcb_child() {
         curr_pcb->file_arr[i].file_pos = 0;
         curr_pcb->file_arr[i].flags = 0;
     }
+
 }
 
 /* prepare_context_switch

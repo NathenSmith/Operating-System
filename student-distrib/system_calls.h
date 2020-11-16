@@ -1,8 +1,11 @@
 #ifndef _SYSTEM_CALLS_H
 #define _SYSTEM_CALLS_H
 
+#include "shared_global_variables.h"
+
 #define SHELL_ID 2
 #define PAGE_MASK 0x097
+#define EXCEPTION_NUM 256
 
 extern int32_t halt(uint8_t status); 
 extern int32_t execute(const uint8_t* command);

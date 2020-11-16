@@ -11,7 +11,9 @@ restore_parent_data:
     #get args
     movl 8(%ebp), %ecx # curr_pcb->esp
     movl 12(%ebp), %ebx # curr_pcb->ebp
-    movl 16(%ebp), %eax # status
+    # movl 16(%ebp), %eax # status
+    xorl %eax, %eax
+    movb %bl, %al
 
     #restore esp and ebp
     movl %ecx, %esp

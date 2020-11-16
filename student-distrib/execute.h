@@ -1,6 +1,7 @@
 #ifndef _EXECUTE_H
 #define _EXECUTE_H
 #include "lib.h"
+#include "shared_global_variables.h"
 
 #define TASK_VIRTUAL_LOCATION 0x8000000 //128 MB
 #define START_OF_USER_PROGRAM 0x08048000

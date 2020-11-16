@@ -21,7 +21,7 @@ static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
  */
 
 int32_t halt(uint8_t status) {
-
+    if(EXCEPTION) return EXCEPTION_NUM;
     // if the current process is shell
     if(curr_pcb->process_id != 1) {
         // close open files using fd
@@ -48,6 +48,10 @@ int32_t halt(uint8_t status) {
  */
 
 int32_t execute(const uint8_t* command) {
+    EXCEPTION = 0;
+    memset(task_name, '\0', MAX_ARG_SIZE);
+    memset(curr_arg, '\0', MAX_ARG_SIZE);
+    argSize = 0;
     parseString(command);
 
     if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0){
@@ -189,8 +193,16 @@ int32_t close(int32_t fd) {
  */
 
 int32_t getargs(uint8_t* buf, int32_t nbytes) {
-    printf("getargs");
-    while(1) {}
+    if(nbytes == 0 || argSize == 0){
+        printf("curr arg %s \n", curr_arg);
+        printf("arg size: %d", argSize);
+        return -1; //no argument
+    }
+    printf("nbytes: %d \n", nbytes);
+    int numBytesToCopy = nbytes;
+    if(argSize < nbytes) numBytesToCopy = argSize;
+    strncpy((int8_t *)buf, (int8_t *)curr_arg, numBytesToCopy);
+    return 0;
 }
 
 /* vidmap

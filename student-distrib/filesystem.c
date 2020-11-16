@@ -203,6 +203,7 @@ int32_t file_read(int32_t fd, void * buf, int32_t nbytes) {
     }
     else {
         curr_pcb->file_arr[fd].file_pos += nBytesRead; // keep track of number of bytes read
+        printf("file nbytes: %d \n", nBytesRead);
         return nBytesRead;
     }
 }
@@ -270,8 +271,14 @@ int32_t file_close(int32_t fd){
 
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
     if(currentDirectoryEntry < boot_block->dir_count) {
-        strcpy(buf, boot_block->direntries[currentDirectoryEntry].filename); 
+        uint8_t * var = (uint8_t *)buf;
+        strncpy(var, boot_block->direntries[currentDirectoryEntry].filename, nbytes);          
+        var[32] ='\0';  
+        int32_t length =  (int32_t)strlen((int8_t *)boot_block->direntries[currentDirectoryEntry].filename);    
+        //printf("%d \n", strlen((int8_t *)boot_block->direntries[currentDirectoryEntry].filename));
         currentDirectoryEntry++;
+        if(length < nbytes) return length;
+        return nbytes;
     }
     return 0;
 }
