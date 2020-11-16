@@ -139,12 +139,10 @@ int32_t open(const uint8_t* filename) {
             switch (file_dentry.filetype)
             {
             case 0: //real-time clock, filetype (0)
-                curr_pcb->file_arr[i].inode_num = 0; 
                 curr_pcb->file_arr[i].file_op_ptr = &rtc_ptr;
                 rtc_ptr.open(filename);
                 break;
             case 1: //directory, filetype (1)
-                curr_pcb->file_arr[i].inode_num = 0; 
                 curr_pcb->file_arr[i].file_op_ptr = &dir_ptr;
                 dir_ptr.open(filename);
                 break;
@@ -197,17 +195,17 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
     memset(buf, '\0', nbytes);
 
     if(nbytes == 0 || argSize == 0){
-        printf("curr arg %s \n", curr_arg);
-        printf("arg size: %d", argSize);
+        // printf("curr arg %s \n", curr_arg);
+        // printf("arg size: %d", argSize);
         return -1; //no argument
     }
     //printf("nbytes: %d \n", nbytes);
-    printf("curr arg %s \n", curr_arg);
-    printf("arg size: %d", argSize);
+    // printf("curr arg %s \n", curr_arg);
+    // printf("arg size: %d", argSize);
     int numBytesToCopy = nbytes;
     if(argSize < nbytes) numBytesToCopy = argSize;
     strncpy((int8_t *)buf, (int8_t *)curr_arg, numBytesToCopy);
-    printf("buf: %s\n", buf);
+    //printf("buf: %s\n", buf);
     return 0;
 }
 
@@ -220,8 +218,25 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
  */
 
 int32_t vidmap(uint8_t** screen_start) {
-    printf("vidmap");
-    while(1) {}
+    // check if screen start is between 128 and 132 MB
+    if(screen_start == NULL) return -1;
+    uint32_t address = (uint32_t) screen_start;
+    if(address < USER_PAGE_START || address >= USER_PAGE_END) return -1;
+
+    // 33 -> 128 MB in virtual mem
+    pageDirectory[33] = *videoMemTable | 0x07; //set user, r/w, present
+    videoMemTable[0] = (uint32_t) VIDEO_MEMORY_IDX | 0x07;
+
+    // flush_tlb();
+    asm volatile (
+        "movl %cr3, %eax;"
+        "movl %eax, %cr3;"
+    );
+
+    *screen_start = (uint8_t*) USER_PAGE_START;
+
+    return 0;
+
 }
 
 /* set_handler

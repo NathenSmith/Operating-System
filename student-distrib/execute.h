@@ -18,6 +18,8 @@
 #define EIP_SIZE 4
 #define SHELL_PID 1
 #define PAGING_FLAGS 0x087
+#define ESP_LOCATION 8
+#define EBP_LOCATION 12
 
 extern void flush_tlb();
 extern void go_to_exec();

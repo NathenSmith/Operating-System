@@ -34,15 +34,17 @@ void parseString(const uint8_t * str) {
     //printf("str: %s", str);
     int i = 0;
     int j = 0;
+    int k = 0;
     while(str[i] == ' '){
             i++;
     }
     while(str[i] != ' ' && str[i] != '\0') {
-        task_name[i] = str[i];
+        task_name[k] = str[i];
         i++;
+        k++;
     }
     if(str[i] == '\0'){
-       task_name[i] = str[i];
+       task_name[k] = str[i];
        return; 
     }
     //printf("TASKNAME: %s\n", task_name);
@@ -174,6 +176,6 @@ void push_iret_context() {
     uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC
     uint32_t ss = USER_DS;    
 
-    push_iret_context_test(curr_pcb->parentPtr + 8, curr_pcb->parentPtr + 12, eip, cs, esp, ss);    
+    push_iret_context_test(curr_pcb->parentPtr + ESP_LOCATION, curr_pcb->parentPtr + EBP_LOCATION, eip, cs, esp, ss);    
 }
 
