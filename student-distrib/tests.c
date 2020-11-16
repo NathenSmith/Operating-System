@@ -309,8 +309,8 @@ int execute_test(){
 
 /* Test suite entry point */
 void launch_tests(uint32_t input_start_addr){
-	uint32_t start_addr = input_start_addr;
-	TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"frame0.txt"))
+	//uint32_t start_addr = input_start_addr;
+	//TEST_OUTPUT("Read data from files", read_data_from_file(start_addr, (uint8_t *)"frame0.txt"))
 	//TEST_OUTPUT("List Files", list_files(start_addr));
 	//TEST_OUTPUT("Read Dir Test", read_dir_test(start_addr));
 	//TEST_OUTPUT("idt_test", idt_test());

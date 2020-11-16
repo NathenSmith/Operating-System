@@ -25,10 +25,11 @@ uint32_t currentDirectoryEntry;
 void init_filesystem(uint32_t start_addr){
   filesystem_start_addr = start_addr; //
   boot_block = (boot_block_t *)filesystem_start_addr;
-  inodes = (inode_t *)(boot_block + 1);
+  inodes = (inode_t *)(filesystem_start_addr + BLOCK_SIZE);
   uint32_t n_inodes = boot_block->inode_count;
-  datablocks_start_address = (inode_t *) (boot_block + 1 + n_inodes);
+  datablocks_start_address = filesystem_start_addr + BLOCK_SIZE + BLOCK_SIZE*n_inodes;
   currentDirectoryEntry = 0;
+
 }
 
 /* read_dentry_by_name
@@ -270,7 +271,7 @@ int32_t file_close(int32_t fd){
 
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes) {
     if(currentDirectoryEntry < boot_block->dir_count) {
-        uint8_t * var = (uint8_t *)buf;
+        int8_t * var = (int8_t *)buf;
         strncpy(var, boot_block->direntries[currentDirectoryEntry].filename, nbytes);          
         var[32] ='\0';  
         int32_t length =  (int32_t)strlen((int8_t *)boot_block->direntries[currentDirectoryEntry].filename);    

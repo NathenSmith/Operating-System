@@ -31,7 +31,7 @@ uint32_t entry_point;
  *  SIDE EFFECTS: None
  */
 void parseString(const uint8_t * str) {
-    printf("str: %s", str);
+    //printf("str: %s", str);
     int i = 0;
     int j = 0;
     while(str[i] == ' '){
@@ -45,7 +45,7 @@ void parseString(const uint8_t * str) {
        task_name[i] = str[i];
        return; 
     }
-    printf("TASKNAME: %s\n", task_name);
+    //printf("TASKNAME: %s\n", task_name);
     while(str[i] == ' '){
             i++;
     } //counting remaining spaces
