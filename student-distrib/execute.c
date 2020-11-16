@@ -55,6 +55,7 @@ void parseString(const uint8_t * str) {
     }
     argSize = j;
     // printf("curr arg %s \n", curr_arg);
+    // printf("length: %d\n", strlen(curr_arg));
     // printf("arg size: %d", curr_pcb->argSize);
     //strcpy((int8_t *)task_name, (int8_t *)str);
     //printf("CURR_ARG: \n");
