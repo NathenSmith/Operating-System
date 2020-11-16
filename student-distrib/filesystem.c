@@ -25,9 +25,9 @@ uint32_t currentDirectoryEntry;
 void init_filesystem(uint32_t start_addr){
   filesystem_start_addr = start_addr; //
   boot_block = (boot_block_t *)filesystem_start_addr;
-  inodes = (inode_t *)(filesystem_start_addr + BLOCK_SIZE);
+  inodes = (inode_t *)(boot_block + 1);
   uint32_t n_inodes = boot_block->inode_count;
-  datablocks_start_address = filesystem_start_addr + BLOCK_SIZE + BLOCK_SIZE*n_inodes;
+  datablocks_start_address = (inode_t *) (boot_block + 1 + n_inodes);
   currentDirectoryEntry = 0;
 }
 
@@ -50,7 +50,7 @@ int32_t read_dentry_by_name (const uint8_t * fname, dentry_t* dentry) {
     uint32_t i;
 
     for(i = 0; i < boot_block->dir_count; i++) {
-        if(strncmp((boot_block->direntries)[i].filename, (int8_t *)fname, FILENAME_LEN) == 0){
+        if(strncmp((int8_t *)(boot_block->direntries[i].filename), (int8_t *)fname, FILENAME_LEN) == 0){
           /* read directory entry by index corresponding to name */
           return read_dentry_by_index(i, dentry);
         }
@@ -79,7 +79,7 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry) {
     if(index < 0 || index >= boot_block->dir_count) return -1;
 
     /* Deepcopy the entry at that index into the passed in dentry structure. */
-    strncpy(dentry->filename, entry.filename, FILENAME_LEN);
+    strncpy((int8_t *)(dentry->filename), (int8_t *)(entry.filename), FILENAME_LEN);
     dentry->filetype = entry.filetype;
     dentry->inode_num = entry.inode_num;
     strncpy(dentry->reserved, entry.reserved, RESERVED_LENGTH_DENTRY);
@@ -207,7 +207,6 @@ int32_t file_read(int32_t fd, void * buf, int32_t nbytes) {
         return nBytesRead;
     }
 }
-
 /* file_write
     file system is read only
     Inputs:

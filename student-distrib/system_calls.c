@@ -198,7 +198,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
         printf("arg size: %d", argSize);
         return -1; //no argument
     }
-    printf("nbytes: %d \n", nbytes);
+    //printf("nbytes: %d \n", nbytes);
     int numBytesToCopy = nbytes;
     if(argSize < nbytes) numBytesToCopy = argSize;
     strncpy((int8_t *)buf, (int8_t *)curr_arg, numBytesToCopy);
