@@ -12,6 +12,8 @@ static func_ptrs_t rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
 static func_ptrs_t dir_ptr = {dir_read, dir_write, dir_open, dir_close};
 static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
 
+int nShellsOpen = 0;
+
 /* halt
  *
  * Implements the halt system call.
@@ -23,7 +25,7 @@ static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
 int32_t halt(uint8_t status) {
     if(EXCEPTION) return EXCEPTION_NUM;
     // if the current process is shell
-    if(curr_pcb->process_id != 1) {
+    if(nShellsOpen != 1) {
         // close open files using fd
         int i;
         for(i = FDA_START; i < FDA_END; i++){
@@ -54,10 +56,17 @@ int32_t execute(const uint8_t* command) {
     argSize = 0;
     parseString(command);
 
-    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0){
+    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nShellsOpen == 0){
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = 1;
-    }else{
+        nShellsOpen++;
+    } else {
+        if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0) {
+            if(nShellsOpen == 3) {
+                return -1;
+            }
+            nShellsOpen++;
+        }
         uint32_t newProcessId = curr_pcb->process_id + 1;
         if(newProcessId >= MAX_NUMBER_OF_PAGES) return -1;
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
