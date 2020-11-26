@@ -31,6 +31,8 @@ typedef struct PCB {
     file_entry_t file_arr[8];
 } PCB_t;
 
+//extern int process_tracker[3]
+
 extern PCB_t * curr_pcb;
 extern uint8_t task_name[MAX_ARG_SIZE];
 extern uint32_t entry_point;

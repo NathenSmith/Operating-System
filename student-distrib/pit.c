@@ -1,3 +1,4 @@
+#include "pit.h"
 //  init_PIT:
 //     pushad
  
@@ -92,7 +93,13 @@
 //     popad
 //     ret
 void initialize_pit(){
-    
+    cli();
+    outb(0x36, 0x43);		// enable mode 3
+    // outb(0x00110110, 0x43);
+    outb(11905 & 0x000000FF, 0x40); //low byte
+    outb(11905 >> 8, 0x40); //high 8 bits
+    sti();
+    enable_irq(0x0); //irq is zero
 }
 
 
@@ -114,9 +121,25 @@ void initialize_pit(){
 // 	iretd
 
 void pit_handler(){
-
+    //do something with curr process tracker
+    schedule();
+    send_eoi(0x0);
 }
 
-;Input
- ; ebx   Desired PIT frequency in Hz
+void schedule(){
+    if process_id < 3 
+    curr_process = (curr_process + 1) % 3; //0 indexed
+    
+    //curr_process = terminal_num + (curr_process + 1)%3
+
+    
+
+
+    flush_tlb();
+    paging
+    video mem 0xb8000
+    save that backup
+    0xb9000
+    0xbA000
+}
  
