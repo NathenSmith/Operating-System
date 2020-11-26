@@ -23,6 +23,9 @@
 # side effects: none.
 
 isr_wrapper20:
+    pushal
+    call pit_handler
+    popal
     iret
 
 # isr_wrapper21
