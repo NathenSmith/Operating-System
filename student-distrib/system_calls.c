@@ -87,7 +87,7 @@ int32_t execute(const uint8_t* command) {
     load_program_into_memory(task_name);
     create_pcb_child();
     prepare_context_switch();
-    push_iret_context();
+    push_iret_context(entry_point);
         
     return 0;
 }
@@ -139,6 +139,7 @@ int32_t open(const uint8_t* filename) {
     //iterate through pcb starting at index 2
     dentry_t file_dentry;
     if(read_dentry_by_name (filename, &file_dentry) == -1) return -1;
+    curr_pcb->filename = filename;
     int i;
     for(i = FDA_START; i < FDA_END; i++){
         if(!(curr_pcb->file_arr[i].flags)){

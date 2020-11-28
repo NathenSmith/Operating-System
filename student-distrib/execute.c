@@ -138,7 +138,7 @@ void create_pcb_child() {
     }
     //initialize fda members
     int i;
-    for(i = FDA_START; i < FDA_END; i++){
+    for(i = FDA_START; i < FDA_END; i++) {
         curr_pcb->file_arr[i].file_op_ptr = 0;
         curr_pcb->file_arr[i].inode_num = 0;
         curr_pcb->file_arr[i].file_pos = 0;
@@ -168,9 +168,9 @@ void prepare_context_switch() {
  *  RETURN VALUE: None
  *  SIDE EFFECTS: None
  */
-void push_iret_context() {
+void push_iret_context(uint32_t eip_val) {
     //set EIP(bytes 24-27 of executable loaded)
-    uint32_t eip = entry_point;
+    uint32_t eip = eip_val;
     uint32_t cs = USER_CS;
     //set ESP for user stack to bottom of 4MB page holding executable image
     uint32_t esp = TASK_VIRTUAL_LOCATION + MEMORY_SIZE_PROCESS - 4; //should be 0x083FFFFC

@@ -28,6 +28,8 @@ typedef struct PCB {
     uint32_t process_id; //process_id is 1 for shell
     uint32_t esp;
     uint32_t ebp;
+    uint32_t eip;
+    uint8_t * filename;
     file_entry_t file_arr[8];
 } PCB_t;
 
