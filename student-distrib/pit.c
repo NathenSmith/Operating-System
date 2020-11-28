@@ -2,9 +2,11 @@
 #include "shared_global_variables.h"
 #include "linkage.h"
 #include "execute.h"
+#include "paging.h"
 
 int i = 0;
 PCB_t * active_processes[3];
+uint32_t current_terminal;
 
 void initialize_pit(){
     cli();
@@ -29,6 +31,15 @@ void pit_handler() {
 void schedule() {
     //save eip from the previous process to the pcb for that process
     curr_pcb->eip = save_eip;
+    //copy into corresponding video memory backup
+    switch(i){
+        case 0:
+            memcpy(VIDEO_MEMORY_IDX, BACKUP_ONE, 0x1000)
+        case 1:
+            pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_TWO | 0x003); // 0x3 are bits needed to set present, rw, supervisor 
+        case 2:
+            pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_THREE | 0x003); // 0x3 are bits needed to set present, rw, supervisor      
+    }
 
     //increment process counter
     i++;
@@ -47,5 +58,27 @@ void schedule() {
         
     //push the iret context and iret to the scheduled process
     push_iret_context(curr_pcb->eip);
+}
+
+void switch_terminal(uint32_t terminal_num){
+    cli();
+    current_terminal = terminal_num;
+    if(i == terminal_num){
+        //set video memory
+        pageDirectory[0] = ((uint32_t)pageTable | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+        pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+    }
+    else{
+        switch(i){
+            case 0:
+                pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_ONE | 0x003); // 0x3 are bits needed to set present, rw, supervisor 
+            case 1:
+                pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_TWO | 0x003); // 0x3 are bits needed to set present, rw, supervisor 
+            case 2:
+                pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_THREE | 0x003); // 0x3 are bits needed to set present, rw, supervisor      
+        }
+      
+    }
+    sti();
 }
  

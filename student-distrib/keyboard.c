@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "pit.h"
 
 /* SOURCES:  https://wiki.osdev.org/PS/2_Keyboard
     some code from Linux documentation of PS/2 Keyboard
@@ -18,8 +19,8 @@ static char scan_codes[NUM_KEYS]= 	{ //presses
       '\0', '\0', '\0', '\0', '\0', '\0', '\0'
      }; 
 
-//0: shift state, 1: capslock state, 3: ctrl state
-static uint8_t states[NUM_STATES] = {0, 0, 0};
+//0: shift state, 1: capslock state, 2: ctrl state, 3: alt state
+static uint8_t states[NUM_STATES] = {0, 0, 0, 0};
 
 /* initialize_keyboard
  * 
@@ -107,6 +108,33 @@ void key_board_handler(){ //changing kernel stack must fix
             return;
         }
     }
+    //-----alt check-------------
+    if(states[ALT_STATE]){
+        //0x3B, scancode for F1
+        if(read == 0x3B){
+            switch_terminal(0); //terminal 1
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+        //0x3C, scancode for F2
+        else if(read == 0x3C){
+            switch_terminal(1); //terminal 2
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+        //0x3D, scancode for F3
+        else if(read == 0x3D){
+            switch_terminal(2); //terminal 3
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+        //0xB8, 0xE0, release scan codes for l,r alt respectively
+        else if(read == 0xB8 || read == 0xE0){
+            states[ALT_STATE] = 0;
+            send_eoi(KEYBOARD_IRQ);
+            return;
+        }
+    }
     //----set states and generic output-----
                     
     //0x2A and 0x36 scan codes for l,r shifts respecitvely
@@ -116,10 +144,16 @@ void key_board_handler(){ //changing kernel stack must fix
         return;
     }
     //0x1D, 0xE0, scan codes for l,r ctrl respectively
-    else if((read) == 0xE0 || read == 0x1D){
+    else if(read == 0xE0 || read == 0x1D){
         states[CTRL_STATE] = 1;
         send_eoi(KEYBOARD_IRQ);
         return;            
+    }
+    //0x38, 0xE0, scan codes for l,r alt respectively (don't use right alt)
+    else if(read == 0x38 || read == 0xE0){
+        states[ALT_STATE] = 1;
+        send_eoi(KEYBOARD_IRQ);
+        return;
     }
     //0x0F, scan code for tab
     else if(read == 0x0F){

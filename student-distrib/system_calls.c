@@ -36,6 +36,7 @@ int32_t halt(uint8_t status) {
 
         switch_task_memory();
         prepare_context_switch();
+        active_processes[current_terminal] = curr_pcb;
         restore_parent_data(curr_pcb->esp, curr_pcb->ebp, (uint32_t)status);
     }
     return -1;
@@ -72,6 +73,8 @@ int32_t execute(const uint8_t* command) {
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;
     }
+    
+    active_processes[current_terminal] = curr_pcb;
 
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;
