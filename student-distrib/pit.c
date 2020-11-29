@@ -34,11 +34,11 @@ void schedule() {
     //copy into corresponding video memory backup
     switch(i){
         case 0:
-            memcpy(VIDEO_MEMORY_IDX, BACKUP_ONE, 0x1000)
+            memcpy(BACKUP_ONE, VIDEO_MEMORY_IDX, 0x1000);
         case 1:
-            pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_TWO | 0x003); // 0x3 are bits needed to set present, rw, supervisor 
+            memcpy(BACKUP_TWO, VIDEO_MEMORY_IDX, 0x1000);
         case 2:
-            pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_THREE | 0x003); // 0x3 are bits needed to set present, rw, supervisor      
+            memcpy(BACKUP_THREE, VIDEO_MEMORY_IDX, 0x1000);
     }
 
     //increment process counter
@@ -69,6 +69,7 @@ void switch_terminal(uint32_t terminal_num){
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
     }
     else{
+        pageDirectory[0] = ((uint32_t)pageTable | 0x003); // 0x3 are bits needed to set present, rw, supervisor
         switch(i){
             case 0:
                 pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_ONE | 0x003); // 0x3 are bits needed to set present, rw, supervisor 
