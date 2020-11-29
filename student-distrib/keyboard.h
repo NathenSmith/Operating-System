@@ -10,7 +10,7 @@
 #define ALT_STATE    3
 
 #include "i8259.h"
-char kbd_buf[128];
+char kbd_buf[128]; //2d array having 3 buffers for each terminal
 //int buf_counter;
 
 
