@@ -2,7 +2,6 @@
 #define _SHARED_GLOBAL_VARIABLE_H
 
 #define MAX_ARG_SIZE 128
-#define VID_MEM_PAGE 0x1000
 
 int EXCEPTION;
 uint8_t curr_arg[MAX_ARG_SIZE];
@@ -29,17 +28,11 @@ typedef struct PCB {
     uint32_t process_id; //process_id is 1 for shell
     uint32_t esp;
     uint32_t ebp;
-    uint32_t eip;
-    uint8_t * filename;
     file_entry_t file_arr[8];
 } PCB_t;
-
-//extern int process_tracker[3]
 
 extern PCB_t * curr_pcb;
 extern uint8_t task_name[MAX_ARG_SIZE];
 extern uint32_t entry_point;
-extern uint32_t current_terminal;
-extern PCB_t * active_processes[3];
 #endif
 

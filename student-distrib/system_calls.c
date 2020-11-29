@@ -36,7 +36,6 @@ int32_t halt(uint8_t status) {
 
         switch_task_memory();
         prepare_context_switch();
-        active_processes[current_terminal] = curr_pcb;
         restore_parent_data(curr_pcb->esp, curr_pcb->ebp, (uint32_t)status);
     }
     return -1;
@@ -73,8 +72,6 @@ int32_t execute(const uint8_t* command) {
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;
     }
-    
-    active_processes[current_terminal] = curr_pcb;
 
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;
@@ -90,7 +87,7 @@ int32_t execute(const uint8_t* command) {
     load_program_into_memory(task_name);
     create_pcb_child();
     prepare_context_switch();
-    push_iret_context(entry_point);
+    push_iret_context();
         
     return 0;
 }
@@ -142,7 +139,6 @@ int32_t open(const uint8_t* filename) {
     //iterate through pcb starting at index 2
     dentry_t file_dentry;
     if(read_dentry_by_name (filename, &file_dentry) == -1) return -1;
-    curr_pcb->filename = filename;
     int i;
     for(i = FDA_START; i < FDA_END; i++){
         if(!(curr_pcb->file_arr[i].flags)){

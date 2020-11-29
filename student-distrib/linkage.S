@@ -15,10 +15,6 @@
 .globl   isr_wrapper2E
 .globl   isr_wrapper2F
 .globl   sys_call
-.globl save_eip
-
-.data
-save_eip DD?
 
 # isr_wrapper20
 # Contains the assembly linkage for interrupt 0(not filled in yet).
@@ -27,10 +23,6 @@ save_eip DD?
 # side effects: none.
 
 isr_wrapper20:
-    movl %esp, save_eip
-    pushal
-    call pit_handler
-    popal
     iret
 
 # isr_wrapper21

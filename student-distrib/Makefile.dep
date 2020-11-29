@@ -13,7 +13,6 @@ kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
 keyboard.o: keyboard.c keyboard.h i8259.h types.h lib.h
 lib.o: lib.c lib.h types.h terminal.h keyboard.h i8259.h
 paging.o: paging.c paging.h x86_desc.h types.h lib.h i8259.h
-pit.o: pit.c pit.h i8259.h types.h lib.h
 rtc.o: rtc.c rtc.h lib.h types.h i8259.h
 setup_idt.o: setup_idt.c x86_desc.h types.h lib.h linkage.h \
   system_calls.h shared_global_variables.h
