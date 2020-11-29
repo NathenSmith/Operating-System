@@ -38,7 +38,6 @@ int32_t halt(uint8_t status) {
 
         switch_task_memory();
         prepare_context_switch();
-        active_processes[current_terminal] = curr_pcb;
         restore_parent_data(curr_pcb->esp, curr_pcb->ebp, (uint32_t)status);
     }
     return -1;
@@ -75,8 +74,11 @@ int32_t execute(const uint8_t* command) {
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;
     }
+<<<<<<< HEAD
     strncpy(curr_pcb->filename, task_name, strlen(task_name));
     active_processes[current_terminal] = curr_pcb;
+=======
+>>>>>>> 1f528fd63a03b491ceee4dbd4926d10b7a53afe5
 
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;
@@ -92,7 +94,7 @@ int32_t execute(const uint8_t* command) {
     load_program_into_memory(task_name);
     create_pcb_child();
     prepare_context_switch();
-    push_iret_context(entry_point);
+    push_iret_context();
         
     return 0;
 }

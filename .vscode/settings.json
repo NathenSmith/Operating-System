@@ -1,5 +1,10 @@
 {
     "files.associations": {
+<<<<<<< HEAD
         "lib.h": "c"
+=======
+        "execute.h": "c",
+        "shared_global_variables.h": "c"
+>>>>>>> 1f528fd63a03b491ceee4dbd4926d10b7a53afe5
     }
 }

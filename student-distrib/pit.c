@@ -9,22 +9,22 @@ PCB_t * active_processes[3];
 uint32_t current_terminal;
 
 void initialize_pit(){
-    cli();
-    outb(0x36, 0x43);		// enable mode 3
-    // outb(0x00110110, 0x43);
-    outb(11905 & 0x000000FF, 0x40); //low byte
-    outb(11905 >> 8, 0x40); //high 8 bits
-    int j;
-    for(j = 0; j < 3; j++) {
-        active_processes[j] = NULL;
-    }
-    sti();
-    enable_irq(0x0); //irq is zero
+    // cli();
+    // outb(0x36, 0x43);		// enable mode 3
+    // // outb(0x00110110, 0x43);
+    // outb(11905 & 0x000000FF, 0x40); //low byte
+    // outb(11905 >> 8, 0x40); //high 8 bits
+    // int j;
+    // for(j = 0; j < 3; j++) {
+    //     active_processes[j] = NULL;
+    // }
+    // sti();
+    // enable_irq(0x0); //irq is zero
 }
 
 void pit_handler() {
     //do something with curr process tracker
-    schedule();
+    //schedule();
     send_eoi(0x0);
 }
 
