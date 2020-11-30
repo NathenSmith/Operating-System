@@ -138,7 +138,7 @@ void create_pcb_child() {
     }
     //initialize fda members
     int i;
-    for(i = FDA_START; i < FDA_END; i++) {
+    for(i = FDA_START; i < FDA_END; i++){
         curr_pcb->file_arr[i].file_op_ptr = 0;
         curr_pcb->file_arr[i].inode_num = 0;
         curr_pcb->file_arr[i].file_pos = 0;

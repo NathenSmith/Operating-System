@@ -24,30 +24,41 @@ void initialize_pit(){
 
 void pit_handler() {
     //do something with curr process tracker
-    schedule();
+    //schedule();
     send_eoi(0x0);
 }
 
 void schedule() {
     //save eip from the previous process to the pcb for that process
+    int x = 0;
     curr_pcb->eip = save_eip;
     //copy into corresponding video memory backup
     switch(i){
         case 0:
-            memcpy(BACKUP_ONE, VIDEO_MEMORY_IDX, 0x1000);
+            memcpy((void *)BACKUP_ONE, (void *)VIDEO_MEMORY_IDX, 0x1000);
+            break;
         case 1:
-            memcpy(BACKUP_TWO, VIDEO_MEMORY_IDX, 0x1000);
+            memcpy((void *)BACKUP_TWO, (void *)VIDEO_MEMORY_IDX, 0x1000);
+            break;
         case 2:
-            memcpy(BACKUP_THREE, VIDEO_MEMORY_IDX, 0x1000);
+            memcpy((void *)BACKUP_THREE, (void *)VIDEO_MEMORY_IDX, 0x1000);
+            break;
+        default:
+            break;
     }
 
     //increment process counter
     i++;
 
     //if done with all active processes, go to start of active proceses
-    if(active_processes[i] != NULL) {
+    if((i >= 3) || (active_processes[i] == NULL)) {
         i = 0;
     }
+
+    x = 0;
+    while(active_processes[x]) {x++;}
+    if(x <= 1) {return;} //no processes and no need to reschedule a single process
+
 
     //get curr_pcb for new process
     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (active_processes[i]->process_id)*SIZE_OF_KERNEL_STACK);
@@ -70,13 +81,18 @@ void switch_terminal(uint32_t terminal_num){
     }
     else{
         pageDirectory[0] = ((uint32_t)pageTable | 0x003); // 0x3 are bits needed to set present, rw, supervisor
-        switch(i){
+        switch(terminal_num){
             case 0:
                 pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_ONE | 0x003); // 0x3 are bits needed to set present, rw, supervisor 
+                break;
             case 1:
                 pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_TWO | 0x003); // 0x3 are bits needed to set present, rw, supervisor 
+                break;
             case 2:
-                pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_THREE | 0x003); // 0x3 are bits needed to set present, rw, supervisor      
+                pageTable[VIDEO_MEMORY_IDX >> 12] = (BACKUP_THREE | 0x003); // 0x3 are bits needed to set present, rw, supervisor 
+                break;
+            default:
+                break;
         }
       
     }

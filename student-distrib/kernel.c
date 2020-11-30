@@ -149,8 +149,8 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Init the PIC */
     //enable irq for kbd, rtc
-    initialize_pit();
     i8259_init();
+    initialize_pit();
 
     setup_idt();
     paging_init();

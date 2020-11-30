@@ -25,7 +25,9 @@ int nShellsOpen = 0;
 int32_t halt(uint8_t status) {
     if(EXCEPTION) return EXCEPTION_NUM;
     // if the current process is shell
-    if(nShellsOpen != 1) {
+    if((curr_pcb->filename == "shell") && (nShellsOpen == 1))
+        return -1;
+    else{
         // close open files using fd
         int i;
         for(i = FDA_START; i < FDA_END; i++){
@@ -41,6 +43,7 @@ int32_t halt(uint8_t status) {
     }
     return -1;
 }
+
 
 /* execute
  *
@@ -73,7 +76,8 @@ int32_t execute(const uint8_t* command) {
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;
     }
-    
+
+    strncpy(curr_pcb->filename, task_name, strlen(task_name));
     active_processes[current_terminal] = curr_pcb;
 
     //set up stdin, stdout
@@ -142,7 +146,6 @@ int32_t open(const uint8_t* filename) {
     //iterate through pcb starting at index 2
     dentry_t file_dentry;
     if(read_dentry_by_name (filename, &file_dentry) == -1) return -1;
-    curr_pcb->filename = filename;
     int i;
     for(i = FDA_START; i < FDA_END; i++){
         if(!(curr_pcb->file_arr[i].flags)){

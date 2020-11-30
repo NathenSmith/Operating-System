@@ -22,6 +22,7 @@ void paging_init(void) {
     pageTable[(VIDEO_MEMORY_IDX >> 12) + 2] = (BACKUP_TWO | 0x003); // 0x3 are bits needed to set present, rw, supervisor  
     pageTable[(VIDEO_MEMORY_IDX >> 12) + 3] = (BACKUP_THREE | 0x003); // 0x3 are bits needed to set present, rw, supervisor
 
+
     // set kernel memory at 4MB
     pageDirectory[1] = (KERNEL_IDX | 0x093);
 
