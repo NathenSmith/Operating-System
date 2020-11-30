@@ -30,16 +30,15 @@ typedef struct PCB {
     uint32_t esp;
     uint32_t ebp;
     uint32_t eip;
-    uint8_t * filename;
+    uint8_t filename[128];
     file_entry_t file_arr[8];
 } PCB_t;
-
-//extern int process_tracker[3]
 
 extern PCB_t * curr_pcb;
 extern uint8_t task_name[MAX_ARG_SIZE];
 extern uint32_t entry_point;
 extern uint32_t current_terminal;
 extern PCB_t * active_processes[3];
+
 #endif
 

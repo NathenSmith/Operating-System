@@ -17,8 +17,8 @@
 .globl   sys_call
 .globl save_eip
 
-.data
-save_eip DD?
+save_eip:
+    .long 0
 
 # isr_wrapper20
 # Contains the assembly linkage for interrupt 0(not filled in yet).

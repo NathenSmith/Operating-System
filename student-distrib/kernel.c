@@ -13,6 +13,8 @@
 #include "paging.h"
 #include "terminal.h"
 #include "system_calls.h"
+#include "pit.h"
+
 //uint16_t MASTER_DATA = MASTER_8259_PORT + 1;
 
 #define RUN_TESTS

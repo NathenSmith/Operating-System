@@ -29,25 +29,36 @@ void pit_handler() {
 }
 
 void schedule() {
-    //save eip from the previous process to the pcb for that process
+   //save eip from the previous process to the pcb for that process
+    int x = 0;
     curr_pcb->eip = save_eip;
     //copy into corresponding video memory backup
     switch(i){
         case 0:
-            memcpy(BACKUP_ONE, VIDEO_MEMORY_IDX, 0x1000);
+            memcpy((void *)BACKUP_ONE, (void *)VIDEO_MEMORY_IDX, 0x1000);
+            break;
         case 1:
-            memcpy(BACKUP_TWO, VIDEO_MEMORY_IDX, 0x1000);
+            memcpy((void *)BACKUP_TWO, (void *)VIDEO_MEMORY_IDX, 0x1000);
+            break;
         case 2:
-            memcpy(BACKUP_THREE, VIDEO_MEMORY_IDX, 0x1000);
+            memcpy((void *)BACKUP_THREE, (void *)VIDEO_MEMORY_IDX, 0x1000);
+            break;
+        default:
+            break;
     }
 
     //increment process counter
     i++;
 
     //if done with all active processes, go to start of active proceses
-    if(active_processes[i] != NULL) {
+    if((i >= 3) || (active_processes[i] == NULL)) {
         i = 0;
     }
+
+    x = 0;
+    while(active_processes[x]) {x++;}
+    if(x <= 1) {return;} //no processes and no need to reschedule a single process
+
 
     //get curr_pcb for new process
     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (active_processes[i]->process_id)*SIZE_OF_KERNEL_STACK);
@@ -58,6 +69,7 @@ void schedule() {
         
     //push the iret context and iret to the scheduled process
     push_iret_context(curr_pcb->eip);
+
 }
 
 void switch_terminal(uint32_t terminal_num){
