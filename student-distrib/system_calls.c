@@ -38,7 +38,7 @@ int32_t halt(uint8_t status) {
 
         switch_task_memory();
         prepare_context_switch();
-        active_processes[current_terminal] = curr_pcb;
+        active_processes[visible_terminal] = curr_pcb;
         restore_parent_data(curr_pcb->esp, curr_pcb->ebp, (uint32_t)status);
     }
     return -1;
@@ -78,7 +78,7 @@ int32_t execute(const uint8_t* command) {
     }
     
     strncpy((int8_t *)(curr_pcb->filename), (int8_t *)task_name, strlen((int8_t *)task_name));
-    active_processes[current_terminal] = curr_pcb;
+    active_processes[visible_terminal] = curr_pcb;
 
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;
