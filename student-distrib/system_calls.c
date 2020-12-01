@@ -12,7 +12,7 @@ static func_ptrs_t rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
 static func_ptrs_t dir_ptr = {dir_read, dir_write, dir_open, dir_close};
 static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
 
-int nShellsOpen = 0;
+int nProcesses[3] = {0,0,0};
 
 /* halt
  *
@@ -25,10 +25,11 @@ int nShellsOpen = 0;
 int32_t halt(uint8_t status) {
     if(EXCEPTION) return EXCEPTION_NUM;
     // if the current process is shell
-    if((strncmp((int8_t *)(curr_pcb->filename), (int8_t *)"shell", 5) == 0) && (nShellsOpen == 1))
+    if((strncmp((int8_t *)(curr_pcb->filename), (int8_t *)"shell", 5) == 0) && (nProcesses[scheduled_terminal] == 1))
         return -1;
     else{
         // close open files using fd
+        nProcesses[scheduled_terminal]--;
         int i;
         for(i = FDA_START; i < FDA_END; i++){
             close(i);
@@ -38,7 +39,7 @@ int32_t halt(uint8_t status) {
 
         switch_task_memory();
         prepare_context_switch();
-        active_processes[visible_terminal] = curr_pcb;
+        active_processes[scheduled_terminal] = curr_pcb;
         restore_parent_data(curr_pcb->esp, curr_pcb->ebp, (uint32_t)status);
     }
     return -1;
@@ -54,31 +55,30 @@ int32_t halt(uint8_t status) {
  */
 
 int32_t execute(const uint8_t* command) {
+    int j, max = 0;
+    for(j = 0; j < 3; j++){
+        max += nProcesses[j];
+    }
+    if(max == 6) return -1;
+
     EXCEPTION = 0;
     memset(task_name, '\0', MAX_ARG_SIZE);
     memset(curr_arg, '\0', MAX_ARG_SIZE);
     argSize = 0;
     parseString(command);
 
-    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nShellsOpen == 0){
+    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nProcesses[scheduled_terminal] == 0){
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = 1;
-        nShellsOpen++;
     } else {
-        if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0) {
-            if(nShellsOpen == 3) {
-                return -1;
-            }
-            nShellsOpen++;
-        }
         uint32_t newProcessId = curr_pcb->process_id + 1;
         if(newProcessId >= MAX_NUMBER_OF_PAGES) return -1;
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;
     }
-    
+    nProcesses[scheduled_terminal]++;
     strncpy((int8_t *)(curr_pcb->filename), (int8_t *)task_name, strlen((int8_t *)task_name));
-    active_processes[visible_terminal] = curr_pcb;
+    active_processes[scheduled_terminal] = curr_pcb;
 
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;

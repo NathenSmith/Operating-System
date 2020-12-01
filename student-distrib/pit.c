@@ -29,14 +29,7 @@ void pit_handler() {
 }
 
 void schedule() {
-    if(scheduled_terminal == visible_terminal) { //scheduled terminal is the same as the visible terminal
-        //set video memory
-        pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
-    }
-    else {
-        pageTable[VIDEO_MEMORY_IDX >> 12] = VIDEO_MEMORY_IDX + ((0x1000*(scheduled_terminal + 1)) | 0x003);
-    }
-    flush_tlb();
+    
     //copy video memory from previous process into corresponding video memory backup
     // switch(scheduled_terminal){
     //     case 0:
@@ -51,7 +44,15 @@ void schedule() {
     //     default:
     //         break;
     // }
-
+    
+    //SCHEDULE
+    if(scheduled_terminal == visible_terminal) { //scheduled terminal is the same as the visible terminal
+        //set video memory
+        pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+    }
+    else {
+        pageTable[VIDEO_MEMORY_IDX >> 12] = VIDEO_MEMORY_IDX + ((0x1000*(scheduled_terminal + 1)) | 0x003);
+    }
     //save eip from the previous process to the pcb for that process
     curr_pcb->eip = save_eip;
 
@@ -69,13 +70,12 @@ void schedule() {
 
     //get curr_pcb for new process
     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (active_processes[scheduled_terminal]->process_id)*SIZE_OF_KERNEL_STACK);
-     
+    //kinda unsure about this - Piyush sud 11/30/2020 8:32 CST
     switch_task_memory();
     load_program_into_memory(curr_pcb->filename);
     prepare_context_switch();
         
-    //push the iret context and iret to the scheduled process
-    push_iret_context(curr_pcb->eip);
+    return;
 }
 
 void switch_terminal(uint32_t terminal_num){
@@ -85,7 +85,7 @@ void switch_terminal(uint32_t terminal_num){
     visible_terminal = terminal_num;
     memcpy(VIDEO_MEMORY_IDX, VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)) | 0x003), 0x1000);
     if(active_processes[visible_terminal] == NULL) { //if never opened terminal before
-        //clear();
+        clear();
         execute((uint8_t *)"shell");
     }
     else{

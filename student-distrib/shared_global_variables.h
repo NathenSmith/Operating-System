@@ -39,6 +39,9 @@ extern uint8_t task_name[MAX_ARG_SIZE];
 extern uint32_t entry_point;
 extern uint32_t visible_terminal;
 extern PCB_t * active_processes[3];
+extern int scheduled_terminal;
+extern int nProcesses[3];
+
 
 #endif
 
