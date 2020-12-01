@@ -2,6 +2,23 @@
 .globl go_to_exec
 .globl push_iret_context_test
 .globl restore_parent_data
+.globl restore_ebp_esp
+
+restore_ebp_esp:
+    #stack setup
+    pushl %ebp
+    movl %esp, %ebp    
+
+    #get args
+    movl 8(%ebp), %ecx # curr_pcb->esp
+    movl 12(%ebp), %ebx # curr_pcb->ebp
+
+    #restore esp and ebp
+    movl %ecx, %esp
+    movl %ebx, %ebp
+
+    leave
+    ret
 
 restore_parent_data:
     #stack setup
