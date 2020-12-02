@@ -71,9 +71,9 @@ int32_t execute(const uint8_t* command) {
 
     if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nProcesses[scheduled_terminal] == 0){
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
-        curr_pcb->process_id = 1;
+        curr_pcb->process_id = scheduled_terminal + 1;
     } else {
-        uint32_t newProcessId = curr_pcb->process_id + 1;
+        uint32_t newProcessId = max + 1;
         if(newProcessId >= MAX_NUMBER_OF_PAGES) return -1;
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;

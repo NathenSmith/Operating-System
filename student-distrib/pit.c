@@ -63,11 +63,11 @@ void schedule() {
 void switch_terminal(uint32_t terminal_num){
     send_eoi(0x01);
     cli();
-    memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)) | 0x003)), (void *) VIDEO_MEMORY_IDX, 0x1000);
+    memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
     visible_terminal = terminal_num;
-    memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)) | 0x003)), 0x1000);
+    memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);
     if(active_processes[visible_terminal] == NULL) { //if never opened terminal before
-        clear();
+        //clear();
         execute((uint8_t *)"shell");
     }
 }
