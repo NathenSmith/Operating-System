@@ -3,6 +3,7 @@
 
 #include "lib.h"
 #include "terminal.h"
+#include "shared_global_variables.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -13,7 +14,7 @@ static int screen_x;
 static int screen_y;
 static int boundary_x;
 static int boundary_y;
-static char* video_mem = (char *)VIDEO;
+static char* video_mem = (char *)VIDEO; 
 
 /* void clear(void);
  * Inputs: void
