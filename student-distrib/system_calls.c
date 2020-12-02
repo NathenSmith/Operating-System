@@ -55,17 +55,19 @@ int32_t halt(uint8_t status) {
  */
 
 int32_t execute(const uint8_t* command) {
-    int j, max = 0;
-    for(j = 0; j < 3; j++){
-        max += nProcesses[j];
-    }
-    if(max == 6) return -1;
 
     EXCEPTION = 0;
     memset(task_name, '\0', MAX_ARG_SIZE);
     memset(curr_arg, '\0', MAX_ARG_SIZE);
     argSize = 0;
     parseString(command);
+    if(checkIfExecutable(task_name) == -1) return -1;
+
+    int j, max = 0;
+    for(j = 0; j < 3; j++){
+        max += nProcesses[j];
+    }
+    if(max == 6) return -1;
 
     if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nProcesses[scheduled_terminal] == 0){
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
@@ -88,8 +90,7 @@ int32_t execute(const uint8_t* command) {
     curr_pcb->file_arr[1].inode_num = 0;
     curr_pcb->file_arr[1].file_op_ptr = &terminal_ptr;
 
-    //call execute's other 6 steps
-    if(checkIfExecutable(task_name) == -1) return -1;
+    //call execute's other 5 steps
     switch_task_memory();
     load_program_into_memory(task_name);
     create_pcb_child();
@@ -240,7 +241,7 @@ int32_t vidmap(uint8_t** screen_start) {
     if(address < USER_PAGE_START || address >= USER_PAGE_END) return -1;
 
     // 33 -> 128 MB in virtual mem
-    pageDirectory[33] = *videoMemTable | 0x07; //set user, r/w, present
+    pageDirectory[33] = (uint32_t)videoMemTable | 0x07; //set user, r/w, present
     videoMemTable[0] = (uint32_t) VIDEO_MEMORY_IDX | 0x07;
 
     // flush_tlb();
@@ -249,7 +250,7 @@ int32_t vidmap(uint8_t** screen_start) {
         "movl %eax, %cr3;"
     );
 
-    *screen_start = (uint8_t*) USER_PAGE_START;
+    *screen_start = (uint8_t*) USER_PAGE_END;
 
     return 0;
 
