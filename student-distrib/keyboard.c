@@ -113,26 +113,18 @@ void key_board_handler(){ //changing kernel stack must fix
         //0x3B, scancode for F1
         if(read == 0x3B){
             switch_terminal(0); //terminal 1
-            send_eoi(KEYBOARD_IRQ);
-            return;
         }
         //0x3C, scancode for F2
         else if(read == 0x3C){
             switch_terminal(1); //terminal 2
-            send_eoi(KEYBOARD_IRQ);
-            return;
         }
         //0x3D, scancode for F3
         else if(read == 0x3D){
             switch_terminal(2); //terminal 3
-            send_eoi(KEYBOARD_IRQ);
-            return;
         }
         //0xB8, 0xE0, release scan codes for l,r alt respectively
         else if(read == 0xB8 || read == 0xE0){
             states[ALT_STATE] = 0;
-            send_eoi(KEYBOARD_IRQ);
-            return;
         }
     }
     //----set states and generic output-----

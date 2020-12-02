@@ -69,18 +69,24 @@ int32_t execute(const uint8_t* command) {
     }
     if(max == 6) return -1;
 
-    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nProcesses[scheduled_terminal] == 0){
+    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nProcesses[visible_terminal] == 0){
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = scheduled_terminal + 1;
+        nProcesses[visible_terminal]++;
+        curr_pcb->parentPtr = active_processes[visible_terminal];
+        active_processes[visible_terminal] = curr_pcb;
     } else {
         uint32_t newProcessId = max + 1;
         if(newProcessId >= MAX_NUMBER_OF_PAGES) return -1;
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;
+        nProcesses[scheduled_terminal]++;
+        curr_pcb->parentPtr = active_processes[scheduled_terminal];
+        active_processes[scheduled_terminal] = curr_pcb;
     }
-    nProcesses[scheduled_terminal]++;
+    
     strncpy((int8_t *)(curr_pcb->filename), (int8_t *)task_name, strlen((int8_t *)task_name));
-    active_processes[scheduled_terminal] = curr_pcb;
+    
 
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;

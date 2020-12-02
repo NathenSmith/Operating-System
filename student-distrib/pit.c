@@ -6,7 +6,7 @@
 
 int scheduled_terminal = 0;
 PCB_t * active_processes[3];
-uint32_t visible_terminal;
+uint32_t visible_terminal = 0;
 
 void initialize_pit(){
     cli();
@@ -66,7 +66,7 @@ void switch_terminal(uint32_t terminal_num){
     memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
     visible_terminal = terminal_num;
     memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);
-    if(active_processes[visible_terminal] == NULL) { //if never opened terminal before
+    if(active_processes[terminal_num] == NULL) { //if never opened terminal before
         //clear();
         execute((uint8_t *)"shell");
     }
