@@ -1,5 +1,6 @@
 #include "terminal.h"
 #include "lib.h"
+#include "shared_global_variables.h"
 
 /* terminal_read
  * 
@@ -27,8 +28,8 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
 	while(j != BUF_SIZE){
 		//copy from keyboard buf to terminal buf the appropriate characters
 		if(j == nbytes) break; //reached the maximum bytes acceptable
-		if(kbd_buf[j] == '\0') continue; //return to beginning of loop		
-		buf_[j] = kbd_buf[j];
+		if(kbd_buf[visible_terminal][j] == '\0') continue; //return to beginning of loop		
+		buf_[j] = kbd_buf[visible_terminal][j];
 		if(buf_[j] == '\n'){
 			j++;
 			break;
@@ -62,7 +63,7 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 		} 
 	}
 	for(i = 0; i < BUF_SIZE; i++){
-		kbd_buf[i] = '\0'; //reset keyboard buf
+		kbd_buf[scheduled_terminal][i] = '\0'; //reset keyboard buf
 	}
 	set_boundary();
     return counter; //number of bytes read

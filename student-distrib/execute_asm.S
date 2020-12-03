@@ -3,6 +3,7 @@
 .globl push_iret_context_test
 .globl restore_parent_data
 .globl restore_ebp_esp
+.globl save_ebp_esp
 
 restore_ebp_esp:
     #stack setup
@@ -19,6 +20,28 @@ restore_ebp_esp:
 
     leave
     ret
+
+save_ebp_esp:
+    #stack setup
+    pushl %ebp
+    movl %esp, %ebp
+
+    #push callee saved registers to stack
+    pushl %ebx
+
+    movl 8(%ebp), %ebx # address of curr_pcb->esp
+    movl 12(%ebp), %ecx # address of curr_pcb->ebp    
+
+    #save esp and ebp
+    movl %esp, 0(%ebx)
+    movl %ebp, 0(%ecx)
+    
+    #restore callee saved register
+    popl %ebx
+
+    leave
+    ret
+
 
 restore_parent_data:
     #stack setup
@@ -72,6 +95,7 @@ push_iret_context_test:
     movl 8(%ebp), %ebx # address of curr_pcb->parent_ptr->esp
     movl 12(%ebp), %ecx # address of curr_pcb->parent_ptr->ebp    
 
+    #make sure curr_pcb->parent_ptr is not null
     addl $-8, %ebx
     cmpl $0, %ebx
     je after_save
@@ -111,4 +135,3 @@ go_to_exec:
 
     leave
     ret
-

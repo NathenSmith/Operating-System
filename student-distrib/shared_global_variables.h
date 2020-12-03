@@ -31,16 +31,17 @@ typedef struct PCB {
     uint32_t ebp;
     uint8_t filename[128];
     file_entry_t file_arr[8];
+    uint32_t screen_x;
+    uint32_t screen_y;
 } PCB_t;
 
 extern PCB_t * curr_pcb;
 extern uint8_t task_name[MAX_ARG_SIZE];
 extern uint32_t entry_point;
-extern uint32_t visible_terminal;
 extern PCB_t * active_processes[3];
+extern int visible_terminal;
 extern int scheduled_terminal;
 extern int nProcesses[3];
-
 
 #endif
 

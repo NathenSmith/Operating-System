@@ -131,13 +131,6 @@ void load_program_into_memory(const uint8_t * filename) {
  *  SIDE EFFECTS: None
  */
 void create_pcb_child() {
-    // if(curr_pcb->process_id == SHELL_PID || curr_pcb->process_id == 2 || curr_pcb->process_id == 3){
-    //     curr_pcb->parentPtr = NULL;
-    // } else {
-
-    //     curr_pcb->parentPtr = START_OF_KERNEL_STACKS - (curr_pcb->process_id - 1)*SIZE_OF_KERNEL_STACK;
-    //     //
-    // }
     //initialize fda members
     int i;
     for(i = FDA_START; i < FDA_END; i++) {
@@ -146,7 +139,6 @@ void create_pcb_child() {
         curr_pcb->file_arr[i].file_pos = 0;
         curr_pcb->file_arr[i].flags = 0;
     }
-
 }
 
 /* prepare_context_switch

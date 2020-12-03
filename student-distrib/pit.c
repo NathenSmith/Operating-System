@@ -5,8 +5,8 @@
 #include "paging.h"
 
 int scheduled_terminal = 0;
+int visible_terminal = 0;
 PCB_t * active_processes[3];
-uint32_t visible_terminal = 0;
 
 void initialize_pit(){
     cli();
@@ -29,9 +29,15 @@ void pit_handler() {
 }
 
 void schedule() {   
-    //SCHEDULE
-    if(scheduled_terminal == visible_terminal) { //scheduled terminal is the same as the visible terminal
-        //set video memory
+    //save ebp and esp
+    save_ebp_esp(curr_pcb + ESP_LOCATION, curr_pcb + EBP_LOCATION);
+
+    //save cursor
+    curr_pcb->screen_x = get_x();
+    curr_pcb->screen_y = get_y(); 
+
+    //switch paging for video memory
+    if(scheduled_terminal == visible_terminal) { 
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
     }
     else {
@@ -46,30 +52,52 @@ void schedule() {
         scheduled_terminal = 0;
     }
 
+    //no need to reschedule for 0 or 1 running processes
     int x = 0;
     while(active_processes[x]) {x++;}
-    if(x <= 1) {return;} //no processes and no need to reschedule a single process
+    if(x <= 1) return; 
 
     //get curr_pcb for new process
-    curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (active_processes[scheduled_terminal]->process_id)*SIZE_OF_KERNEL_STACK);
+    curr_pcb = active_processes[scheduled_terminal];
 
-    //context switch
+    //set cursor
+    update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);
+
+    //switch paging for user program memory
     switch_task_memory();
+
+    //restore ebp and esp for newly scheduled process
     restore_ebp_esp(curr_pcb->esp, curr_pcb->ebp); 
+
+    //set TSS
     prepare_context_switch();
-       
 }
 
 void switch_terminal(uint32_t terminal_num){
     send_eoi(0x01);
-    cli();
+
+    //save cursor
+    curr_pcb->screen_x = get_x();
+    curr_pcb->screen_y = get_y(); 
+
+    //save and restore video memory
     memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
     visible_terminal = terminal_num;
-    memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);
+    memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);    
+
     if(active_processes[terminal_num] == NULL) { //if never opened terminal before
         //clear();
         execute((uint8_t *)"shell");
-    }
+    }    
+
+    //get curr_pcb for new process
+    curr_pcb = active_processes[visible_terminal];
+
+    //set cursor
+    update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);
+
+    //switch paging for user program memory
+    switch_task_memory();
 }
     
 

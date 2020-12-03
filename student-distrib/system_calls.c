@@ -55,7 +55,7 @@ int32_t halt(uint8_t status) {
  */
 
 int32_t execute(const uint8_t* command) {
-
+    cli();
     EXCEPTION = 0;
     memset(task_name, '\0', MAX_ARG_SIZE);
     memset(curr_arg, '\0', MAX_ARG_SIZE);
@@ -63,31 +63,58 @@ int32_t execute(const uint8_t* command) {
     parseString(command);
     if(checkIfExecutable(task_name) == -1) return -1;
 
+    //check to make sure total number of processes is not more than 6
     int j, max = 0;
     for(j = 0; j < 3; j++){
         max += nProcesses[j];
     }
     if(max == 6) return -1;
 
-    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nProcesses[visible_terminal] == 0){
+    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nProcesses[scheduled_terminal] == 0){
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = scheduled_terminal + 1;
-        nProcesses[visible_terminal]++;
-        curr_pcb->parentPtr = active_processes[visible_terminal];
-        active_processes[visible_terminal] = curr_pcb;
     } else {
         uint32_t newProcessId = max + 1;
         if(newProcessId >= MAX_NUMBER_OF_PAGES) return -1;
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;
-        nProcesses[scheduled_terminal]++;
-        curr_pcb->parentPtr = active_processes[scheduled_terminal];
-        active_processes[scheduled_terminal] = curr_pcb;
     }
-    
+    curr_pcb->parentPtr = (uint32_t)active_processes[scheduled_terminal];
+    nProcesses[scheduled_terminal]++;
     strncpy((int8_t *)(curr_pcb->filename), (int8_t *)task_name, strlen((int8_t *)task_name));
-    
+    active_processes[scheduled_terminal] = curr_pcb;
 
+
+    // //if executing shell for first time in a terminal
+    // if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nProcesses[visible_terminal] == 0) {
+
+    //     //set curr_pcb's location based on which terminal the shell is executing on.
+    //     //visible_terminal = 0 corresponds to location 8MB - 8KB.
+    //     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (visible_terminal + 1)*SIZE_OF_KERNEL_STACK);
+
+    //     //visible terminal = 0 corresponds to process_id = 1.
+    //     curr_pcb->process_id = visible_terminal + 1;
+    // }
+
+    // //else if executing shell for the second or more time or executing another user program 
+    // else {
+    //     //set curr_pcb and it's process_id
+    //     uint32_t newProcessId = max + 1;
+    //     curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
+    //     curr_pcb->process_id = newProcessId;
+    // }
+
+    // //update number of processes for current terminal
+    // nProcesses[visible_terminal]++;
+
+    // //first set parentPtr to old active process for current terminal, 
+    // //then update active process for current terminal
+    // curr_pcb->parentPtr = (uint32_t)active_processes[visible_terminal];
+    // active_processes[visible_terminal] = curr_pcb;
+    
+    // //set filename
+    // strncpy((int8_t *)(curr_pcb->filename), (int8_t *)task_name, strlen((int8_t *)task_name));
+    
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;
     curr_pcb->file_arr[0].inode_num = 0;

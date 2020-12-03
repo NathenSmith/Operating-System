@@ -1,10 +1,12 @@
 #include "keyboard.h"
 #include "pit.h"
+#include "shared_global_variables.h"
 
 /* SOURCES:  https://wiki.osdev.org/PS/2_Keyboard
     some code from Linux documentation of PS/2 Keyboard
 */
-static int buf_counter = 0;
+static int buf_counter[3] = {0, 0, 0};
+
 //buf_counter = 0;
 //static int scroll_flag = 0;
 static uint8_t check_if_letter(char index);
@@ -284,11 +286,11 @@ static char check_if_symbol(char index){
  * Return value: none
  */ 
 void add_to_kdb_buf(char c){
-    if(buf_counter >= BUF_SIZE) return;
-    kbd_buf[buf_counter] = c;
-    buf_counter++;
+    if(buf_counter[visible_terminal] >= BUF_SIZE) return;
+    kbd_buf[visible_terminal][buf_counter[visible_terminal]] = c;
+    buf_counter[visible_terminal]++;
     putc(c);
-    if(c == '\n') buf_counter = 0;      
+    if(c == '\n') buf_counter[visible_terminal] = 0;    
 }
 
 /* backspace_buffer
@@ -301,8 +303,8 @@ void add_to_kdb_buf(char c){
  */ 
 void backspace_buffer(){
     backspace();
-    if(buf_counter > 0){ 
-        buf_counter--;
-        kbd_buf[buf_counter] = '\0';
+    if(buf_counter[visible_terminal] > 0){ 
+        buf_counter[visible_terminal]--;
+        kbd_buf[visible_terminal][buf_counter[visible_terminal]] = '\0';
     }
 }

@@ -10,7 +10,8 @@
 #define ALT_STATE    3
 
 #include "i8259.h"
-char kbd_buf[128];
+char kbd_buf[3][128];
+
 //int buf_counter;
 
 
