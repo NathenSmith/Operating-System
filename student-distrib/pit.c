@@ -83,7 +83,10 @@ void switch_terminal(uint32_t terminal_num){
     //save and restore video memory
     memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
     visible_terminal = terminal_num;
-    memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);    
+    memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);  
+
+    //set cursor
+    update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);  
 
     if(active_processes[terminal_num] == NULL) { //if never opened terminal before
         //clear();
@@ -92,9 +95,6 @@ void switch_terminal(uint32_t terminal_num){
 
     //get curr_pcb for new process
     curr_pcb = active_processes[visible_terminal];
-
-    //set cursor
-    update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);
 
     //switch paging for user program memory
     switch_task_memory();

@@ -172,6 +172,9 @@ void entry(unsigned long magic, unsigned long addr) {
     sti();
 
     execute((uint8_t *)"shell");
+    switch_terminal(1);
+    switch_terminal(2);
+    switch_terminal(0);
 
 
 #ifdef RUN_TESTS
