@@ -4,8 +4,8 @@
 #include "execute.h"
 #include "paging.h"
 
-int scheduled_terminal = -1;
-int visible_terminal = -1;
+int scheduled_terminal = 0;
+int visible_terminal = 0;
 int x = 0;
 PCB_t * active_processes[3];
 
@@ -30,19 +30,20 @@ void pit_handler() {
 }
 
 void schedule() {
-
+    save_ebp_esp((uint32_t)curr_pcb + ESP2_LOCATION, (uint32_t)curr_pcb + EBP2_LOCATION);
     if(total_processes < 3) {
-        visible_terminal++;
         scheduled_terminal++;
+        memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
+        visible_terminal++;
+        memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), 0x1000); 
         execute((uint8_t *)"shell");
     }
 
     if(x == 0) {
         visible_terminal = 0;
+        scheduled_terminal = 0;
         x = 1;
-    }
-        
-    save_ebp_esp((uint32_t)curr_pcb + ESP2_LOCATION, (uint32_t)curr_pcb + EBP2_LOCATION);
+    }        
 
     //save cursor
     curr_pcb->screen_x = get_x();
@@ -93,13 +94,13 @@ void switch_terminal(uint32_t terminal_num){
     memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);    
 
     //get curr_pcb for new process
-    curr_pcb = active_processes[visible_terminal];
+    //curr_pcb = active_processes[visible_terminal];
 
     //set cursor
-    update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);
+    //update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);
 
     //switch paging for user program memory
-    switch_task_memory();
+    //switch_task_memory();
 }
     
 
