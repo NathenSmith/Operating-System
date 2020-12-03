@@ -151,7 +151,6 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Init the PIC */
     //enable irq for kbd, rtc
-    initialize_pit();
     i8259_init();
 
     setup_idt();
@@ -170,8 +169,9 @@ void entry(unsigned long magic, unsigned long addr) {
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
     sti();
+    initialize_pit();
 
-    execute((uint8_t *)"shell");
+
 
 
 #ifdef RUN_TESTS

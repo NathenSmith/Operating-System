@@ -4,8 +4,9 @@
 #include "execute.h"
 #include "paging.h"
 
-int scheduled_terminal = 0;
-int visible_terminal = 0;
+int scheduled_terminal = -1;
+int visible_terminal = -1;
+int x = 0;
 PCB_t * active_processes[3];
 
 void initialize_pit(){
@@ -28,9 +29,20 @@ void pit_handler() {
     send_eoi(0x0);
 }
 
-void schedule() {   
-    //save ebp and esp
-    save_ebp_esp(curr_pcb + ESP_LOCATION, curr_pcb + EBP_LOCATION);
+void schedule() {
+
+    if(total_processes < 3) {
+        visible_terminal++;
+        scheduled_terminal++;
+        execute((uint8_t *)"shell");
+    }
+
+    if(x == 0) {
+        visible_terminal = 0;
+        x = 1;
+    }
+        
+    save_ebp_esp((uint32_t)curr_pcb + ESP2_LOCATION, (uint32_t)curr_pcb + EBP2_LOCATION);
 
     //save cursor
     curr_pcb->screen_x = get_x();
@@ -48,14 +60,9 @@ void schedule() {
     scheduled_terminal++;
 
     //if done with all active processes, go to start of active proceses
-    if((scheduled_terminal >= 3) || (active_processes[scheduled_terminal] == NULL)) {
+    if((scheduled_terminal == 3) || (active_processes[scheduled_terminal] == NULL)) {
         scheduled_terminal = 0;
     }
-
-    //no need to reschedule for 0 or 1 running processes
-    int x = 0;
-    while(active_processes[x]) {x++;}
-    if(x <= 1) return; 
 
     //get curr_pcb for new process
     curr_pcb = active_processes[scheduled_terminal];
@@ -67,7 +74,7 @@ void schedule() {
     switch_task_memory();
 
     //restore ebp and esp for newly scheduled process
-    restore_ebp_esp(curr_pcb->esp, curr_pcb->ebp); 
+    restore_ebp_esp(curr_pcb->esp2, curr_pcb->ebp2); 
 
     //set TSS
     prepare_context_switch();
@@ -84,11 +91,6 @@ void switch_terminal(uint32_t terminal_num){
     memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
     visible_terminal = terminal_num;
     memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);    
-
-    if(active_processes[terminal_num] == NULL) { //if never opened terminal before
-        //clear();
-        execute((uint8_t *)"shell");
-    }    
 
     //get curr_pcb for new process
     curr_pcb = active_processes[visible_terminal];

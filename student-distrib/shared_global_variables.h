@@ -3,6 +3,8 @@
 
 #define MAX_ARG_SIZE 128
 #define VID_MEM_PAGE 0x1000
+#define ESP2_LOCATION 16
+#define EBP2_LOCATION 20
 
 int EXCEPTION;
 uint8_t curr_arg[MAX_ARG_SIZE];
@@ -29,6 +31,8 @@ typedef struct PCB {
     uint32_t process_id; //process_id is 1 for shell
     uint32_t esp;
     uint32_t ebp;
+    uint32_t esp2;
+    uint32_t ebp2;
     uint8_t filename[128];
     file_entry_t file_arr[8];
     uint32_t screen_x;
@@ -42,6 +46,7 @@ extern PCB_t * active_processes[3];
 extern int visible_terminal;
 extern int scheduled_terminal;
 extern int nProcesses[3];
+extern int total_processes;
 
 #endif
 
