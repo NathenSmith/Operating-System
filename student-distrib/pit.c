@@ -30,6 +30,9 @@ void pit_handler() {
 }
 
 void schedule() {
+    if(total_processes == 0){
+        execute((uint8_t *)"shell");            
+    }
     save_ebp_esp((uint32_t)curr_pcb + ESP2_LOCATION, (uint32_t)curr_pcb + EBP2_LOCATION);
     if(total_processes < 3) {
         scheduled_terminal++;

@@ -164,13 +164,16 @@ void entry(unsigned long magic, unsigned long addr) {
     clear();    
     //update_cursor(0,0);
     initialize_keyboard();
+
+    initialize_pit();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
+    //execute("shell");
     sti();
-    execute("shell");
-    initialize_pit();
+    
+    
 
 
 
