@@ -35,7 +35,7 @@ void schedule() {
     if(total_processes < 3) {
         
         memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(scheduled_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
-        //visible_terminal++;
+        visible_terminal++;
         scheduled_terminal++;
         memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(scheduled_terminal + 1)))), 0x1000); 
         execute((uint8_t *)"shell");
@@ -56,7 +56,7 @@ void schedule() {
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
     }
     else {
-        pageTable[VIDEO_MEMORY_IDX >> 12] = VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)) | 0x003);
+        pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
     }
 
     //increment scheduled terminal number

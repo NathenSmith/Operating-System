@@ -27,10 +27,12 @@ save_eip:
 # side effects: none.
 
 isr_wrapper20:
+    cli
     movl %esp, save_eip
     pushal
     call pit_handler
     popal
+    sti
     iret
 
 # isr_wrapper21
@@ -108,9 +110,11 @@ isr_wrapper27:
 # side effects: disables interrupts during call.
 
 isr_wrapper28:
+    cli
     pushal
     call rtc_handler
     popal
+    sti
     iret
 
 # isr_wrapper29

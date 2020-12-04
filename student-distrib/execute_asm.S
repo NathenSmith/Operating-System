@@ -124,7 +124,7 @@ after_save:
     movl 16(%ebp), %ecx #eip
     pushl %ebx
     pushl %ecx
-
+    sti
     iret
 
 go_to_exec:
