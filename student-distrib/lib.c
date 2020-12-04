@@ -3,6 +3,7 @@
 
 #include "lib.h"
 #include "terminal.h"
+#include "shared_global_variables.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -202,8 +203,14 @@ void putc(uint8_t c) {
         update_cursor(screen_x, screen_y);
         terminal_flag = 1;
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        //if(visible_terminal == scheduled_terminal){ //write to video mem
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        // } else{ //save in backup
+        //     *(uint8_t *)(video_mem + (0x1000 * (visible_terminal + 1)) + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        //     *(uint8_t *)(video_mem + (0x1000 * (visible_terminal + 1)) + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        // }
+        
         screen_x++;
         if(screen_x == NUM_COLS) {screen_y++;}
         else {screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;}

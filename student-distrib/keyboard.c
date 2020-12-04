@@ -286,10 +286,14 @@ static char check_if_symbol(char index){
  * Return value: none
  */ 
 void add_to_kdb_buf(char c){
-    if(buf_counter[visible_terminal] >= BUF_SIZE) return;
+    if(buf_counter[visible_terminal] >= BUF_SIZE - 1 && c != '\n') return; //when reach max, dont add
+    //but allow for a newline to be
     kbd_buf[visible_terminal][buf_counter[visible_terminal]] = c;
     buf_counter[visible_terminal]++;
+    
     putc(c);
+    
+    
     if(c == '\n') buf_counter[visible_terminal] = 0;    
 }
 

@@ -50,6 +50,7 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
  * Return value: number of bytes written
  */ 
 int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
+	//write to scheduled terminal
 	if(buf == NULL || nbytes <= 0) return -1; //no bytes to read
 	uint32_t i, counter = 0;
 

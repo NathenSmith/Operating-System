@@ -10,7 +10,6 @@ int x = 0;
 PCB_t * active_processes[3];
 
 void initialize_pit(){
-    cli();
     outb(0x36, 0x43);		// enable mode 3
     // outb(0x00110110, 0x43);
     outb(11905 & 0x000000FF, 0x40); //low byte
@@ -19,7 +18,6 @@ void initialize_pit(){
     for(j = 0; j < 3; j++) {
         active_processes[j] = NULL;
     }
-    sti();
     enable_irq(0x0); //irq is zero
 }
 
@@ -35,16 +33,17 @@ void schedule() {
     }
     save_ebp_esp((uint32_t)curr_pcb + ESP2_LOCATION, (uint32_t)curr_pcb + EBP2_LOCATION);
     if(total_processes < 3) {
+        
+        memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(scheduled_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
+        //visible_terminal++;
         scheduled_terminal++;
-        memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
-        visible_terminal++;
-        memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), 0x1000); 
+        memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(scheduled_terminal + 1)))), 0x1000); 
         execute((uint8_t *)"shell");
     }
 
     if(x == 0) {
         visible_terminal = 0;
-        scheduled_terminal = 0;
+        scheduled_terminal = 0; //start on first terminal
         x = 1;
     }        
 
@@ -57,14 +56,13 @@ void schedule() {
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
     }
     else {
-        pageTable[VIDEO_MEMORY_IDX >> 12] = VIDEO_MEMORY_IDX + ((0x1000*(scheduled_terminal + 1)) | 0x003);
+        pageTable[VIDEO_MEMORY_IDX >> 12] = VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)) | 0x003);
     }
 
     //increment scheduled terminal number
     scheduled_terminal++;
-
     //if done with all active processes, go to start of active proceses
-    if((scheduled_terminal == 3) || (active_processes[scheduled_terminal] == NULL)) {
+    if(scheduled_terminal == 3) {
         scheduled_terminal = 0;
     }
 
@@ -85,8 +83,8 @@ void schedule() {
 }
 
 void switch_terminal(uint32_t terminal_num){
-    send_eoi(0x01);
-
+    
+    
     //save cursor
     curr_pcb->screen_x = get_x();
     curr_pcb->screen_y = get_y(); 
@@ -95,13 +93,13 @@ void switch_terminal(uint32_t terminal_num){
     memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
     visible_terminal = terminal_num;
     memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);    
-
+    
     //get curr_pcb for new process
     //curr_pcb = active_processes[visible_terminal];
 
     //set cursor
-    //update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);
-
+    update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);
+    send_eoi(0x01);
     //switch paging for user program memory
     //switch_task_memory();
 }

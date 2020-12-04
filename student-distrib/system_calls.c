@@ -69,7 +69,7 @@ int32_t execute(const uint8_t* command) {
 
     //if executing shell for first time in a terminal
     if(total_processes < 3) {
-        cli();
+        // cli();
         send_eoi(0x00);
 
         //set curr_pcb's location based on which terminal the shell is executing on.

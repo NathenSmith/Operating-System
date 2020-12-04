@@ -40,9 +40,11 @@ isr_wrapper20:
 # side effects: disables interrupts during call.
 
 isr_wrapper21:
+    cli
     pushal
     call key_board_handler
     popal
+    sti
     iret
 
 # isr_wrapper22
