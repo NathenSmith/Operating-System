@@ -47,6 +47,7 @@ extern int visible_terminal;
 extern int scheduled_terminal;
 extern int nProcesses[3];
 extern int total_processes;
+extern int terminal_write_flag;
 
 #endif
 

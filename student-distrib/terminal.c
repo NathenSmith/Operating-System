@@ -1,7 +1,7 @@
 #include "terminal.h"
 #include "lib.h"
 #include "shared_global_variables.h"
-
+int terminal_write_flag = 0;
 /* terminal_read
  * 
  * Description: Copies from keyboard buffer to terminal buffer the appropriate characters while maintaining the limit.
@@ -20,8 +20,8 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
 	for(i = 0; i < BUF_SIZE; i++){
 		buf_[i] = '\0';
 	}
-	terminal_flag = 0;
-	while(!terminal_flag){
+	terminal_flag[visible_terminal] = 0;
+	while(!terminal_flag[visible_terminal]){
 		//wait for newline to be entered
 	}
 	int32_t j = 0;
@@ -37,7 +37,7 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
 		j++; //not newline
 		
 	}
-	terminal_flag = 0; //resets the flag to accept another newline
+	terminal_flag[visible_terminal] = 0; //resets the flag to accept another newline
 	return j; //returns number of bytes
 }
 
@@ -52,6 +52,9 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
 int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	//write to scheduled terminal
 	if(buf == NULL || nbytes <= 0) return -1; //no bytes to read
+
+	//pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+
 	uint32_t i, counter = 0;
 
 	char * buf_ = (char *)buf;
@@ -59,10 +62,12 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	for(i = 0; i < nbytes; i++){
 		//if(i == BUF_SIZE) break; //iterates until reaches max size of buffer or the number of bytes
 		if(buf_[i] != '\0'){ //will ignore NULL
+			terminal_write_flag = 1;
 			putc(buf_[i]); //write to screen
 			counter++;
 		} 
 	}
+	terminal_write_flag = 0;
 	for(i = 0; i < BUF_SIZE; i++){
 		kbd_buf[scheduled_terminal][i] = '\0'; //reset keyboard buf
 	}

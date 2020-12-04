@@ -52,12 +52,12 @@ void schedule() {
     curr_pcb->screen_y = get_y(); 
 
     //switch paging for video memory
-    if(scheduled_terminal == visible_terminal) { 
+    //if(scheduled_terminal == visible_terminal) { 
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
-    }
-    else {
-        pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
-    }
+    //}
+    // else {
+    //     //pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+    // }
 
     //increment scheduled terminal number
     scheduled_terminal++;

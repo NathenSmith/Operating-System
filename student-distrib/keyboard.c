@@ -293,7 +293,6 @@ void add_to_kdb_buf(char c){
     
     putc(c);
     
-    
     if(c == '\n') buf_counter[visible_terminal] = 0;    
 }
 

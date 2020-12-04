@@ -201,15 +201,15 @@ void putc(uint8_t c) {
         else {screen_y++;}
         screen_x = 0;
         update_cursor(screen_x, screen_y);
-        terminal_flag = 1;
+        terminal_flag[visible_terminal] = 1;
     } else {
-        if(visible_terminal == scheduled_terminal){ //write to video mem
+        //if(visible_terminal == scheduled_terminal){ //write to video mem
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        } else{ //save in backup
-            *(uint8_t *)(video_mem + (0x1000 * (visible_terminal + 1)) + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-            *(uint8_t *)(video_mem + (0x1000 * (visible_terminal + 1)) + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        }
+        // }else if(terminal_write_flag == 1){ //print to scheduled backup
+        //     *(uint8_t *)(video_mem + (0x1000 * (scheduled_terminal + 1)) + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        //     *(uint8_t *)(video_mem + (0x1000 * (scheduled_terminal + 1)) + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        // }
         
         screen_x++;
         if(screen_x == NUM_COLS) {screen_y++;}
