@@ -94,7 +94,7 @@ uint32_t checkIfExecutable(uint8_t * str) {
  *  SIDE EFFECTS: Flushes the TLB.
  */
  void switch_task_memory() {
-    uint32_t task_memory = START_OF_KERNEL_STACKS + (curr_pcb->process_id-1) * MEMORY_SIZE_PROCESS; // task memory is a 4 MB page, 128MB in virtual memory
+    uint32_t task_memory = START_OF_KERNEL_STACKS + ((curr_pcb->process_id)-1) * MEMORY_SIZE_PROCESS; // task memory is a 4 MB page, 128MB in virtual memory
     pageDirectory[VIRTUAL_START] = task_memory | PAGING_FLAGS; //for pid = 1, page directory will be at 8MB   
     flush_tlb(); //Flush TLB every time page directory is switched.
 }
