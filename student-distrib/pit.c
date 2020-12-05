@@ -53,23 +53,23 @@ void schedule() {
         curr_pcb->screen_y = get_y();
     }     
 
-    //switch paging for video memory
-    if(scheduled_terminal == visible_terminal) { 
-        pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
-        paging_scheme = 0;
-    }
-    else {
-        pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
-        paging_scheme = scheduled_terminal + 1;
-    }
-    flush_tlb();
-
     //increment scheduled terminal number
     scheduled_terminal++;
     //if done with all active processes, go to start of active proceses
     if(scheduled_terminal == 3) {
         scheduled_terminal = 0;
     }
+
+    // //switch paging for video memory
+    // if(scheduled_terminal == visible_terminal) { 
+    //     pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+    //     paging_scheme = 0;
+    // }
+    // else {
+    //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+    //     paging_scheme = scheduled_terminal + 1;
+    // }
+    // flush_tlb();
 
     //get curr_pcb for new process
     curr_pcb = active_processes[scheduled_terminal];

@@ -1,6 +1,8 @@
 #include "terminal.h"
 #include "lib.h"
 #include "shared_global_variables.h"
+#include "paging.h"
+#include "execute.h"
 int terminal_write_flag = 0;
 /* terminal_read
  * 
@@ -54,6 +56,17 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	if(buf == NULL || nbytes <= 0) return -1; //no bytes to read
 
 	//pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+
+	// //switch paging for video memory
+    // if(scheduled_terminal == visible_terminal) { 
+    //     pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+    //     //paging_scheme = 0;
+    // }
+    // else {
+    //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+    //     //paging_scheme = scheduled_terminal + 1;
+    // }
+    // flush_tlb();
 
 	uint32_t i, counter = 0;
 

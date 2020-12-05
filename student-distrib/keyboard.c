@@ -39,8 +39,8 @@ void initialize_keyboard(){
 }
 
 void restore_original_paging () {
-    pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(paging_scheme))) | 0x003);
-    flush_tlb();
+    //pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(paging_scheme))) | 0x003);
+    //flush_tlb();
 }
  
 /* key_board_handler

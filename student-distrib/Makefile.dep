@@ -24,7 +24,7 @@ system_calls.o: system_calls.c execute.h lib.h types.h \
   shared_global_variables.h filesystem.h rtc.h terminal.h keyboard.h \
   i8259.h system_calls.h paging.h x86_desc.h
 terminal.o: terminal.c terminal.h keyboard.h i8259.h types.h lib.h \
-  shared_global_variables.h
+  shared_global_variables.h paging.h x86_desc.h execute.h
 tests.o: tests.c tests.h filesystem.h lib.h types.h \
   shared_global_variables.h x86_desc.h rtc.h terminal.h keyboard.h \
   i8259.h
