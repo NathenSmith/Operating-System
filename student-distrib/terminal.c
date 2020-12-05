@@ -4,6 +4,7 @@
 #include "paging.h"
 #include "execute.h"
 int terminal_write_flag = 0;
+volatile int terminal_flag[3] = {0,0,0};
 /* terminal_read
  * 
  * Description: Copies from keyboard buffer to terminal buffer the appropriate characters while maintaining the limit.
@@ -59,15 +60,6 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	//switch paging for video memory
 	// active_processes[scheduled_terminal]->screen_x = get_x();
 	// active_processes[scheduled_terminal]->screen_y = get_y();
-    if(scheduled_terminal == visible_terminal) { 
-        pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
-        //paging_scheme = 0;
-    }
-    else {
-        pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
-        //paging_scheme = scheduled_terminal + 1;
-    }
-    flush_tlb();
 
 	uint32_t i, counter = 0;
 

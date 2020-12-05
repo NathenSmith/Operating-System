@@ -59,7 +59,7 @@ void schedule() {
     scheduled_terminal = (scheduled_terminal + 1) % 3;
     //if done with all active processes, go to start of active proceses
     
-    // //switch paging for video memory
+    // // //switch paging for video memory
     // if(scheduled_terminal == visible_terminal) { 
     //     pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
     //     paging_scheme = 0;

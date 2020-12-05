@@ -3,6 +3,7 @@
 #include "shared_global_variables.h"
 #include "paging.h"
 #include "execute.h"
+#include "terminal.h"
 
 /* SOURCES:  https://wiki.osdev.org/PS/2_Keyboard
     some code from Linux documentation of PS/2 Keyboard
@@ -186,6 +187,12 @@ void key_board_handler(){ //changing kernel stack must fix
     else if(read == 0X0E){
         backspace_buffer();
         restore_original_paging();
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+    //0x1C, scancode for enter
+    else if(read == 0x1C){
+        terminal_flag[visible_terminal] = 1;
         send_eoi(KEYBOARD_IRQ);
         return;
     }

@@ -4,6 +4,8 @@
 #include "lib.h"
 #include "terminal.h"
 #include "shared_global_variables.h"
+#include "paging.h"
+#include "execute.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -198,13 +200,35 @@ void update_cursor(int x, int y)
 void putc(uint8_t c) {
     // active_processes[scheduled_terminal]->screen_x = get_x();
     // active_processes[scheduled_terminal]->screen_y = get_y();
+    if(terminal_write_flag == 1){
+        if(scheduled_terminal == visible_terminal) { 
+            pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+            //paging_scheme = 0;
+        }
+        else {
+            pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+            //paging_scheme = scheduled_terminal + 1;
+        }
+        flush_tlb();
+    }
+    else{
+        //if(scheduled_terminal == visible_terminal) { 
+            pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+            //paging_scheme = 0;
+        //
+        // else {
+        //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(visible_terminal + 1))) | 0x003);
+        //     //paging_scheme = scheduled_terminal + 1;
+        // }
+        flush_tlb();
+    }
     if(c == '\n' || c == '\r') {
         if(scheduled_terminal == visible_terminal){
             if(screen_y == NUM_ROWS-1) {scroll_up();}
             else {screen_y++;}
             screen_x = 0;
             update_cursor(screen_x, screen_y);
-            terminal_flag[visible_terminal] = 1;
+           
         }
         
     } else {

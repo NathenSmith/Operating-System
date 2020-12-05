@@ -49,6 +49,7 @@ extern int nProcesses[3];
 extern int total_processes;
 extern int terminal_write_flag;
 extern int paging_scheme;
+extern volatile int terminal_flag[3];
 
 #endif
 
