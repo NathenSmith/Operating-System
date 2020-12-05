@@ -203,7 +203,9 @@ void putc(uint8_t c) {
         update_cursor(screen_x, screen_y);
         terminal_flag[visible_terminal] = 1;
     } else {
-        //if(visible_terminal == scheduled_terminal){ //write to video mem
+        screen_x = curr_pcb->screen_x;
+        screen_y = curr_pcb->screen_y;
+        // if(visible_terminal == scheduled_terminal){ //write to video mem
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         // }else if(terminal_write_flag == 1){ //print to scheduled backup

@@ -88,8 +88,6 @@ int32_t execute(const uint8_t* command) {
         curr_pcb->process_id = newProcessId;
     }
 
-    save_ebp_esp(curr_pcb + ESP2_LOCATION, curr_pcb + EBP2_LOCATION);
-
     //update number of processes for current terminal
     nProcesses[scheduled_terminal]++;
     total_processes++;

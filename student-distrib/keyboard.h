@@ -20,4 +20,6 @@ extern void initialize_keyboard();
 extern void key_board_handler();
 extern void add_to_kdb_buf(char c);
 extern void backspace_buffer();
+extern void restore_original_paging();
+
 

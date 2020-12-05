@@ -33,10 +33,10 @@ typedef struct PCB {
     uint32_t ebp;
     uint32_t esp2;
     uint32_t ebp2;
-    uint8_t filename[128];
-    file_entry_t file_arr[8];
     uint32_t screen_x;
     uint32_t screen_y;
+    uint8_t filename[128];
+    file_entry_t file_arr[8];
 } PCB_t;
 
 extern PCB_t * curr_pcb;
@@ -48,6 +48,7 @@ extern int scheduled_terminal;
 extern int nProcesses[3];
 extern int total_processes;
 extern int terminal_write_flag;
+extern int paging_scheme;
 
 #endif
 
