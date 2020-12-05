@@ -45,6 +45,8 @@ void schedule() {
     save_ebp_esp((uint32_t)curr_pcb + ESP2_LOCATION, (uint32_t)curr_pcb + EBP2_LOCATION);
 
     if(calls_to_schedule == 4) {
+        //printf("test");
+        //calls_to_schedule++;
         switch_terminal(0, 1);
     }
     else {
@@ -78,6 +80,7 @@ void schedule() {
 
     //get curr_pcb for new process
     curr_pcb = active_processes[scheduled_terminal];
+    // printf("curr_pcb: %d\n", curr_pcb);
 
     //set cursor 
     if(calls_to_schedule != 4) {
@@ -87,11 +90,11 @@ void schedule() {
     //switch paging for user program memory
     switch_task_memory();
 
-    //restore ebp and esp for newly scheduled process
-    restore_ebp_esp(curr_pcb->esp2, curr_pcb->ebp2); 
-
     //set TSS
     prepare_context_switch();
+
+    //restore ebp and esp for newly scheduled process
+    restore_ebp_esp(curr_pcb->esp2, curr_pcb->ebp2); 
 }
 
 void switch_terminal(uint32_t terminal_num, int state){
