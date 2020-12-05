@@ -56,8 +56,9 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	if(buf == NULL || nbytes <= 0) return -1; //no bytes to read
 
 	//pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
-
 	//switch paging for video memory
+	// active_processes[scheduled_terminal]->screen_x = get_x();
+	// active_processes[scheduled_terminal]->screen_y = get_y();
     if(scheduled_terminal == visible_terminal) { 
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
         //paging_scheme = 0;

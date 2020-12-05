@@ -10,7 +10,7 @@ restore_ebp_esp:
     movl 8(%esp), %ebp # curr_pcb->ebp
     movl 4(%esp), %esp # curr_pcb->esp
 
-    leave
+    leave #restore frame to before schedule is called
     ret
 
 save_ebp_esp:
