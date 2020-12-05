@@ -59,6 +59,11 @@ void schedule() {
     if(scheduled_terminal == 3) {
         scheduled_terminal = 0;
     }
+    if(calls_to_schedule == 4) {
+        printf("scheduled terminal: %d", scheduled_terminal);
+        printf("visible terminal: %d", visible_terminal);
+    }
+
 
     // //switch paging for video memory
     // if(scheduled_terminal == visible_terminal) { 
