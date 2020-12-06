@@ -217,7 +217,7 @@ void key_board_handler(){ //changing kernel stack must fix
     else if(read == 0x1C){
         add_to_kdb_buf(scan_codes[read]);
         send_eoi(KEYBOARD_IRQ);
-        terminal_flag[visible_terminal] = 1;
+        entered_flag[visible_terminal] = 1;
         //goes to terminal read
         return;
     }
@@ -346,15 +346,14 @@ static char check_if_symbol(char index){
  * Return value: none
  */ 
 void add_to_kdb_buf(char c){
-    //enter now sets flag on terminal_flag[visible]
+    //enter now sets flag on entered_flag[visible]
     if(buf_counter[visible_terminal] >= BUF_SIZE - 1 && c != '\n') return; //when reach max, dont add
     //but allow for a newline to be
     kbd_buf[visible_terminal][buf_counter[visible_terminal]] = c;
     buf_counter[visible_terminal]++;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     putc(c);
-    // active_processes[visible_terminal]->screen_x = get_x();
-	// active_processes[visible_terminal]->screen_y = get_y();
+    
     if(c == '\n') buf_counter[visible_terminal] = 0;    
 }
 

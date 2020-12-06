@@ -50,8 +50,7 @@ extern int nProcesses[3];
 extern int total_processes;
 extern int terminal_write_flag[3];
 extern int paging_scheme;
-extern volatile int terminal_flag[3];
+extern volatile int entered_flag[3];
 
 
 #endif
-

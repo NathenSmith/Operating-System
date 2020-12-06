@@ -191,6 +191,9 @@ void update_cursor(int x, int y)
 	outb((uint8_t) (pos & 0xFF), 0x3D5);
 	outb(0x0E, 0x3D4);
 	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+
+    screen_x = x;
+    screen_y = y;
 }
 
 /* void putc(uint8_t c);
@@ -273,7 +276,9 @@ void putc(uint8_t c) {
 void putcTerminalW(uint8_t c){
     while(terminal_write_flag[scheduled_terminal] == 0){
         //no clue why this sorta works
+        //return;
     }
+    //update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);   
     if(scheduled_terminal == visible_terminal) { 
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
         //pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(visible_terminal + 1))) | 0x003);
@@ -285,6 +290,7 @@ void putcTerminalW(uint8_t c){
     else if(scheduled_terminal != visible_terminal && terminal_write_flag[scheduled_terminal] == 1){
         //save to scheduled backup
         pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+        //update_cursor(active_processes[scheduled_terminal]->screen_x, active_processes[scheduled_terminal]->screen_y);
     }
     flush_tlb();
     
