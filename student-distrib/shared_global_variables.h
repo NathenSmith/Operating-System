@@ -5,7 +5,7 @@
 #define VID_MEM_PAGE 0x1000
 #define ESP2_LOCATION 16
 #define EBP2_LOCATION 20
-#define SCHEDULE_ENABLE 0
+#define SCHEDULE_ENABLE 1
 
 int EXCEPTION;
 uint8_t curr_arg[MAX_ARG_SIZE];

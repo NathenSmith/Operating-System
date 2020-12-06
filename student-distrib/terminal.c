@@ -59,19 +59,23 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	uint32_t i, counter = 0;
 	char * buf_ = (char *)buf;
-	// if(scheduled_terminal == visible_terminal){
-	// 	//write to screen
-	// 	putcTerminalW();
-	// }
-	// else{
-	// 	//putc to backup
-	// }
+	if(scheduled_terminal == visible_terminal){
+		//write to screen
+		//putcTerminalW();
+		pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); 
+	}
+	else{
+		// active_processes[visible_terminal]->screen_x = get_x();
+		// active_processes[visible_terminal]->screen_y = get_y();
+		pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+		//putc to backup
+	}
+	flush_tlb();
 	//pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
 	//switch paging for video memory
 	// active_processes[scheduled_terminal]->screen_x = get_x();
 	// active_processes[scheduled_terminal]->screen_y = get_y();
 
-	
 
 	for(i = 0; i < nbytes; i++){
 		//if(i == BUF_SIZE) break; //iterates until reaches max size of buffer or the number of bytes
@@ -88,8 +92,8 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 		kbd_buf[visible_terminal][i] = '\0'; //reset keyboard buf
 	}
 	set_boundary();
-	curr_pcb->screen_x = get_x();
-	curr_pcb->screen_y = get_y();
+	//curr_pcb->screen_x = get_x();
+	//curr_pcb->screen_y = get_y();
     return counter; //number of bytes read
 }
 /* terminal_open

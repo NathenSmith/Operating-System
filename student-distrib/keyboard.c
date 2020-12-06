@@ -353,7 +353,8 @@ void add_to_kdb_buf(char c){
     buf_counter[visible_terminal]++;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     putc(c);
-    
+    // active_processes[visible_terminal]->screen_x = get_x();
+	// active_processes[visible_terminal]->screen_y = get_y();
     if(c == '\n') buf_counter[visible_terminal] = 0;    
 }
 
