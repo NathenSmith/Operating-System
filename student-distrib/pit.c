@@ -90,8 +90,8 @@ void schedule() {
 
 void switch_terminal(uint32_t terminal_num, int state){
     //save cursor
-    active_processes[visible_terminal]->screen_x = get_x();
-    active_processes[visible_terminal]->screen_y = get_y(); 
+    // active_processes[visible_terminal]->screen_x = get_x();
+    // active_processes[visible_terminal]->screen_y = get_y(); 
 
     //save and restore video memory
     memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
@@ -103,10 +103,10 @@ void switch_terminal(uint32_t terminal_num, int state){
     //set cursor
     if(state == 0) {
         //for first 3 shells
-        update_cursor(0, 0);
+        update_cursor(0, 0, 0);
     }
     else {
-        update_cursor(active_processes[visible_terminal]->screen_x, active_processes[visible_terminal]->screen_y);
+        update_cursor(get_x(visible_terminal), get_y(visible_terminal), 0);
     }
     // restore_original_paging();
     send_eoi(0x01);

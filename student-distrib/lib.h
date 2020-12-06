@@ -12,11 +12,11 @@ void test_interrupts(void);
 void backspace();
 void scroll_up();
 void set_boundary();
-int get_x();
-int get_y();
+int get_x(int i);
+int get_y(int i);
 
 int32_t printf(int8_t *format, ...);
-extern void update_cursor(int x, int y);
+extern void update_cursor(int x, int y, int b);
 void putc(uint8_t c);
 void putcTerminalW(uint8_t c);
 int32_t puts(int8_t *s);

@@ -75,6 +75,7 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 		if(buf_[i] != '\0'){ //will ignore NULL
 			//terminal_write_flag = 1;
 			putcTerminalW(buf_[i]);
+			
 			//putcTerminalW(buf_[i]); //write to screen
 			counter++;
 		} 
@@ -85,8 +86,9 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 		kbd_buf[visible_terminal][i] = '\0'; //reset keyboard buf
 	}
 	set_boundary();
-	curr_pcb->screen_x = get_x();
-	curr_pcb->screen_y = get_y();
+	// curr_pcb->screen_x = get_x();
+	// curr_pcb->screen_y = get_y();
+	
     return counter; //number of bytes read
 }
 /* terminal_open
