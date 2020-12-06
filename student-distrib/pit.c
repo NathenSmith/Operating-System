@@ -85,9 +85,9 @@ void schedule() {
     //set TSS
     prepare_context_switch();
     //set cursor 
-    if(calls_to_schedule != 4) {
-        update_cursor(active_processes[visible_terminal]->screen_x, active_processes[visible_terminal]->screen_y);
-    }
+    // if(calls_to_schedule != 4) {
+    //     update_cursor(active_processes[visible_terminal]->screen_x, active_processes[visible_terminal]->screen_y);
+    // }
 
     //restore ebp and esp for newly scheduled process
     restore_ebp_esp(curr_pcb->esp2, curr_pcb->ebp2); 
@@ -95,8 +95,8 @@ void schedule() {
 
 void switch_terminal(uint32_t terminal_num, int state) {
     //save cursor
-    active_processes[visible_terminal]->screen_x = x_visible_terminal;
-    active_processes[visible_terminal]->screen_y = y_visible_terminal; 
+    // active_processes[visible_terminal]->screen_x = x_visible_terminal;
+    // active_processes[visible_terminal]->screen_y = y_visible_terminal; 
 
     //save and restore video memory
     memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);

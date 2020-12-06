@@ -166,7 +166,6 @@ void key_board_handler(){ //changing kernel stack must fix
             }
             #endif
             switch_terminal(2, 1); //terminal 3
-    
         }
         //0xB8, 0xE0, release scan codes for l,r alt respectively
         else if(read == 0xB8 || read == 0xE0){
@@ -353,8 +352,8 @@ void add_to_kdb_buf(char c){
     buf_counter[visible_terminal]++;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     putc(c);
-    // active_processes[visible_terminal]->screen_x = get_x();
-	// active_processes[visible_terminal]->screen_y = get_y();
+    active_processes[visible_terminal]->screen_x = get_x();
+	active_processes[visible_terminal]->screen_y = get_y();
     if(c == '\n') buf_counter[visible_terminal] = 0;    
 }
 
