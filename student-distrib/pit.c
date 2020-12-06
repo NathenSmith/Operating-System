@@ -49,26 +49,26 @@ void schedule() {
     if(calls_to_schedule == 4) {
         switch_terminal(0, 1);
     }
-    else {
-        //save cursor
-        active_processes[scheduled_terminal]->screen_x = get_x();
-        active_processes[scheduled_terminal]->screen_y = get_y();
-    }     
+    // else {
+    //     //save cursor
+    //     active_processes[scheduled_terminal]->screen_x = get_x();
+    //     active_processes[scheduled_terminal]->screen_y = get_y();
+    // }     
 
     //increment scheduled terminal number
-    scheduled_terminal = (scheduled_terminal + 1) % 3;
+    scheduled_terminal = (scheduled_terminal + 1) % 3; 
     //if done with all active processes, go to start of active proceses
     
-    // // //switch paging for video memory
-    // if(scheduled_terminal == visible_terminal) { 
-    //     pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
-    //     paging_scheme = 0;
-    // }
-    // else {
-    //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
-    //     paging_scheme = scheduled_terminal + 1;
-    // }
-    // flush_tlb();
+    // //switch paging for video memory
+    if(scheduled_terminal == visible_terminal) { 
+        pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+        //paging_scheme = 0;
+    }
+    else {
+        pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+        //paging_scheme = scheduled_terminal + 1;
+    }
+    flush_tlb();
 
     //get curr_pcb for new process
     curr_pcb = active_processes[scheduled_terminal];
@@ -81,7 +81,7 @@ void schedule() {
     prepare_context_switch();
     //set cursor 
     if(calls_to_schedule != 4) {
-        update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);
+        //update_cursor(active_processes[visible_terminal]->screen_x, active_processes[visible_terminal]->screen_y);
     }
 
     //restore ebp and esp for newly scheduled process
@@ -90,14 +90,16 @@ void schedule() {
 
 void switch_terminal(uint32_t terminal_num, int state){
     //save cursor
-    active_processes[visible_terminal]->screen_x = get_x();
-    active_processes[visible_terminal]->screen_y = get_y(); 
+    // active_processes[visible_terminal]->screen_x = get_x();
+    // active_processes[visible_terminal]->screen_y = get_y(); 
 
     //save and restore video memory
     memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
     visible_terminal = terminal_num;
     memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);  
 
+    pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(terminal_num + 1))) | 0x003);
+    
     //set cursor
     if(state == 0) {
         //for first 3 shells

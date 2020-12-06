@@ -2,9 +2,13 @@
 #include "pit.h"
 #include "shared_global_variables.h"
 #include "paging.h"
+#include "system_calls.h"
 #include "execute.h"
 #include "terminal.h"
-
+#if SCHEDULE_ENABLE == 0
+    static int flag2 = 0;
+    static int flag3 = 0;
+#endif
 /* SOURCES:  https://wiki.osdev.org/PS/2_Keyboard
     some code from Linux documentation of PS/2 Keyboard
 */
@@ -139,11 +143,30 @@ void key_board_handler(){ //changing kernel stack must fix
         }
         //0x3C, scancode for F2
         else if(read == 0x3C){
+            #if SCHEDULE_ENABLE == 0
+            if(flag2 == 0){
+                flag2 = 1;
+                switch_terminal(1, 0);
+                clear();
+                scheduled_terminal = 1;
+                execute((uint8_t *)"shell");
+            }
+            #endif
             switch_terminal(1, 1); //terminal 2
         }
         //0x3D, scancode for F3
         else if(read == 0x3D){
+            #if SCHEDULE_ENABLE == 0
+            if(flag3 == 0){
+                flag3 = 1;
+                switch_terminal(2, 0);
+                clear();
+                scheduled_terminal = 2;
+                execute((uint8_t *)"shell");
+            }
+            #endif
             switch_terminal(2, 1); //terminal 3
+    
         }
         //0xB8, 0xE0, release scan codes for l,r alt respectively
         else if(read == 0xB8 || read == 0xE0){
@@ -192,8 +215,10 @@ void key_board_handler(){ //changing kernel stack must fix
     }
     //0x1C, scancode for enter
     else if(read == 0x1C){
-        terminal_flag[visible_terminal] = 1;
+        add_to_kdb_buf(scan_codes[read]);
         send_eoi(KEYBOARD_IRQ);
+        terminal_flag[visible_terminal] = 1;
+        //goes to terminal read
         return;
     }
     //null character, don't do anything
@@ -321,11 +346,12 @@ static char check_if_symbol(char index){
  * Return value: none
  */ 
 void add_to_kdb_buf(char c){
+    //enter now sets flag on terminal_flag[visible]
     if(buf_counter[visible_terminal] >= BUF_SIZE - 1 && c != '\n') return; //when reach max, dont add
     //but allow for a newline to be
     kbd_buf[visible_terminal][buf_counter[visible_terminal]] = c;
     buf_counter[visible_terminal]++;
-    
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     putc(c);
     
     if(c == '\n') buf_counter[visible_terminal] = 0;    

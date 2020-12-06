@@ -77,6 +77,7 @@ int32_t execute(const uint8_t* command) {
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (scheduled_terminal + 1)*SIZE_OF_KERNEL_STACK);
 
         //scheduled terminal = 0 corresponds to process_id = 1.
+        //change later
         curr_pcb->process_id = scheduled_terminal + 1;
     }
 
