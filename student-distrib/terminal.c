@@ -77,13 +77,15 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 		//if(i == BUF_SIZE) break; //iterates until reaches max size of buffer or the number of bytes
 		if(buf_[i] != '\0'){ //will ignore NULL
 			//terminal_write_flag = 1;
-			putcTerminalW(buf_[i]); //write to screen
+			putc(buf_[i]);
+			//putcTerminalW(buf_[i]); //write to screen
 			counter++;
 		} 
 	}
 	//terminal_write_flag = 0;
 	for(i = 0; i < BUF_SIZE; i++){
-		kbd_buf[scheduled_terminal][i] = '\0'; //reset keyboard buf
+		//change back to scheduled
+		kbd_buf[visible_terminal][i] = '\0'; //reset keyboard buf
 	}
 	set_boundary();
 	curr_pcb->screen_x = get_x();

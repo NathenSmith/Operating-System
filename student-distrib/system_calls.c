@@ -74,11 +74,12 @@ int32_t execute(const uint8_t* command) {
 
         //set curr_pcb's location based on which terminal the shell is executing on.
         //scheduled_terminal = 0 corresponds to location 8MB - 8KB.
-        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (scheduled_terminal + 1)*SIZE_OF_KERNEL_STACK);
+        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (total_processes + 1)*SIZE_OF_KERNEL_STACK);
 
         //scheduled terminal = 0 corresponds to process_id = 1.
         //change later
-        curr_pcb->process_id = scheduled_terminal + 1;
+        //curr_pcb->process_id = scheduled_terminal + 1;
+        curr_pcb->process_id = total_processes + 1;
     }
 
     //else if executing shell for the second or more time or executing another user program 

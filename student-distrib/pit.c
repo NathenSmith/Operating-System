@@ -98,7 +98,7 @@ void switch_terminal(uint32_t terminal_num, int state){
     visible_terminal = terminal_num;
     memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);  
 
-    pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(terminal_num + 1))) | 0x003);
+    //pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(terminal_num + 1))) | 0x003);
     
     //set cursor
     if(state == 0) {
