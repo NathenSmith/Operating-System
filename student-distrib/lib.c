@@ -185,12 +185,12 @@ int32_t puts(int8_t* s) {
  *  Function: Updates position of cursor */
 void update_cursor(int x, int y, int b)
 {
-    if(b == -1){
-        screen_x[visible_terminal] = x;
-        screen_y[visible_terminal] = y;
-        return;
-    }
-    else if(b == 0 || scheduled_terminal == visible_terminal){ //not in background
+    // if(b == -1){
+    //     screen_x[visible_terminal] = x;
+    //     screen_y[visible_terminal] = y;
+    //     return;
+    // }
+    if(b == 0 || scheduled_terminal == visible_terminal){ //not in background
         uint16_t pos = y * VGA_WIDTH + x;
         //from osdev
         outb(0x0F, 0x3D4);
@@ -212,7 +212,14 @@ void update_cursor(int x, int y, int b)
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
-    pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003);
+    // if(scheduled_terminal == visible_terminal)
+        pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003);
+    // else
+    // {
+    //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(visible_terminal + 1))) | 0x003);
+    //  //would make things choppy
+    // }
+    
     flush_tlb();
      if(c == '\n' || c == '\r') {
         if(screen_y[visible_terminal] == NUM_ROWS-1) {scroll_up();}
@@ -285,54 +292,23 @@ void putc(uint8_t c) {
 //}
 }
 void putcTerminalW(uint8_t c){
-    while(terminal_write_flag[scheduled_terminal] == 0){
-        //no clue why this sorta works
-        //return;
-    }
-    int visible_backup = 0;
-    //update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);   
     if(scheduled_terminal == visible_terminal) { 
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
         //pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(visible_terminal + 1))) | 0x003);
     }
-    else if(scheduled_terminal != visible_terminal && terminal_write_flag[visible_terminal] == 1){
-        //save to visible backup
-        pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(visible_terminal + 1))) | 0x003);
-        visible_backup = 1;
-    }
-    else if(scheduled_terminal != visible_terminal && terminal_write_flag[scheduled_terminal] == 1){
+    else{
         //save to scheduled backup
         pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
         //update_cursor(active_processes[scheduled_terminal]->screen_x, active_processes[scheduled_terminal]->screen_y);
     }
     flush_tlb();
-    
-    if(visible_backup == 1){
-        if(c == '\n' || c == '\r') {
-            if(screen_y[visible_terminal] == NUM_ROWS-1) {scroll_up();}
-            else {screen_y[visible_terminal]++;}
-            screen_x[visible_terminal] = 0;
-            update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], -1);       
-        
-        } else {
-            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[visible_terminal] + screen_x[visible_terminal]) << 1)) = c;
-            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[visible_terminal] + screen_x[visible_terminal]) << 1) + 1) = ATTRIB;
-            screen_x[visible_terminal]++;
-            if(screen_x[visible_terminal] == NUM_COLS) {screen_y[visible_terminal]++;}
-            else {screen_y[visible_terminal] = (screen_y[visible_terminal] + (screen_x[visible_terminal] / NUM_COLS)) % NUM_ROWS;}
-            if(screen_y[visible_terminal] == NUM_ROWS) {scroll_up();}
-            screen_x[visible_terminal] %= NUM_COLS;
-            update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], -1);
-        }
-    }
-    else{
-        if(c == '\n' || c == '\r') {
+    if(c == '\n' || c == '\r') {
             if(screen_y[scheduled_terminal] == NUM_ROWS-1) {scroll_up();}
             else {screen_y[scheduled_terminal]++;}
             screen_x[scheduled_terminal] = 0;
             update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);       
         
-        } else {
+    } else {
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1)) = c;
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1) + 1) = ATTRIB;
             screen_x[scheduled_terminal]++;
@@ -341,8 +317,66 @@ void putcTerminalW(uint8_t c){
             if(screen_y[scheduled_terminal] == NUM_ROWS) {scroll_up();}
             screen_x[scheduled_terminal] %= NUM_COLS;
             update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);
-        }
     }
+    // while(terminal_write_flag[scheduled_terminal] == 0){
+    //     //no clue why this sorta works
+    //     //return;
+    // }
+    //int visible_backup = 0;
+    //update_cursor(curr_pcb->screen_x, curr_pcb->screen_y);   
+    // if(scheduled_terminal == visible_terminal) { 
+    //     pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+    //     //pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(visible_terminal + 1))) | 0x003);
+    // }
+    // else if(scheduled_terminal != visible_terminal && terminal_write_flag[visible_terminal] == 1){
+    //     //save to visible backup
+    //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(visible_terminal + 1))) | 0x003);
+    //     //visible_backup = 1;
+    // }
+    // else if(scheduled_terminal != visible_terminal && terminal_write_flag[scheduled_terminal] == 1){
+    //     //save to scheduled backup
+    //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
+    //     //update_cursor(active_processes[scheduled_terminal]->screen_x, active_processes[scheduled_terminal]->screen_y);
+    // }
+
+    
+    
+    // if(visible_backup == 1){
+    //     if(c == '\n' || c == '\r') {
+    //         if(screen_y[visible_terminal] == NUM_ROWS-1) {scroll_up();}
+    //         else {screen_y[visible_terminal]++;}
+    //         screen_x[visible_terminal] = 0;
+    //         update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], -1);       
+        
+    //     } else {
+    //         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[visible_terminal] + screen_x[visible_terminal]) << 1)) = c;
+    //         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[visible_terminal] + screen_x[visible_terminal]) << 1) + 1) = ATTRIB;
+    //         screen_x[visible_terminal]++;
+    //         if(screen_x[visible_terminal] == NUM_COLS) {screen_y[visible_terminal]++;}
+    //         else {screen_y[visible_terminal] = (screen_y[visible_terminal] + (screen_x[visible_terminal] / NUM_COLS)) % NUM_ROWS;}
+    //         if(screen_y[visible_terminal] == NUM_ROWS) {scroll_up();}
+    //         screen_x[visible_terminal] %= NUM_COLS;
+    //         update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], -1);
+    //     }
+    // }
+    //else{
+        // if(c == '\n' || c == '\r') {
+        //     if(screen_y[scheduled_terminal] == NUM_ROWS-1) {scroll_up();}
+        //     else {screen_y[scheduled_terminal]++;}
+        //     screen_x[scheduled_terminal] = 0;
+        //     update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);       
+        
+        // } else {
+        //     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1)) = c;
+        //     *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1) + 1) = ATTRIB;
+        //     screen_x[scheduled_terminal]++;
+        //     if(screen_x[scheduled_terminal] == NUM_COLS) {screen_y[scheduled_terminal]++;}
+        //     else {screen_y[scheduled_terminal] = (screen_y[scheduled_terminal] + (screen_x[scheduled_terminal] / NUM_COLS)) % NUM_ROWS;}
+        //     if(screen_y[scheduled_terminal] == NUM_ROWS) {scroll_up();}
+        //     screen_x[scheduled_terminal] %= NUM_COLS;
+        //     update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);
+        // }
+    //}
     
     
 }

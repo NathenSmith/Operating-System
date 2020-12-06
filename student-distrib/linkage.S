@@ -28,7 +28,6 @@ save_eip:
 
 isr_wrapper20:
     cli
-    movl %esp, save_eip
     pushal
     call pit_handler
     popal

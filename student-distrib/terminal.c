@@ -16,7 +16,7 @@ volatile int entered_flag[3] = {0,0,0};
 int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
 	if(buf == NULL || nbytes <= 0) return 0;
 	//clear the buffer being sent in
-	terminal_write_flag[visible_terminal] = 0;
+	//terminal_write_flag[visible_terminal] = 0;
 	char * buf_ = (char *)buf;
 
 	int i;
@@ -24,23 +24,23 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
 		buf_[i] = '\0';
 	}
 	//entered_flag[visible_terminal] = 0;
-	while(!entered_flag[visible_terminal]){
+	while(!entered_flag[scheduled_terminal]){
 		//wait for newline to be entered on visible terminal
 	}
-	entered_flag[visible_terminal] = 0; //resets the flag to accept another newline
+	entered_flag[scheduled_terminal] = 0; //resets the flag to accept another newline
 	int32_t j = 0;
 	while(j != BUF_SIZE){
 		//copy from keyboard buf to terminal buf the appropriate characters
 		if(j == nbytes) break; //reached the maximum bytes acceptable
-		if(kbd_buf[visible_terminal][j] == '\0') continue; //return to beginning of loop		
-		buf_[j] = kbd_buf[visible_terminal][j];
+		if(kbd_buf[scheduled_terminal][j] == '\0') continue; //return to beginning of loop		
+		buf_[j] = kbd_buf[scheduled_terminal][j];
 		if(buf_[j] == '\n'){
 			j++;
 			break;
 		}
 		j++; //not newline
 	}
-	terminal_write_flag[visible_terminal] = 1;
+	//terminal_write_flag[visible_terminal] = 1;
 	return j; //returns number of bytes
 }
 

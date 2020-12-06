@@ -65,6 +65,7 @@ void schedule() {
         //paging_scheme = 0;
     }
     else {
+        //for backups
         pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
         //paging_scheme = scheduled_terminal + 1;
     }
