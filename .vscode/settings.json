@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "execute.h": "c",
+        "shared_global_variables.h": "c"
+    }
+}
