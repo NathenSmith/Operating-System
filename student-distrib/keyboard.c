@@ -57,9 +57,9 @@ void restore_original_paging () {
  * Return value: None
  */ 
 void key_board_handler(){ //changing kernel stack must fix
-    //switch paging for video memory
-    pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
-    flush_tlb();
+    // //switch paging for video memory
+    // pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+    // flush_tlb();
 
     uint8_t read;
     read = inb(KEYBOARD_PORT);    
