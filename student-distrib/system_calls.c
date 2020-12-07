@@ -231,18 +231,13 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
     //clear buffer
     memset(buf, '\0', nbytes);
 
-    if(nbytes == 0 || argSize == 0){
-        // printf("curr arg %s \n", curr_arg);
-        // printf("arg size: %d", argSize);
+    if(nbytes == 0 || argSize == 0 || argSize > MAXIMUM_ARG_SIZE || argSize > nbytes){
         return -1; //no argument
     }
-    //printf("nbytes: %d \n", nbytes);
-    // printf("curr arg %s \n", curr_arg);
-    // printf("arg size: %d", argSize);
+
     int numBytesToCopy = nbytes;
     if(argSize < nbytes) numBytesToCopy = argSize;
     strncpy((int8_t *)buf, (int8_t *)curr_arg, numBytesToCopy);
-    //printf("buf: %s\n", buf);
     return 0;
 }
 

@@ -6,6 +6,8 @@
 #define ESP2_LOCATION 16
 #define EBP2_LOCATION 20
 #define SCHEDULE_ENABLE 1
+#define PAGE_SIZE 0x1000
+
 
 int EXCEPTION;
 uint8_t curr_arg[MAX_ARG_SIZE];

@@ -42,11 +42,6 @@ static uint8_t states[NUM_STATES] = {0, 0, 0, 0};
 void initialize_keyboard(){
     enable_irq(KEYBOARD_IRQ);   //enable interrupt on pin on pic
 }
-
-void restore_original_paging () {
-    //pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(paging_scheme))) | 0x003);
-    //flush_tlb();
-}
  
 /* key_board_handler
  * 
@@ -67,7 +62,6 @@ void key_board_handler(){ //changing kernel stack must fix
     //0x3A, keycode for capslock  
     if(read == 0x3A){
         states[CAPS_STATE] = ~(states[1]);
-        restore_original_paging();  
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -78,26 +72,22 @@ void key_board_handler(){ //changing kernel stack must fix
             //clears for Ctrl-L (l is scancode 0x26)
             if(states[CTRL_STATE] && read == 0x26){
                 clear();
-                restore_original_paging();
                 send_eoi(KEYBOARD_IRQ);  
                 return;                
             }
             add_to_kdb_buf(scan_codes[read] - CASE_CONVERSION);
-            restore_original_paging();
             send_eoi(KEYBOARD_IRQ);    
             return;
         }
         //shift symbols as well
         else if(check_if_symbol(read)){
             add_to_kdb_buf(check_if_symbol(read));
-            restore_original_paging();
             send_eoi(KEYBOARD_IRQ);
             return;
         }
         //0xAA and 0xB6, release scan codes for l and r shift respectively
         else if(read != 0xAA || read != 0xB6){
             states[SHIFT_STATE] = 0;
-            restore_original_paging();
             send_eoi(KEYBOARD_IRQ); 
             return;
         }
@@ -108,12 +98,10 @@ void key_board_handler(){ //changing kernel stack must fix
             //clears for Ctrl-L (L scancode is 0x26)
             if(states[CTRL_STATE] && read == 0x26){
                 clear();
-                restore_original_paging();
                 send_eoi(KEYBOARD_IRQ);
                 return;                
             }
             add_to_kdb_buf(scan_codes[read] - CASE_CONVERSION);
-            restore_original_paging();
             send_eoi(KEYBOARD_IRQ);
             return; 
         }   
@@ -123,14 +111,12 @@ void key_board_handler(){ //changing kernel stack must fix
         //0x26 is scancode for l
         if(read == 0x26){
             clear();
-            restore_original_paging();
             send_eoi(KEYBOARD_IRQ);
             return;
         }
         //0xE0, 0x9D, release scan codes for l,r ctrl respectively
         else if(read == 0xE0 || read ==0x9D){
             states[CTRL_STATE] = 0;
-            restore_original_paging();
             send_eoi(KEYBOARD_IRQ);
             return;
         }
@@ -178,21 +164,18 @@ void key_board_handler(){ //changing kernel stack must fix
     //0x2A and 0x36 scan codes for l,r shifts respecitvely
     if(read == 0x2A || read == 0x36){
         states[SHIFT_STATE] = 1;
-        restore_original_paging();
         send_eoi(KEYBOARD_IRQ);
         return;
     }
     //0x1D, 0xE0, scan codes for l,r ctrl respectively
     else if(read == 0xE0 || read == 0x1D){
         states[CTRL_STATE] = 1;
-        restore_original_paging();
         send_eoi(KEYBOARD_IRQ);
         return;            
     }
     //0x38, 0xE0, scan codes for l,r alt respectively (don't use right alt)
     else if(read == 0x38 || read == 0xE0){
         states[ALT_STATE] = 1;
-        restore_original_paging();
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -202,14 +185,12 @@ void key_board_handler(){ //changing kernel stack must fix
         add_to_kdb_buf(' ');
         add_to_kdb_buf(' ');
         add_to_kdb_buf(' ');
-        restore_original_paging();
         send_eoi(KEYBOARD_IRQ);
         return;             
     }
     //0x0E, scancode for backspace
     else if(read == 0X0E){
         backspace_buffer();
-        restore_original_paging();
         send_eoi(KEYBOARD_IRQ);
         return;
     }
@@ -223,19 +204,16 @@ void key_board_handler(){ //changing kernel stack must fix
     }
     //null character, don't do anything
     else if(scan_codes[read] == '\0'){
-        restore_original_paging();
         send_eoi(KEYBOARD_IRQ);
         return;
     } 
     //check if scan code is in bounds of scan code array
     else if(read < NUM_KEYS){   
         add_to_kdb_buf(scan_codes[read]);
-        restore_original_paging();
         send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
         return;
     }
     
-    restore_original_paging();
     send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
     return;  
 }
