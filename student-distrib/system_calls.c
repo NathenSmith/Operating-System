@@ -262,7 +262,7 @@ int32_t vidmap(uint8_t** screen_start) {
 
     // 33 -> 128 MB in virtual mem
     pageDirectory[33] = (uint32_t)videoMemTable | 0x07; //set user, r/w, present
-    videoMemTable[0] = (uint32_t) VIDEO_MEMORY_IDX | 0x07;
+    videoMemTable[0] = (uint32_t) VIDEO_MEMORY_ARRAY[scheduled_terminal] | 0x07;
 
     // flush_tlb();
     asm volatile (

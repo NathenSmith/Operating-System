@@ -218,7 +218,7 @@ void putc(uint8_t c) {
     // {
     //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(visible_terminal + 1))) | 0x003);
     //  //would make things choppy
-    // }
+    // }    
     
     flush_tlb();
      if(c == '\n' || c == '\r') {
@@ -301,6 +301,7 @@ void putcTerminalW(uint8_t c){
         pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
         //update_cursor(active_processes[scheduled_terminal]->screen_x, active_processes[scheduled_terminal]->screen_y);
     }
+    
     flush_tlb();
     if(c == '\n' || c == '\r') {
             if(screen_y[scheduled_terminal] == NUM_ROWS-1) {scroll_up();}

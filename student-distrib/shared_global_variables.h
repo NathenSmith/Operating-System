@@ -51,6 +51,6 @@ extern int total_processes;
 extern int terminal_write_flag[3];
 extern int paging_scheme;
 extern volatile int entered_flag[3];
-
+extern uint32_t VIDEO_MEMORY_ARRAY[];
 
 #endif

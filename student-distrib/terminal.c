@@ -25,7 +25,7 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes){
 	}
 	//entered_flag[visible_terminal] = 0;
 	while(!entered_flag[scheduled_terminal]){
-		//wait for newline to be entered on visible terminal
+		//wait for newline to be entered on the scheduled terminal
 	}
 	entered_flag[scheduled_terminal] = 0; //resets the flag to accept another newline
 	int32_t j = 0;

@@ -4,6 +4,14 @@
 #include "execute.h"
 #include "paging.h"
 #include "keyboard.h"
+#define MODECMDREG 0x43
+#define CHANNEL 0x36
+#define FREQUENCY 11905
+#define LOWBYTEMASK 0x000000FF
+#define HIGHBYTESHIFT 8
+#define MAXSHELLS 3
+#define RELOADVAL 0x40
+#define PITIRQ 0x0
 
 int scheduled_terminal = 0;
 int visible_terminal = 0;
@@ -13,21 +21,20 @@ int x = 0;
 PCB_t * active_processes[3];
 
 void initialize_pit(){
-    outb(0x36, 0x43);		// enable mode 3
-    // outb(0x00110110, 0x43);
-    outb(11905 & 0x000000FF, 0x40); //low byte
-    outb(11905 >> 8, 0x40); //high 8 bits
+    outb(CHANNEL, MODECMDREG);		// enable mode 3
+    outb(FREQUENCY & LOWBYTEMASK, 0x40); //low byte
+    outb(FREQUENCY >> HIGHBYTESHIFT, RELOADVAL); //high 8 bits
     int j;
-    for(j = 0; j < 3; j++) {
+    for(j = 0; j < MAXSHELLS; j++) {
         active_processes[j] = NULL;
     }
-    enable_irq(0x0); //irq is zero
+    enable_irq(PITIRQ); //irq is zero
 }
 
 void pit_handler() {
     //do something with curr process tracker
     schedule();
-    send_eoi(0x0);
+    send_eoi(PITIRQ);
 }
 
 void schedule() {
@@ -56,9 +63,10 @@ void schedule() {
     // }     
 
     //increment scheduled terminal number
+    
+   
     scheduled_terminal = (scheduled_terminal + 1) % 3; 
     //if done with all active processes, go to start of active proceses
-    
     // //switch paging for video memory
     if(scheduled_terminal == visible_terminal) { 
         pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
