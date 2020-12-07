@@ -2,6 +2,12 @@
 #define _SHARED_GLOBAL_VARIABLE_H
 
 #define MAX_ARG_SIZE 128
+#define VID_MEM_PAGE 0x1000
+#define ESP2_LOCATION 16
+#define EBP2_LOCATION 20
+#define SCHEDULE_ENABLE 1
+#define PAGE_SIZE 0x1000
+
 
 int EXCEPTION;
 uint8_t curr_arg[MAX_ARG_SIZE];
@@ -28,11 +34,25 @@ typedef struct PCB {
     uint32_t process_id; //process_id is 1 for shell
     uint32_t esp;
     uint32_t ebp;
+    uint32_t esp2;
+    uint32_t ebp2;
+    uint32_t screen_x;
+    uint32_t screen_y;
+    uint8_t filename[128];
     file_entry_t file_arr[8];
 } PCB_t;
 
 extern PCB_t * curr_pcb;
 extern uint8_t task_name[MAX_ARG_SIZE];
 extern uint32_t entry_point;
-#endif
+extern PCB_t * active_processes[3];
+extern int visible_terminal;
+extern int scheduled_terminal;
+extern int nProcesses[3];
+extern int total_processes;
+extern int terminal_write_flag[3];
+extern int paging_scheme;
+extern volatile int entered_flag[3];
+extern uint32_t VIDEO_MEMORY_ARRAY[];
 
+#endif

@@ -15,6 +15,10 @@
 .globl   isr_wrapper2E
 .globl   isr_wrapper2F
 .globl   sys_call
+.globl save_eip
+
+save_eip:
+    .long 0
 
 # isr_wrapper20
 # Contains the assembly linkage for interrupt 0(not filled in yet).
@@ -23,6 +27,11 @@
 # side effects: none.
 
 isr_wrapper20:
+    cli
+    pushal
+    call pit_handler
+    popal
+    sti
     iret
 
 # isr_wrapper21
@@ -32,9 +41,11 @@ isr_wrapper20:
 # side effects: disables interrupts during call.
 
 isr_wrapper21:
+    cli
     pushal
     call key_board_handler
     popal
+    sti
     iret
 
 # isr_wrapper22
@@ -98,9 +109,11 @@ isr_wrapper27:
 # side effects: disables interrupts during call.
 
 isr_wrapper28:
+    cli
     pushal
     call rtc_handler
     popal
+    sti
     iret
 
 # isr_wrapper29

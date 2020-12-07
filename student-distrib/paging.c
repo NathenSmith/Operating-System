@@ -1,5 +1,5 @@
 #include "paging.h"
-
+uint32_t VIDEO_MEMORY_ARRAY[] = {BACKUP_ONE, BACKUP_TWO, BACKUP_THREE};
 /* paging_init
  *  DESCRIPTION: Initialize paging with page directory and page table
  *  INPUTS: None

@@ -3,16 +3,19 @@
 
 #include "lib.h"
 #include "terminal.h"
+#include "shared_global_variables.h"
+#include "paging.h"
+#include "execute.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
 
-static int screen_x;
-static int screen_y;
-static int boundary_x;
-static int boundary_y;
+static int screen_x[3];
+static int screen_y[3];
+static int boundary_x[3];
+static int boundary_y[3];
 static char* video_mem = (char *)VIDEO;
 
 /* void clear(void);
@@ -20,16 +23,16 @@ static char* video_mem = (char *)VIDEO;
  * Return Value: none
  * Function: Clears video memory */
 void clear(void) {
-    update_cursor(0,0);
+    update_cursor(0,0, 0);
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
-    screen_x = 0;
-    screen_y = 0;
-    boundary_x = 0;
-    boundary_y = 0;
+    screen_x[visible_terminal] = 0;
+    screen_y[visible_terminal] = 0;
+    boundary_x[visible_terminal] = 0;
+    boundary_y[visible_terminal] = 0;
 }
 
 /* Standard printf().
@@ -159,8 +162,8 @@ format_char_switch:
 }
 
 void set_boundary(){
-    boundary_x = screen_x;
-    boundary_y = screen_y;
+    boundary_x[scheduled_terminal] = screen_x[scheduled_terminal];
+    boundary_y[scheduled_terminal] = screen_y[scheduled_terminal];
 }
 
 /* int32_t puts(int8_t* s);
@@ -180,37 +183,85 @@ int32_t puts(int8_t* s) {
  * Inputs: X and Y location of where to update cursor
  * Return Value: none
  *  Function: Updates position of cursor */
-void update_cursor(int x, int y)
+void update_cursor(int x, int y, int b)
 {
-	uint16_t pos = y * VGA_WIDTH + x;
-    //from osdev
-	outb(0x0F, 0x3D4);
-	outb((uint8_t) (pos & 0xFF), 0x3D5);
-	outb(0x0E, 0x3D4);
-	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+    if(b == 0 || scheduled_terminal == visible_terminal || b == -1){ //not in background
+        uint16_t pos = y * VGA_WIDTH + x;
+        //from osdev
+        outb(0x0F, 0x3D4);
+        outb((uint8_t) (pos & 0xFF), 0x3D5);
+        outb(0x0E, 0x3D4);
+        outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+        screen_x[visible_terminal] = x;
+        screen_y[visible_terminal] = y;
+    }
+    else{
+        screen_x[scheduled_terminal] = x;
+        screen_y[scheduled_terminal] = y;
+    }
+  
 }
 
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
- *  Function: Output a character to the console */
+ *  Function: Output a character to the console, specifically for keyboard presses to
+ *    visible terminal */
+
 void putc(uint8_t c) {
-    if(c == '\n' || c == '\r') {
-        if(screen_y == NUM_ROWS-1) {scroll_up();}
-        else {screen_y++;}
-        screen_x = 0;
-        update_cursor(screen_x, screen_y);
-        terminal_flag = 1;
+    pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003);
+    
+    flush_tlb();
+     if(c == '\n' || c == '\r') {
+        if(screen_y[visible_terminal] == NUM_ROWS-1) {scroll_up(-1);}
+        else {screen_y[visible_terminal]++;}
+        screen_x[visible_terminal] = 0;
+        update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], 0); 
+        
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        if(screen_x == NUM_COLS) {screen_y++;}
-        else {screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;}
-        if(screen_y == NUM_ROWS) {scroll_up();}
-        screen_x %= NUM_COLS;
-        update_cursor(screen_x, screen_y);
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[visible_terminal] + screen_x[visible_terminal]) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[visible_terminal] + screen_x[visible_terminal]) << 1) + 1) = ATTRIB;
+        screen_x[visible_terminal]++;
+        if(screen_x[visible_terminal] == NUM_COLS) {screen_y[visible_terminal]++;}
+        else {screen_y[visible_terminal] = (screen_y[visible_terminal] + (screen_x[visible_terminal] / NUM_COLS)) % NUM_ROWS;}
+        if(screen_y[visible_terminal] == NUM_ROWS) {scroll_up(-1);}
+        screen_x[visible_terminal] %= NUM_COLS;
+        update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], 0);
     }
+    
+}
+
+/* void putcTerminalW(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console, specifically for terminal_write calls */
+
+void putcTerminalW(uint8_t c){
+    if(scheduled_terminal == visible_terminal) { 
+        pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+    }
+    else{
+        //save to scheduled backup
+        pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (PAGE_SIZE*(scheduled_terminal + 1))) | 0x003);
+    }
+    flush_tlb();
+
+    if(c == '\n' || c == '\r') {
+            if(screen_y[scheduled_terminal] == NUM_ROWS-1) {scroll_up(0);}
+            else {screen_y[scheduled_terminal]++;}
+            screen_x[scheduled_terminal] = 0;
+            update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);       
+        
+    } else {
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1)) = c;
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[scheduled_terminal] + screen_x[scheduled_terminal]) << 1) + 1) = ATTRIB;
+            screen_x[scheduled_terminal]++;
+            if(screen_x[scheduled_terminal] == NUM_COLS) {screen_y[scheduled_terminal]++;}
+            else {screen_y[scheduled_terminal] = (screen_y[scheduled_terminal] + (screen_x[scheduled_terminal] / NUM_COLS)) % NUM_ROWS;}
+            if(screen_y[scheduled_terminal] == NUM_ROWS) {scroll_up(0);}
+            screen_x[scheduled_terminal] %= NUM_COLS;
+            update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);
+    }    
 }
 
 /* void backspace();
@@ -218,25 +269,25 @@ void putc(uint8_t c) {
  * Return Value: void
  *  Function: Delete most recently written char */
 void backspace() {
-    if(!(screen_x == 0 && screen_y == 0)){
-        if(screen_x == 0){            
-            screen_x = NUM_COLS - 1;
-            screen_y--;            
+    if(!(screen_x[visible_terminal] == 0 && screen_y[visible_terminal] == 0)){
+        if(screen_x[visible_terminal] == 0){            
+            screen_x[visible_terminal] = NUM_COLS - 1;
+            screen_y[visible_terminal]--;            
         }
         else{
-            if((screen_x - 1) >= boundary_x || screen_y > boundary_y) screen_x--;
+            if((screen_x[visible_terminal] - 1) >= boundary_x[visible_terminal] || screen_y[visible_terminal] > boundary_y[visible_terminal]) screen_x[visible_terminal]--;
         }
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;        
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[visible_terminal] + screen_x[visible_terminal]) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y[visible_terminal] + screen_x[visible_terminal]) << 1) + 1) = ATTRIB;        
     }
-    update_cursor(screen_x, screen_y);
+    update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], 0);
 }
 
 /* void scroll_up();
  * Inputs: none
  * Return Value: void
  *  Function: Moves up screen by one line when typing at end to account for scrolling */
-void scroll_up() {
+void scroll_up(int b) {
     int i;
     int j; 
     for(i = 0; i < NUM_ROWS; i++){
@@ -252,25 +303,29 @@ void scroll_up() {
             }
         }
     }
-    screen_x = 0;
-    screen_y = NUM_ROWS -1;
-    update_cursor(screen_x, screen_y);
+    if(b == -1) {
+        update_cursor(0, NUM_ROWS - 1, -1);
+    }
+    else {
+        update_cursor(0, NUM_ROWS - 1, 1);
+    }
+    
 }
 
 /* void get_x();
  * Inputs: uint_8* c = none
  * Return Value: void
  *  Function: gets screen_x */
-int get_x(){
-    return screen_x;
+int get_x(int i){
+    return screen_x[i];
 }
 
 /* void get_y();
  * Inputs: uint_8* c = none
  * Return Value: void
  *  Function: gets screen_x */
-int get_y(){
-    return screen_y;
+int get_y(int i){
+    return screen_y[i];
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

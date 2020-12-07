@@ -10,7 +10,8 @@
 #define ALT_STATE    3
 
 #include "i8259.h"
-char kbd_buf[128];
+char kbd_buf[3][128];
+
 //int buf_counter;
 
 
@@ -19,4 +20,6 @@ extern void initialize_keyboard();
 extern void key_board_handler();
 extern void add_to_kdb_buf(char c);
 extern void backspace_buffer();
+extern void restore_original_paging();
+
 

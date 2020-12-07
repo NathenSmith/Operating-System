@@ -27,6 +27,8 @@ extern void push_iret_context_test();
 extern void restore_parent_data();
 extern void switch_task_memory();
 extern void prepare_context_switch();
+extern void restore_ebp_esp();
+extern void save_ebp_esp();
 
 //function prototypes
 void parseString(const uint8_t * str);

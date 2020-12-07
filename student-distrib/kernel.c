@@ -13,6 +13,9 @@
 #include "paging.h"
 #include "terminal.h"
 #include "system_calls.h"
+#include "pit.h"
+#include "shared_global_variables.h"
+
 //uint16_t MASTER_DATA = MASTER_8259_PORT + 1;
 
 #define RUN_TESTS
@@ -162,13 +165,22 @@ void entry(unsigned long magic, unsigned long addr) {
     clear();    
     //update_cursor(0,0);
     initialize_keyboard();
+    #if SCHEDULE_ENABLE == 1
+        initialize_pit();
+    #else 
+        execute((uint8_t*)"shell");
+    #endif
+
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
+    //execute("shell");
     sti();
+    
+    
 
-    execute((uint8_t *)"shell");
+
 
 
 #ifdef RUN_TESTS

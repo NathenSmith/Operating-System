@@ -12,7 +12,8 @@ static func_ptrs_t rtc_ptr = {rtc_read, rtc_write, rtc_open, rtc_close};
 static func_ptrs_t dir_ptr = {dir_read, dir_write, dir_open, dir_close};
 static func_ptrs_t file_ptr = {file_read, file_write, file_open, file_close};
 
-int nShellsOpen = 0;
+int nProcesses[3] = {0,0,0};
+int total_processes = 0;
 
 /* halt
  *
@@ -25,8 +26,12 @@ int nShellsOpen = 0;
 int32_t halt(uint8_t status) {
     if(EXCEPTION) return EXCEPTION_NUM;
     // if the current process is shell
-    if(nShellsOpen != 1) {
+    if((strncmp((int8_t *)(curr_pcb->filename), (int8_t *)"shell", 5) == 0) && (nProcesses[scheduled_terminal] == 1))
+        return -1;
+    else{
         // close open files using fd
+        nProcesses[scheduled_terminal]--;
+        total_processes--;
         int i;
         for(i = FDA_START; i < FDA_END; i++){
             close(i);
@@ -36,9 +41,11 @@ int32_t halt(uint8_t status) {
 
         switch_task_memory();
         prepare_context_switch();
+        active_processes[scheduled_terminal] = curr_pcb;
         restore_parent_data(curr_pcb->esp, curr_pcb->ebp, (uint32_t)status);
     }
     return -1;
+
 }
 
 /* execute
@@ -55,24 +62,46 @@ int32_t execute(const uint8_t* command) {
     memset(curr_arg, '\0', MAX_ARG_SIZE);
     argSize = 0;
     parseString(command);
+    if(checkIfExecutable(task_name) == -1) return -1;
 
-    if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0 && nShellsOpen == 0){
-        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - SIZE_OF_KERNEL_STACK);
-        curr_pcb->process_id = 1;
-        nShellsOpen++;
-    } else {
-        if(strncmp((int8_t *)task_name, (int8_t *) "shell", 5) == 0) {
-            if(nShellsOpen == 3) {
-                return -1;
-            }
-            nShellsOpen++;
-        }
-        uint32_t newProcessId = curr_pcb->process_id + 1;
-        if(newProcessId >= MAX_NUMBER_OF_PAGES) return -1;
+    //check to make sure total number of processes is not more than 6
+    if(total_processes == 6) return -1;
+
+    //if executing shell for first time in a terminal
+    if(total_processes < 3) {
+        cli();
+        send_eoi(0x00);
+
+        //set curr_pcb's location based on which terminal the shell is executing on.
+        //scheduled_terminal = 0 corresponds to location 8MB - 8KB.
+        curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (total_processes + 1)*SIZE_OF_KERNEL_STACK);
+
+        //scheduled terminal = 0 corresponds to process_id = 1.
+        //change later
+        //curr_pcb->process_id = scheduled_terminal + 1;
+        curr_pcb->process_id = total_processes + 1;
+    }
+
+    //else if executing shell for the second or more time or executing another user program 
+    else {
+        //set curr_pcb and it's process_id
+        uint32_t newProcessId = total_processes + 1;
         curr_pcb = (PCB_t *)(START_OF_KERNEL_STACKS - (newProcessId)*SIZE_OF_KERNEL_STACK);
         curr_pcb->process_id = newProcessId;
     }
 
+    //update number of processes for current terminal
+    nProcesses[scheduled_terminal]++;
+    total_processes++;
+
+    //first set parentPtr to old active process for current terminal, 
+    //then update active process for current terminal
+    curr_pcb->parentPtr = (uint32_t)active_processes[scheduled_terminal];
+    active_processes[scheduled_terminal] = curr_pcb;
+    
+    //set filename
+    strncpy((int8_t *)(curr_pcb->filename), (int8_t *)task_name, strlen((int8_t *)task_name));
+    
     //set up stdin, stdout
     curr_pcb->file_arr[0].flags = 1;
     curr_pcb->file_arr[0].inode_num = 0;
@@ -81,8 +110,7 @@ int32_t execute(const uint8_t* command) {
     curr_pcb->file_arr[1].inode_num = 0;
     curr_pcb->file_arr[1].file_op_ptr = &terminal_ptr;
 
-    //call execute's other 6 steps
-    if(checkIfExecutable(task_name) == -1) return -1;
+    //call execute's other 5 steps
     switch_task_memory();
     load_program_into_memory(task_name);
     create_pcb_child();
@@ -203,18 +231,13 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
     //clear buffer
     memset(buf, '\0', nbytes);
 
-    if(nbytes == 0 || argSize == 0){
-        // printf("curr arg %s \n", curr_arg);
-        // printf("arg size: %d", argSize);
+    if(nbytes == 0 || argSize == 0 || argSize > MAXIMUM_ARG_SIZE || argSize > nbytes){
         return -1; //no argument
     }
-    //printf("nbytes: %d \n", nbytes);
-    // printf("curr arg %s \n", curr_arg);
-    // printf("arg size: %d", argSize);
+
     int numBytesToCopy = nbytes;
     if(argSize < nbytes) numBytesToCopy = argSize;
     strncpy((int8_t *)buf, (int8_t *)curr_arg, numBytesToCopy);
-    //printf("buf: %s\n", buf);
     return 0;
 }
 
@@ -233,8 +256,8 @@ int32_t vidmap(uint8_t** screen_start) {
     if(address < USER_PAGE_START || address >= USER_PAGE_END) return -1;
 
     // 33 -> 128 MB in virtual mem
-    pageDirectory[33] = *videoMemTable | 0x07; //set user, r/w, present
-    videoMemTable[0] = (uint32_t) VIDEO_MEMORY_IDX | 0x07;
+    pageDirectory[33] = (uint32_t)videoMemTable | 0x07; //set user, r/w, present
+    videoMemTable[0] = (uint32_t) VIDEO_MEMORY_ARRAY[scheduled_terminal] | 0x07;
 
     // flush_tlb();
     asm volatile (
@@ -242,7 +265,7 @@ int32_t vidmap(uint8_t** screen_start) {
         "movl %eax, %cr3;"
     );
 
-    *screen_start = (uint8_t*) USER_PAGE_START;
+    *screen_start = (uint8_t*) USER_PAGE_END;
 
     return 0;
 

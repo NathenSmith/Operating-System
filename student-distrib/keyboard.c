@@ -1,9 +1,19 @@
 #include "keyboard.h"
-
+#include "pit.h"
+#include "shared_global_variables.h"
+#include "paging.h"
+#include "system_calls.h"
+#include "execute.h"
+#include "terminal.h"
+#if SCHEDULE_ENABLE == 0
+    static int flag2 = 0;
+    static int flag3 = 0;
+#endif
 /* SOURCES:  https://wiki.osdev.org/PS/2_Keyboard
     some code from Linux documentation of PS/2 Keyboard
 */
-static int buf_counter = 0;
+static int buf_counter[3] = {0, 0, 0};
+
 //buf_counter = 0;
 //static int scroll_flag = 0;
 static uint8_t check_if_letter(char index);
@@ -42,13 +52,17 @@ void initialize_keyboard(){
  * Return value: None
  */ 
 void key_board_handler(){ //changing kernel stack must fix
+    //switch paging for video memory
+    pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
+    flush_tlb();
+
     uint8_t read;
     read = inb(KEYBOARD_PORT);    
 
     //0x3A, keycode for capslock  
     if(read == 0x3A){
         states[CAPS_STATE] = ~(states[1]);
-        send_eoi(KEYBOARD_IRQ);  
+        send_eoi(KEYBOARD_IRQ);
         return;
     }
     //---------shift checks---------
@@ -58,11 +72,11 @@ void key_board_handler(){ //changing kernel stack must fix
             //clears for Ctrl-L (l is scancode 0x26)
             if(states[CTRL_STATE] && read == 0x26){
                 clear();
-                send_eoi(KEYBOARD_IRQ);
+                send_eoi(KEYBOARD_IRQ);  
                 return;                
             }
             add_to_kdb_buf(scan_codes[read] - CASE_CONVERSION);
-            send_eoi(KEYBOARD_IRQ);  
+            send_eoi(KEYBOARD_IRQ);    
             return;
         }
         //shift symbols as well
@@ -88,7 +102,7 @@ void key_board_handler(){ //changing kernel stack must fix
                 return;                
             }
             add_to_kdb_buf(scan_codes[read] - CASE_CONVERSION);
-            send_eoi(KEYBOARD_IRQ); 
+            send_eoi(KEYBOARD_IRQ);
             return; 
         }   
     }
@@ -107,12 +121,50 @@ void key_board_handler(){ //changing kernel stack must fix
             return;
         }
     }
+    //-----alt check-------------
+    if(states[ALT_STATE]){
+        //0x3B, scancode for F1
+        if(read == 0x3B){
+            switch_terminal(0, 1); //terminal 1
+        }
+        //0x3C, scancode for F2
+        else if(read == 0x3C){
+            #if SCHEDULE_ENABLE == 0
+            if(flag2 == 0){
+                flag2 = 1;
+                switch_terminal(1, 0);
+                clear();
+                scheduled_terminal = 1;
+                execute((uint8_t *)"shell");
+            }
+            #endif
+            switch_terminal(1, 1); //terminal 2
+        }
+        //0x3D, scancode for F3
+        else if(read == 0x3D){
+            #if SCHEDULE_ENABLE == 0
+            if(flag3 == 0){
+                flag3 = 1;
+                switch_terminal(2, 0);
+                clear();
+                scheduled_terminal = 2;
+                execute((uint8_t *)"shell");
+            }
+            #endif
+            switch_terminal(2, 1); //terminal 3
+    
+        }
+        //0xB8, 0xE0, release scan codes for l,r alt respectively
+        else if(read == 0xB8 || read == 0xE0){
+            states[ALT_STATE] = 0;
+        }
+    }
     //----set states and generic output-----
                     
     //0x2A and 0x36 scan codes for l,r shifts respecitvely
     if(read == 0x2A || read == 0x36){
         states[SHIFT_STATE] = 1;
-        send_eoi(KEYBOARD_IRQ); 
+        send_eoi(KEYBOARD_IRQ);
         return;
     }
     //0x1D, 0xE0, scan codes for l,r ctrl respectively
@@ -142,6 +194,14 @@ void key_board_handler(){ //changing kernel stack must fix
         send_eoi(KEYBOARD_IRQ);
         return;
     }
+    //0x1C, scancode for enter
+    else if(read == 0x1C){
+        add_to_kdb_buf(scan_codes[read]);
+        send_eoi(KEYBOARD_IRQ);
+        entered_flag[visible_terminal] = 1;
+        //goes to terminal read
+        return;
+    }
     //null character, don't do anything
     else if(scan_codes[read] == '\0'){
         send_eoi(KEYBOARD_IRQ);
@@ -154,7 +214,7 @@ void key_board_handler(){ //changing kernel stack must fix
         return;
     }
     
-    send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin  
+    send_eoi(KEYBOARD_IRQ);  //stop interrupt on pin
     return;  
 }
 
@@ -264,11 +324,15 @@ static char check_if_symbol(char index){
  * Return value: none
  */ 
 void add_to_kdb_buf(char c){
-    if(buf_counter >= BUF_SIZE) return;
-    kbd_buf[buf_counter] = c;
-    buf_counter++;
+    //enter now sets flag on entered_flag[visible]
+    if(buf_counter[visible_terminal] >= BUF_SIZE - 1 && c != '\n') return; //when reach max, dont add
+    //but allow for a newline to be
+    kbd_buf[visible_terminal][buf_counter[visible_terminal]] = c;
+    buf_counter[visible_terminal]++;
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     putc(c);
-    if(c == '\n') buf_counter = 0;      
+    
+    if(c == '\n') buf_counter[visible_terminal] = 0;    
 }
 
 /* backspace_buffer
@@ -281,8 +345,8 @@ void add_to_kdb_buf(char c){
  */ 
 void backspace_buffer(){
     backspace();
-    if(buf_counter > 0){ 
-        buf_counter--;
-        kbd_buf[buf_counter] = '\0';
+    if(buf_counter[visible_terminal] > 0){ 
+        buf_counter[visible_terminal]--;
+        kbd_buf[visible_terminal][buf_counter[visible_terminal]] = '\0';
     }
 }
