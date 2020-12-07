@@ -231,7 +231,7 @@ int32_t getargs(uint8_t* buf, int32_t nbytes) {
     //clear buffer
     memset(buf, '\0', nbytes);
 
-    if(nbytes == 0 || argSize == 0){
+    if(nbytes == 0 || argSize == 0 || nbytes < argSize){
         // printf("curr arg %s \n", curr_arg);
         // printf("arg size: %d", argSize);
         return -1; //no argument

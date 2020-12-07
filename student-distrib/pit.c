@@ -12,14 +12,23 @@
 #define MAXSHELLS 3
 #define RELOADVAL 0x40
 #define PITIRQ 0x0
+#define PAGE_SIZE 0x1000
 
 int scheduled_terminal = 0;
 int visible_terminal = 0;
 int calls_to_schedule = 0;
 int paging_scheme = 0;
 int x = 0;
-PCB_t * active_processes[3];
+PCB_t * active_processes[MAXSHELLS];
 
+/* initialize_pit
+ * 
+ * enables interrupt on IRQ line of pit on pic
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: interrupts enabled
+ * Return value: None
+ */ 
 void initialize_pit(){
     outb(CHANNEL, MODECMDREG);		// enable mode 3
     outb(FREQUENCY & LOWBYTEMASK, 0x40); //low byte
@@ -31,15 +40,33 @@ void initialize_pit(){
     enable_irq(PITIRQ); //irq is zero
 }
 
+/* pit_handler
+ * 
+ * schedules a process for every interrupt on the pit
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: process scheduled
+ * Return value: None
+ */ 
 void pit_handler() {
     //do something with curr process tracker
     schedule();
     send_eoi(PITIRQ);
 }
 
+/* schedule
+ * 
+ * Description: round robin implementation of scheduling to 
+ * cycle through the active process of every terminal
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: switching to user program of new terminal's process
+ * Return value: None
+ */ 
 void schedule() {
+    //execute first 3 shells on first 3 schedule calls
     calls_to_schedule++;
-    if(total_processes < 3 ) {
+    if(total_processes < MAXSHELLS ) {
         if(total_processes == 0){
             clear();
             execute((uint8_t *)"shell");            
@@ -51,33 +78,16 @@ void schedule() {
         execute((uint8_t *)"shell");
     }
     
+    //save ebp, esp of curr_pcb
     save_ebp_esp((uint32_t)curr_pcb + ESP2_LOCATION, (uint32_t)curr_pcb + EBP2_LOCATION);
 
+    //start on terminal 0 on (4)th call to schedule
     if(calls_to_schedule == 4) {
         switch_terminal(0, 1);
     }
-    // else {
-    //     //save cursor
-    //     active_processes[scheduled_terminal]->screen_x = get_x();
-    //     active_processes[scheduled_terminal]->screen_y = get_y();
-    // }     
-
-    //increment scheduled terminal number
     
-   
-    scheduled_terminal = (scheduled_terminal + 1) % 3; 
-    //if done with all active processes, go to start of active proceses
-    // //switch paging for video memory
-    // if(scheduled_terminal == visible_terminal) { 
-    //     pageTable[VIDEO_MEMORY_IDX >> 12] = (VIDEO_MEMORY_IDX | 0x003); // 0x3 are bits needed to set present, rw, supervisor
-    //     //paging_scheme = 0;
-    // }
-    // else {
-    //     //for backups
-    //     pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(scheduled_terminal + 1))) | 0x003);
-    //     //paging_scheme = scheduled_terminal + 1;
-    // }
-    // flush_tlb();
+    //round robin
+    scheduled_terminal = (scheduled_terminal + 1) % MAXSHELLS; 
 
     //get curr_pcb for new process
     curr_pcb = active_processes[scheduled_terminal];
@@ -88,26 +98,24 @@ void schedule() {
 
     //set TSS
     prepare_context_switch();
-    //set cursor 
-    if(calls_to_schedule != 4) {
-       //update_cursor(active_processes[visible_terminal]->screen_x, active_processes[visible_terminal]->screen_y);
-    }
 
     //restore ebp and esp for newly scheduled process
     restore_ebp_esp(curr_pcb->esp2, curr_pcb->ebp2); 
 }
 
+/* switch_terminal
+ * 
+ * Description: switches video memory to point to new visible terminal
+ * Inputs: None
+ * Outputs: None
+ * Side Effects: different video memory now visible
+ * Return value: None
+ */ 
 void switch_terminal(uint32_t terminal_num, int state){
-    //save cursor
-    // active_processes[visible_terminal]->screen_x = get_x();
-    // active_processes[visible_terminal]->screen_y = get_y(); 
-
     //save and restore video memory
-    memcpy((void *) (VIDEO_MEMORY_IDX + ((0x1000*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, 0x1000);
+    memcpy((void *) (VIDEO_MEMORY_IDX + ((PAGE_SIZE*(visible_terminal + 1)))), (void *) VIDEO_MEMORY_IDX, PAGE_SIZE);
     visible_terminal = terminal_num;
-    memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((0x1000*(terminal_num + 1)))), 0x1000);  
-
-    //pageTable[VIDEO_MEMORY_IDX >> 12] = ((VIDEO_MEMORY_IDX + (0x1000*(terminal_num + 1))) | 0x003);
+    memcpy((void *)VIDEO_MEMORY_IDX, (void *) (VIDEO_MEMORY_IDX + ((PAGE_SIZE*(terminal_num + 1)))), PAGE_SIZE);  
     
     //set cursor
     if(state == 0) {
@@ -117,13 +125,7 @@ void switch_terminal(uint32_t terminal_num, int state){
     else {
         update_cursor(get_x(visible_terminal), get_y(visible_terminal), 0);
     }
-    // restore_original_paging();
+
     send_eoi(0x01);
 }
     
-//writing to terminal: 
-    //when the user types something, the program should write to virtual video memory using putc, which should point to physical video memory.
-    //when a program writes to memory using terminal write, the virtual video memory should point to either the backup or the physical video memory.
-    
-
- 
