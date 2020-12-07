@@ -190,7 +190,7 @@ void update_cursor(int x, int y, int b)
     //     screen_y[visible_terminal] = y;
     //     return;
     // }
-    if(b == 0 || scheduled_terminal == visible_terminal){ //not in background
+    if(b == 0 || scheduled_terminal == visible_terminal || b == -1){ //not in background
         uint16_t pos = y * VGA_WIDTH + x;
         //from osdev
         outb(0x0F, 0x3D4);
@@ -222,7 +222,7 @@ void putc(uint8_t c) {
     
     flush_tlb();
      if(c == '\n' || c == '\r') {
-        if(screen_y[visible_terminal] == NUM_ROWS-1) {scroll_up();}
+        if(screen_y[visible_terminal] == NUM_ROWS-1) {scroll_up(-1);}
         else {screen_y[visible_terminal]++;}
         screen_x[visible_terminal] = 0;
         update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], 0); 
@@ -233,7 +233,7 @@ void putc(uint8_t c) {
         screen_x[visible_terminal]++;
         if(screen_x[visible_terminal] == NUM_COLS) {screen_y[visible_terminal]++;}
         else {screen_y[visible_terminal] = (screen_y[visible_terminal] + (screen_x[visible_terminal] / NUM_COLS)) % NUM_ROWS;}
-        if(screen_y[visible_terminal] == NUM_ROWS) {scroll_up();}
+        if(screen_y[visible_terminal] == NUM_ROWS) {scroll_up(-1);}
         screen_x[visible_terminal] %= NUM_COLS;
         update_cursor(screen_x[visible_terminal], screen_y[visible_terminal], 0);
     }
@@ -304,7 +304,7 @@ void putcTerminalW(uint8_t c){
     
     flush_tlb();
     if(c == '\n' || c == '\r') {
-            if(screen_y[scheduled_terminal] == NUM_ROWS-1) {scroll_up();}
+            if(screen_y[scheduled_terminal] == NUM_ROWS-1) {scroll_up(0);}
             else {screen_y[scheduled_terminal]++;}
             screen_x[scheduled_terminal] = 0;
             update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);       
@@ -315,7 +315,7 @@ void putcTerminalW(uint8_t c){
             screen_x[scheduled_terminal]++;
             if(screen_x[scheduled_terminal] == NUM_COLS) {screen_y[scheduled_terminal]++;}
             else {screen_y[scheduled_terminal] = (screen_y[scheduled_terminal] + (screen_x[scheduled_terminal] / NUM_COLS)) % NUM_ROWS;}
-            if(screen_y[scheduled_terminal] == NUM_ROWS) {scroll_up();}
+            if(screen_y[scheduled_terminal] == NUM_ROWS) {scroll_up(0);}
             screen_x[scheduled_terminal] %= NUM_COLS;
             update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);
     }
@@ -405,7 +405,7 @@ void backspace() {
  * Inputs: none
  * Return Value: void
  *  Function: Moves up screen by one line when typing at end to account for scrolling */
-void scroll_up() {
+void scroll_up(int b) {
     int i;
     int j; 
     for(i = 0; i < NUM_ROWS; i++){
@@ -421,9 +421,14 @@ void scroll_up() {
             }
         }
     }
-    screen_x[scheduled_terminal] = 0;
-    screen_y[scheduled_terminal] = NUM_ROWS -1;
-    update_cursor(screen_x[scheduled_terminal], screen_y[scheduled_terminal], 1);
+    // screen_x[scheduled_terminal] = 0;
+    // screen_y[scheduled_terminal] = NUM_ROWS -1;
+    if(b == -1) {
+        update_cursor(0, NUM_ROWS - 1, -1);
+    }
+    else {
+        update_cursor(0, NUM_ROWS - 1, 1);
+    }
     
 }
 

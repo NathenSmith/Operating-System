@@ -10,7 +10,7 @@
 void test_interrupts(void);
 
 void backspace();
-void scroll_up();
+void scroll_up(int b);
 void set_boundary();
 int get_x(int i);
 int get_y(int i);
