@@ -18,8 +18,8 @@ static char scan_codes[NUM_KEYS]= 	{ //presses
       '\0', '\0', '\0', '\0', '\0', '\0', '\0'
      }; 
 
-//0: shift state, 1: capslock state, 3: ctrl state
-static uint8_t states[NUM_STATES] = {0, 0, 0};
+//0: shift state, 1: capslock state, 2: ctrl state, 3: alt state
+static uint8_t states[NUM_STATES] = {0, 0, 0, 0};
 
 /* initialize_keyboard
  * 
@@ -116,10 +116,16 @@ void key_board_handler(){ //changing kernel stack must fix
         return;
     }
     //0x1D, 0xE0, scan codes for l,r ctrl respectively
-    else if((read) == 0xE0 || read == 0x1D){
+    else if(read == 0xE0 || read == 0x1D){
         states[CTRL_STATE] = 1;
         send_eoi(KEYBOARD_IRQ);
         return;            
+    }
+    //0x38, 0xE0, scan codes for l,r alt respectively (don't use right alt)
+    else if(read == 0x38 || read == 0xE0){
+        states[ALT_STATE] = 1;
+        send_eoi(KEYBOARD_IRQ);
+        return;
     }
     //0x0F, scan code for tab
     else if(read == 0x0F){

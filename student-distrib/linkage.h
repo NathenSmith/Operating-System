@@ -26,4 +26,6 @@ extern void isr_wrapper2E();
 extern void isr_wrapper2F();
 extern void sys_call();
 
+extern uint32_t save_eip;
+
 #endif

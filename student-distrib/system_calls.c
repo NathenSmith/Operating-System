@@ -87,7 +87,7 @@ int32_t execute(const uint8_t* command) {
     load_program_into_memory(task_name);
     create_pcb_child();
     prepare_context_switch();
-    push_iret_context();
+    push_iret_context(entry_point);
         
     return 0;
 }
