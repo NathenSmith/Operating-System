@@ -83,7 +83,7 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes){
 	//terminal_write_flag = 0;
 	for(i = 0; i < BUF_SIZE; i++){
 		//change back to scheduled
-		kbd_buf[visible_terminal][i] = '\0'; //reset keyboard buf
+		kbd_buf[scheduled_terminal][i] = '\0'; //reset keyboard buf
 	}
 	set_boundary();
 	// curr_pcb->screen_x = get_x();
